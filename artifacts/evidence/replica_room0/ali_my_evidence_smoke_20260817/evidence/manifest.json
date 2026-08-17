@@ -1,0 +1,29 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "room0_20260817T084610Z_62774d0e",
+  "scene_id": "room0",
+  "dataset": "/home/chenkejun/beauty/conceptgraphs/code/official/ali-my/conceptgraph/dataset/dataconfigs/replica/replica.yaml",
+  "branch": "ali-my",
+  "git_commit": "72f5962822b5e8678a446f367a06df1a977d2a4d",
+  "git_dirty": true,
+  "start_time": "2026-08-17T08:46:10.052984Z",
+  "end_time": "2026-08-17T08:46:12.715335Z",
+  "status": "completed",
+  "mapping_config_ref": "config_params.json",
+  "detection_config_ref": "config_params_detections.json",
+  "detection_exp_suffix": "smoke_detections_stride20",
+  "mapping_exp_suffix": "ali_my_evidence_smoke_20260817",
+  "model_versions": {
+    "detector": "yolov8l-world.pt",
+    "segmenter": "sam_l.pt",
+    "clip": "ViT-H-14/laion2b_s32b_b79k",
+    "vlm": "gpt-4o-2024-05-13"
+  },
+  "prompt_versions": {
+    "FRAME_EDGE": "ali-dev-system_prompt_only_top-v1",
+    "FRAME_CAPTION": "ali-dev-system_prompt_captions-v1",
+    "OBJECT_CAPTION_CONSOLIDATION": "ali-dev-system_prompt_consolidate_captions-v1"
+  },
+  "failure_reason": null,
+  "evidence_summary_ref": "evidence_summary.json"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "run_id": "room0_20260817T084610Z_62774d0e",
+  "num_frames": 2,
+  "num_raw_detections": 70,
+  "num_kept_observations": 47,
+  "num_rejected_observations": 23,
+  "num_create_decisions": 25,
+  "num_associate_decisions": 22,
+  "num_object_merges": 7,
+  "num_filtered_objects": 0,
+  "num_final_objects": 19,
+  "num_vlm_calls": 0,
+  "num_edges": 0,
+  "missing_reference_count": 0,
+  "duplicate_membership_occurrences": 2,
+  "logging_error_count": 0,
+  "logging_errors": []
+}
