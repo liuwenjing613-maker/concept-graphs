@@ -1,8 +1,7 @@
 defaults:
   - base
   - base_mapping
-  # - replica
-  - record3d
+  - replica
   - sam
   - classes
   - logging_level
@@ -14,6 +13,12 @@ force_detection: !!bool False
 save_detections: !!bool True
 
 make_edges: !!bool True
+# Unified evidence sidecar. Disabling it must not change mapping results.
+save_evidence: !!bool True
+evidence_top_k: 3
+evidence_save_observation_pcd: !!bool True
+evidence_observation_pcd_max_points: 10000
+
 
 stride: 10
 exp_suffix: r_mapping_stride10 # helpful label to identify your mapping experiment

@@ -39,7 +39,7 @@ from conceptgraph.utils.optional_rerun_wrapper import (
 from conceptgraph.utils.optional_wandb_wrapper import OptionalWandB
 from conceptgraph.utils.geometry import rotation_matrix_to_quaternion
 from conceptgraph.utils.logging_metrics import DenoisingTracker, MappingTracker
-from conceptgraph.utils.vlm import consolidate_captions, get_obj_rel_from_image_gpt4v, get_openai_client
+from conceptgraph.utils.vlm import consolidate_captions, get_obj_rel_from_image_gpt4v, get_openai_client, gpt_model
 from conceptgraph.utils.ious import mask_subtract_contained
 from conceptgraph.utils.general_utils import (
     ObjectClasses, 
@@ -96,6 +96,7 @@ from conceptgraph.slam.mapping import (
 )
 from conceptgraph.utils.model_utils import compute_clip_features_batched
 from conceptgraph.utils.general_utils import get_vis_out_path, cfg_to_dict, check_run_detections
+from conceptgraph.utils.evidence import EvidenceRecorder
 
 
 # Disable torch gradient computation
@@ -187,10 +188,32 @@ def main(cfg : DictConfig):
     else:
         print("\n".join(["NOT Running detections..."] * 10))
 
-    openai_client = get_openai_client()
+    # The no-edge Smoke Test must not require credentials or make VLM calls.
+    # The historical code initialized the client unconditionally and later
+    # consolidated captions even when make_edges was false.
+    openai_client = get_openai_client() if cfg.make_edges else None
 
     save_hydra_config(cfg, exp_out_path)
     save_hydra_config(detections_exp_cfg, exp_out_path, is_detection_config=True)
+
+    evidence = EvidenceRecorder(
+        exp_out_path=exp_out_path,
+        cfg=cfg,
+        detection_cfg=detections_exp_cfg,
+        enabled=bool(getattr(cfg, "save_evidence", True)),
+        model_versions={
+            "detector": "yolov8l-world.pt",
+            "segmenter": "sam_l.pt",
+            "clip": "ViT-H-14/laion2b_s32b_b79k",
+            "vlm": gpt_model,
+        },
+        prompt_versions={
+            "FRAME_EDGE": "ali-dev-system_prompt_only_top-v1",
+            "FRAME_CAPTION": "ali-dev-system_prompt_captions-v1",
+            "OBJECT_CAPTION_CONSOLIDATION": "ali-dev-system_prompt_consolidate_captions-v1",
+        },
+    )
+    openai_client = evidence.wrap_openai_client(openai_client)
 
     if cfg.save_objects_all_frames:
         obj_all_frames_out_path = exp_out_path / "saved_obj_all_frames" / f"det_{cfg.detections_exp_suffix}"
@@ -203,6 +226,11 @@ def main(cfg : DictConfig):
         counter+=1
         orr.set_time_sequence("frame", frame_idx)
 
+        frame_uid = evidence.frame_uid(frame_idx)
+        color_path = Path(dataset.color_paths[frame_idx])
+        depth_paths = getattr(dataset, "depth_paths", None)
+        depth_path = Path(depth_paths[frame_idx]) if depth_paths is not None else None
+
         # Check if we should exit early only if the flag hasn't been set yet
         if not exit_early_flag and should_exit_early(cfg.exit_early_file):
             print("Exit early signal detected. Skipping to the final frame...")
@@ -210,11 +238,22 @@ def main(cfg : DictConfig):
 
         # If exit early flag is set and we're not at the last frame, skip this iteration
         if exit_early_flag and frame_idx < len(dataset) - 1:
+            evidence.record_frame(
+                frame_idx=frame_idx,
+                source_frame_id=color_path.stem,
+                rgb_path=color_path,
+                depth_path=depth_path,
+                pose=None,
+                intrinsics=None,
+                processed=False,
+                skip_reason="early_exit",
+                num_raw_detections=0,
+                num_kept_observations=0,
+            )
             continue
 
         # Read info about current frame from dataset
         # color image
-        color_path = Path(dataset.color_paths[frame_idx])
         image_original_pil = Image.open(color_path)
         # color and depth tensors, and camera instrinsics matrix
         color_tensor, depth_tensor, intrinsics, *_ = dataset[frame_idx]
@@ -229,7 +268,7 @@ def main(cfg : DictConfig):
         # Load image detections for the current frame
         raw_gobs = None
         gobs = None # stands for grounded observations
-        detections_path = det_exp_pkl_path / (color_path.stem + ".pkl.gz")
+        detections_path = det_exp_pkl_path / color_path.stem
         
         vis_save_path_for_vlm = get_vlm_annotated_image_path(det_exp_vis_path, color_path)
         vis_save_path_for_vlm_edges = get_vlm_annotated_image_path(det_exp_vis_path, color_path, w_edges=True)
@@ -268,7 +307,19 @@ def main(cfg : DictConfig):
             )
             
             # Make the edges
+            evidence.begin_vlm_context(
+                frame_uid=frame_uid,
+                input_image_ref=str(vis_save_path_for_vlm),
+                input_labels=detection_class_labels,
+                input_observation_uids=[
+                    evidence.observation_uid(frame_idx, index)
+                    for index in range(len(curr_det.xyxy))
+                ],
+            )
             labels, edges, edge_image, captions = make_vlm_edges_and_captions(image, curr_det, obj_classes, detection_class_labels, det_exp_vis_path, color_path, cfg.make_edges, openai_client)
+            evidence.finish_vlm_context(
+                {"FRAME_EDGE": edges, "FRAME_CAPTION": captions}
+            )
 
             image_crops, image_feats, text_feats = compute_clip_features_batched(
                 image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer, obj_classes.get_classes_arr(), cfg.device)
@@ -321,6 +372,13 @@ def main(cfg : DictConfig):
                 # if no detections, throw an error
                 raise FileNotFoundError(f"No detections found for frame {frame_idx}at paths \n{det_exp_pkl_path / color_path.stem} or \n{det_exp_pkl_path / f'{int(color_path.stem):06}'}.")
 
+        # Stable raw detection identities are attached before resize/filter.
+        raw_observation_snapshots = evidence.prepare_observations(
+            raw_gobs=raw_gobs,
+            frame_idx=frame_idx,
+            detection_path=detections_path,
+        )
+
         # get pose, this is the untrasformed pose.
         unt_pose = dataset.poses[frame_idx]
         unt_pose = unt_pose.cpu().numpy()
@@ -350,6 +408,26 @@ def main(cfg : DictConfig):
         gobs = filtered_gobs
 
         if len(gobs['mask']) == 0: # no detections in this frame
+            evidence.record_observations(
+                frame_idx=frame_idx,
+                snapshots=raw_observation_snapshots,
+                filtered_gobs=gobs,
+                obj_pcds_and_bboxes=[],
+                image_shape=image_rgb.shape,
+                bg_classes=obj_classes.get_bg_classes_arr(),
+            )
+            evidence.record_frame(
+                frame_idx=frame_idx,
+                source_frame_id=color_path.stem,
+                rgb_path=color_path,
+                depth_path=depth_path,
+                pose=adjusted_pose,
+                intrinsics=intrinsics,
+                processed=True,
+                skip_reason="no_kept_2d_observations",
+                num_raw_detections=len(raw_observation_snapshots),
+                num_kept_observations=0,
+            )
             continue
 
         # this helps make sure things like pillows on couches are separate objects
@@ -381,8 +459,30 @@ def main(cfg : DictConfig):
                     pcd=obj["pcd"],
                 )
 
+        detection_obs_uids = evidence.record_observations(
+            frame_idx=frame_idx,
+            snapshots=raw_observation_snapshots,
+            filtered_gobs=gobs,
+            obj_pcds_and_bboxes=obj_pcds_and_bboxes,
+            image_shape=image_rgb.shape,
+            bg_classes=obj_classes.get_bg_classes_arr(),
+        )
+
         detection_list = make_detection_list_from_pcd_and_gobs(
             obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx
+        )
+        evidence.attach_observation_membership(detection_list, detection_obs_uids)
+        evidence.record_frame(
+            frame_idx=frame_idx,
+            source_frame_id=color_path.stem,
+            rgb_path=color_path,
+            depth_path=depth_path,
+            pose=adjusted_pose,
+            intrinsics=intrinsics,
+            processed=True,
+            skip_reason=None if len(detection_list) else "no_kept_3d_observations",
+            num_raw_detections=len(raw_observation_snapshots),
+            num_kept_observations=len(detection_obs_uids),
         )
 
         if len(detection_list) == 0: # no detections, skip
@@ -392,6 +492,13 @@ def main(cfg : DictConfig):
         # just add all the objects from the current frame
         # then continue, no need to match or merge
         if len(objects) == 0:
+            initial_matches = [None] * len(detection_list)
+            empty_similarity = np.empty((len(detection_list), 0), dtype=np.float32)
+            evidence.record_associations(
+                frame_idx, detection_list, objects,
+                empty_similarity, empty_similarity, empty_similarity,
+                initial_matches,
+            )
             objects.extend(detection_list)
             tracker.increment_total_objects(len(detection_list))
             owandb.log({
@@ -422,6 +529,10 @@ def main(cfg : DictConfig):
             agg_sim=agg_sim, 
             detection_threshold=cfg['sim_threshold']  # Use the sim_threshold from the configuration
         )
+        evidence.record_associations(
+            frame_idx, detection_list, objects,
+            spatial_sim, visual_sim, agg_sim, match_indices,
+        )
 
         # Now merge the detected objects into the existing objects based on the match indices
         objects = merge_obj_matches(
@@ -446,12 +557,22 @@ def main(cfg : DictConfig):
             if temp_class_name != most_common_class_name:
                 obj["class_name"] = most_common_class_name
 
+        edges_before_online_update = evidence.snapshot_edges(map_edges, objects)
         map_edges = process_edges(match_indices, gobs, len(objects), objects, map_edges, frame_idx)
+        evidence.record_edge_diff(
+            frame_idx=frame_idx,
+            before=edges_before_online_update,
+            map_edges=map_edges,
+            objects=objects,
+            reason="online_relation_update",
+            source_observation_uids=detection_obs_uids,
+        )
         is_final_frame = frame_idx == len(dataset) - 1
         if is_final_frame:
             print("Final frame detected. Performing final post-processing...")
 
         # Clean up outlier edges
+        edges_before_cleanup = evidence.snapshot_edges(map_edges, objects)
         edges_to_delete = []
         for curr_map_edge in map_edges.edges_by_index.values():
             curr_obj1_idx = curr_map_edge.obj1_idx
@@ -464,6 +585,13 @@ def main(cfg : DictConfig):
                 edges_to_delete.append((curr_obj1_idx, curr_obj2_idx))
         for edge in edges_to_delete:
             map_edges.delete_edge(edge[0], edge[1])
+        evidence.record_edge_diff(
+            frame_idx=frame_idx,
+            before=edges_before_cleanup,
+            map_edges=map_edges,
+            objects=objects,
+            reason="low_support_cleanup",
+        )
         ### Perform post-processing periodically if told so
 
         # Denoising
@@ -473,6 +601,7 @@ def main(cfg : DictConfig):
             frame_idx,
             is_final_frame,
         ):
+            objects_before_denoise = evidence.snapshot_objects(objects)
             objects = measure_time(denoise_objects)(
                 downsample_voxel_size=cfg['downsample_voxel_size'], 
                 dbscan_remove_noise=cfg['dbscan_remove_noise'], 
@@ -482,6 +611,7 @@ def main(cfg : DictConfig):
                 device=cfg['device'], 
                 objects=objects
             )
+            evidence.record_denoise(frame_idx, objects_before_denoise, objects)
 
         # Filtering
         if processing_needed(
@@ -490,11 +620,21 @@ def main(cfg : DictConfig):
             frame_idx,
             is_final_frame,
         ):
+            objects_before_filter = evidence.snapshot_objects(objects)
+            edges_before_filter = evidence.snapshot_edges(map_edges, objects)
             objects = filter_objects(
                 obj_min_points=cfg['obj_min_points'], 
                 obj_min_detections=cfg['obj_min_detections'], 
                 objects=objects,
                 map_edges=map_edges
+            )
+            evidence.record_filter(frame_idx, objects_before_filter, objects)
+            evidence.record_edge_diff(
+                frame_idx=frame_idx,
+                before=edges_before_filter,
+                map_edges=map_edges,
+                objects=objects,
+                reason="object_filter",
             )
 
         # Merging
@@ -504,7 +644,8 @@ def main(cfg : DictConfig):
             frame_idx,
             is_final_frame,
         ):
-            objects, map_edges = measure_time(merge_objects)(
+            edges_before_merge = evidence.snapshot_edges(map_edges, objects)
+            merge_result = measure_time(merge_objects)(
                 merge_overlap_thresh=cfg["merge_overlap_thresh"],
                 merge_visual_sim_thresh=cfg["merge_visual_sim_thresh"],
                 merge_text_sim_thresh=cfg["merge_text_sim_thresh"],
@@ -516,7 +657,28 @@ def main(cfg : DictConfig):
                 spatial_sim_type=cfg["spatial_sim_type"],
                 device=cfg["device"],
                 do_edges=cfg["make_edges"],
-                map_edges=map_edges
+                map_edges=map_edges,
+                merge_event_callback=lambda source_object, target_object, overlap_ratio, visual_similarity, text_similarity: evidence.record_object_merge(
+                    frame_idx=frame_idx,
+                    source_object=source_object,
+                    target_object=target_object,
+                    overlap_ratio=overlap_ratio,
+                    visual_similarity=visual_similarity,
+                    text_similarity=text_similarity,
+                ),
+            )
+            # ali-dev's merge_objects returns only objects when edge merging
+            # is disabled, and (objects, map_edges) when it is enabled.
+            if cfg["make_edges"]:
+                objects, map_edges = merge_result
+            else:
+                objects = merge_result
+            evidence.record_edge_diff(
+                frame_idx=frame_idx,
+                before=edges_before_merge,
+                map_edges=map_edges,
+                objects=objects,
+                reason="object_merge",
             )
         orr_log_objs_pcd_and_bbox(objects, obj_classes)
         orr_log_edges(objects, map_edges, obj_classes)
@@ -583,11 +745,24 @@ def main(cfg : DictConfig):
                 })
     # LOOP OVER -----------------------------------------------------
     
-    # Consolidate captions 
-    for object in objects:
-        obj_captions = object['captions'][:20]
-        consolidated_caption = consolidate_captions(openai_client, obj_captions)
-        object['consolidated_caption'] = consolidated_caption
+    # Consolidate captions only for the VLM edge/caption mode.  In the normal
+    # no-edge mapping path, keep an explicit empty field without any API call.
+    if cfg.make_edges:
+        for object in objects:
+            obj_captions = object['captions'][:20]
+            evidence.begin_vlm_context(
+                object_uid=str(object['id']),
+                input_captions=obj_captions,
+                input_observation_uids=object.get('obs_uids', []),
+            )
+            consolidated_caption = consolidate_captions(openai_client, obj_captions)
+            evidence.finish_vlm_context(
+                {"OBJECT_CAPTION_CONSOLIDATION": consolidated_caption}
+            )
+            object['consolidated_caption'] = consolidated_caption
+    else:
+        for object in objects:
+            object['consolidated_caption'] = ""
 
     handle_rerun_saving(cfg.use_rerun, cfg.save_rerun, cfg.exp_suffix, exp_out_path)
 
@@ -632,6 +807,11 @@ def main(cfg : DictConfig):
         if cfg.save_video:
             save_video_detections(det_exp_path)
 
+    evidence.close(
+        status="early_exit" if exit_early_flag else "completed",
+        objects=objects,
+        map_edges=map_edges,
+    )
     owandb.finish()
 
 if __name__ == "__main__":

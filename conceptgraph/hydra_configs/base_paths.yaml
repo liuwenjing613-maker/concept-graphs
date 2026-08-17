@@ -1,3 +1,4 @@
-# Main paths
-repo_root: /home/kuwajerw/repos/new_conceptgraphs/concept-graphs
-data_root: /home/kuwajerw/new_local_data
+# Server paths for this host. Keep the original file in
+# base_paths.yaml.original for comparison.
+repo_root: /home/chenkejun/beauty/conceptgraphs/code/official/ali-my
+data_root: /home/chenkejun/beauty/conceptgraphs/data

@@ -291,7 +291,7 @@ def merge_obj2_into_obj1(obj1, obj2, downsample_voxel_size, dbscan_remove_noise,
     tracker.track_merge(obj1, obj2)
     
     # Attributes to be explicitly handled
-    extend_attributes = ['image_idx', 'mask_idx', 'color_path', 'class_id', 'mask', 'xyxy', 'conf', 'contain_number', 'captions']
+    extend_attributes = ['image_idx', 'mask_idx', 'color_path', 'class_id', 'mask', 'xyxy', 'conf', 'contain_number', 'captions', 'obs_uids']
     add_attributes = ['num_detections', 'num_obj_in_class']
     skip_attributes = ['id', 'class_name', 'is_background', 'new_counter', 'curr_obj_num', 'inst_color']  # 'inst_color' just keeps obj1's
     custom_handled = ['pcd', 'bbox', 'clip_ft', 'text_ft', 'n_points']
@@ -584,6 +584,7 @@ def merge_overlap_objects(
     spatial_sim_type: str,
     device: str,
     map_edges = None,
+    merge_event_callback = None,
 ):
     x, y = overlap_matrix.nonzero()
     overlap_ratio = overlap_matrix[x, y]
@@ -617,9 +618,10 @@ def merge_overlap_objects(
             if (visual_sim > merge_visual_sim_thresh) and (text_sim > merge_text_sim_thresh):
                 if kept_objects[j]:  # Check if the target object has not been merged into another
                     # Merge object i into object j
+                    source_object = objects[i]
                     objects[j] = merge_obj2_into_obj1(
                         objects[j],
-                        objects[i],
+                        source_object,
                         downsample_voxel_size,
                         dbscan_remove_noise,
                         dbscan_eps,
@@ -628,6 +630,20 @@ def merge_overlap_objects(
                         device,
                         run_dbscan=True,
                     )
+                    if merge_event_callback is not None:
+                        try:
+                            merge_event_callback(
+                                source_object,
+                                objects[j],
+                                ratio,
+                                visual_sim,
+                                text_sim,
+                            )
+                        except Exception as exc:
+                            logging.warning(
+                                "Merge evidence callback failed without changing mapping: %s",
+                                exc,
+                            )
                     kept_objects[i] = False  # Mark object i as 'merged'
                     merge_operations.append((i, j))  # Record this merge for edge updates 
                     index_updates[i] = None  # Update index as merged
@@ -733,6 +749,7 @@ def merge_objects(
     device: str,
     do_edges: bool = False,
     map_edges = None,
+    merge_event_callback = None,
 ):
     if len(objects) == 0:
         return objects
@@ -761,6 +778,7 @@ def merge_objects(
         spatial_sim_type=spatial_sim_type,
         device=device,
         map_edges=map_edges,
+        merge_event_callback=merge_event_callback,
     )
     
     # print(f"MERGE OPERATIONS: \n{merge_operations}")
