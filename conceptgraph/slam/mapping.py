@@ -114,6 +114,7 @@ def merge_obj_matches(
     dbscan_min_points: int,
     spatial_sim_type: str,
     device: str,
+    object_update_callback=None,
 ) -> MapObjectList:
     """
     Merges detected objects into existing objects based on a list of match indices.
@@ -139,6 +140,13 @@ def merge_obj_matches(
             })
 
             objects.append(detection_list[detected_obj_idx])
+            if object_update_callback is not None:
+                object_update_callback(
+                    detected_obj_idx,
+                    existing_obj_match_idx,
+                    None,
+                    objects[-1],
+                )
         else:
 
             detected_obj = detection_list[detected_obj_idx]
@@ -155,6 +163,13 @@ def merge_obj_matches(
                 run_dbscan=False,
             )
             objects[existing_obj_match_idx] = merged_obj
+            if object_update_callback is not None:
+                object_update_callback(
+                    detected_obj_idx,
+                    existing_obj_match_idx,
+                    matched_obj,
+                    merged_obj,
+                )
     tracker.increment_total_merges(len(match_indices) - match_indices.count(None))
     tracker.increment_total_objects(len(objects) - temp_curr_object_count)
     # wandb.log({"merges_this_frame" :len(match_indices) - match_indices.count(None)})

@@ -234,17 +234,69 @@ def init_pcd_denoise_dbscan(pcd: o3d.geometry.PointCloud, eps=0.02, min_points=1
         
     return pcd
 
-def init_process_pcd(pcd, downsample_voxel_size, dbscan_remove_noise, dbscan_eps, dbscan_min_points, run_dbscan=True):
+def init_process_pcd(
+    pcd,
+    downsample_voxel_size,
+    dbscan_remove_noise,
+    dbscan_eps,
+    dbscan_min_points,
+    run_dbscan=True,
+    return_stats=False,
+):
+    """Initial point-cloud processing with optional evidence-only statistics."""
+
+    input_points = len(pcd.points)
     pcd = pcd.voxel_down_sample(voxel_size=downsample_voxel_size)
-    
+    after_downsample_points = len(pcd.points)
+    stats = {
+        "input_points": input_points,
+        "after_downsample_points": after_downsample_points,
+        "cluster_count": None,
+        "largest_cluster_ratio": None,
+        "second_cluster_ratio": None,
+        "largest_centers_distance": None,
+        "after_dbscan_points": after_downsample_points,
+    }
+
     if dbscan_remove_noise and run_dbscan:
-        pcd = init_pcd_denoise_dbscan(
-            pcd, 
-            eps=dbscan_eps, 
-            min_points=dbscan_min_points
-        )
-        
-    return pcd
+        if not return_stats:
+            pcd = init_pcd_denoise_dbscan(
+                pcd,
+                eps=dbscan_eps,
+                min_points=dbscan_min_points,
+            )
+        else:
+            labels = np.asarray(
+                pcd.cluster_dbscan(eps=dbscan_eps, min_points=dbscan_min_points)
+            )
+            points = np.asarray(pcd.points)
+            colors = np.asarray(pcd.colors)
+            counter = Counter(labels)
+            counter.pop(-1, None)
+            ordered = counter.most_common()
+            stats["cluster_count"] = len(ordered)
+            if after_downsample_points and ordered:
+                stats["largest_cluster_ratio"] = float(
+                    ordered[0][1] / after_downsample_points
+                )
+                stats["second_cluster_ratio"] = float(
+                    ordered[1][1] / after_downsample_points
+                ) if len(ordered) > 1 else 0.0
+                if len(ordered) > 1:
+                    first_center = points[labels == ordered[0][0]].mean(axis=0)
+                    second_center = points[labels == ordered[1][0]].mean(axis=0)
+                    stats["largest_centers_distance"] = float(
+                        np.linalg.norm(first_center - second_center)
+                    )
+                largest_mask = labels == ordered[0][0]
+                if int(largest_mask.sum()) >= 5:
+                    filtered = o3d.geometry.PointCloud()
+                    filtered.points = o3d.utility.Vector3dVector(points[largest_mask])
+                    filtered.colors = o3d.utility.Vector3dVector(colors[largest_mask])
+                    pcd = filtered
+
+    stats["after_dbscan_points"] = len(pcd.points)
+    return (pcd, stats) if return_stats else pcd
 
 # @profile
 def process_pcd(pcd, downsample_voxel_size, dbscan_remove_noise, dbscan_eps, dbscan_min_points, run_dbscan=True):
@@ -585,6 +637,7 @@ def merge_overlap_objects(
     device: str,
     map_edges = None,
     merge_event_callback = None,
+    merge_decision_callback = None,
 ):
     x, y = overlap_matrix.nonzero()
     overlap_ratio = overlap_matrix[x, y]
@@ -602,7 +655,7 @@ def merge_overlap_objects(
     
     index_updates = list(range(len(objects)))  # Initialize index updates with the same indices
 
-    for i, j, ratio in zip(x, y, overlap_ratio):
+    for candidate_rank, (i, j, ratio) in enumerate(zip(x, y, overlap_ratio), start=1):
         if ratio > merge_overlap_thresh:
             visual_sim = F.cosine_similarity(
                 to_tensor(objects[i]["clip_ft"]),
@@ -615,8 +668,24 @@ def merge_overlap_objects(
             #     dim=0,
             # )
             text_sim = visual_sim
+            reject_reasons = []
+            if float(visual_sim) <= merge_visual_sim_thresh:
+                reject_reasons.append("visual_below_threshold")
+            if float(text_sim) <= merge_text_sim_thresh:
+                reject_reasons.append("text_below_threshold")
+            if not kept_objects[i]:
+                reject_reasons.append("source_inactive")
+            if not kept_objects[j]:
+                reject_reasons.append("target_inactive")
+            if merge_decision_callback is not None:
+                merge_decision_callback(
+                    objects[i], objects[j], ratio, visual_sim, text_sim,
+                    "ACCEPT" if not reject_reasons else "REJECT",
+                    reject_reasons, bool(kept_objects[i]), bool(kept_objects[j]),
+                    candidate_rank,
+                )
             if (visual_sim > merge_visual_sim_thresh) and (text_sim > merge_text_sim_thresh):
-                if kept_objects[j]:  # Check if the target object has not been merged into another
+                if kept_objects[i] and kept_objects[j]:
                     # Merge object i into object j
                     source_object = objects[i]
                     objects[j] = merge_obj2_into_obj1(
@@ -648,6 +717,12 @@ def merge_overlap_objects(
                     merge_operations.append((i, j))  # Record this merge for edge updates 
                     index_updates[i] = None  # Update index as merged
         else:
+            if merge_decision_callback is not None:
+                merge_decision_callback(
+                    objects[i], objects[j], ratio, 0.0, 0.0, "REJECT",
+                    ["overlap_below_threshold"], bool(kept_objects[i]),
+                    bool(kept_objects[j]), candidate_rank,
+                )
             break  # Stop processing if the current overlap ratio is below the threshold
         
     # Update remaining indices in index_updates
@@ -750,6 +825,7 @@ def merge_objects(
     do_edges: bool = False,
     map_edges = None,
     merge_event_callback = None,
+    merge_decision_callback = None,
 ):
     if len(objects) == 0:
         return objects
@@ -779,6 +855,7 @@ def merge_objects(
         device=device,
         map_edges=map_edges,
         merge_event_callback=merge_event_callback,
+        merge_decision_callback=merge_decision_callback,
     )
     
     # print(f"MERGE OPERATIONS: \n{merge_operations}")
@@ -849,27 +926,58 @@ def filter_gobs(
     mask_area_threshold: float = 10,  # Default value as fallback
     max_bbox_area_ratio: float = None,  # Explicitly passing max_bbox_area_ratio
     mask_conf_threshold: float = None,  # Explicitly passing mask_conf_threshold
+    return_trace: bool = False,
 ):
     # If no detection at all
     if len(gobs['xyxy']) == 0:
-        return gobs
+        return (gobs, []) if return_trace else gobs
 
     # Filter out the objects based on various criteria
     idx_to_keep = []
+    filter_trace = []
     for mask_idx in range(len(gobs['xyxy'])):
         local_class_id = gobs['class_id'][mask_idx]
         class_name = gobs['classes'][local_class_id]
+        evaluated_gates = []
+
+        def reject(gate, value, operator, threshold):
+            evaluated_gates.append({
+                "gate": gate,
+                "value": value,
+                "operator": operator,
+                "threshold": threshold,
+                "passed": False,
+            })
+            filter_trace.append({
+                "raw_det_idx": int(mask_idx),
+                "decision": "REJECT",
+                "evaluated_gates": evaluated_gates,
+                "first_failed_gate": gate,
+            })
+
+        def accept():
+            filter_trace.append({
+                "raw_det_idx": int(mask_idx),
+                "decision": "KEEP",
+                "evaluated_gates": evaluated_gates,
+                "first_failed_gate": None,
+            })
 
         # Skip masks that are too small
         mask_area = gobs['mask'][mask_idx].sum()
-        if mask_area < max(mask_area_threshold, 10):
+        mask_threshold = max(mask_area_threshold, 10)
+        if mask_area < mask_threshold:
+            reject("mask_area_below_threshold", int(mask_area), ">=", float(mask_threshold))
             logging.debug(f"Skipped due to small mask area ({mask_area} pixels) - Class: {class_name}")
             continue
+        evaluated_gates.append({"gate": "mask_area", "value": int(mask_area), "operator": ">=", "threshold": float(mask_threshold), "passed": True})
 
         # Skip the BG classes
         if skip_bg and class_name in BG_CLASSES:
+            reject("background_class", class_name, "not_in", list(BG_CLASSES or []))
             logging.debug(f"Skipped background class: {class_name}")
             continue
+        evaluated_gates.append({"gate": "background_class", "value": class_name, "operator": "not_in", "threshold": list(BG_CLASSES or []), "passed": True})
 
         # Skip the non-background boxes that are too large
         if class_name not in BG_CLASSES:
@@ -877,16 +985,21 @@ def filter_gobs(
             bbox_area = (x2 - x1) * (y2 - y1)
             image_area = image.shape[0] * image.shape[1]
             if max_bbox_area_ratio is not None and bbox_area > max_bbox_area_ratio * image_area:
+                reject("bbox_area_above_ratio", float(bbox_area / image_area), "<=", float(max_bbox_area_ratio))
                 logging.debug(f"Skipped due to large bounding box area ratio - Class: {class_name}, Area Ratio: {bbox_area/image_area:.4f}")
                 continue
+            evaluated_gates.append({"gate": "bbox_area_ratio", "value": float(bbox_area / image_area), "operator": "<=", "threshold": float(max_bbox_area_ratio) if max_bbox_area_ratio is not None else None, "passed": True})
 
         # Skip masks with low confidence
         if mask_conf_threshold is not None and gobs['confidence'] is not None:
             if gobs['confidence'][mask_idx] < mask_conf_threshold:
+                reject("confidence_below_threshold", float(gobs['confidence'][mask_idx]), ">=", float(mask_conf_threshold))
                 # logging.debug(f"Skipped due to low confidence ({gobs['confidence'][mask_idx]}) - Class: {class_name}")
                 continue
+            evaluated_gates.append({"gate": "confidence", "value": float(gobs['confidence'][mask_idx]), "operator": ">=", "threshold": float(mask_conf_threshold), "passed": True})
 
         idx_to_keep.append(mask_idx)
+        accept()
 
     # for key in gobs.keys():
     #     print(key, type(gobs[key]), len(gobs[key]))
@@ -907,7 +1020,7 @@ def filter_gobs(
     filtered_captions = filter_captions(gobs['captions'], gobs['detection_class_labels'])
     gobs['captions'] = filtered_captions
 
-    return gobs
+    return (gobs, filter_trace) if return_trace else gobs
 
 
 def resize_gobs(gobs, image):

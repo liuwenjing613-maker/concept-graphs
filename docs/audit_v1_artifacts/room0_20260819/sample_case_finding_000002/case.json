@@ -1,0 +1,56 @@
+{
+  "finding_uid": "finding_000002",
+  "checker_id": "DET-001",
+  "stage": "detection",
+  "subtype": "DUPLICATE_PROPOSAL",
+  "scope": {
+    "frame_uid": "room0_20260819T055117Z_ffe24566_f000000",
+    "obs_uids": [
+      "room0_20260819T055117Z_ffe24566_f000000_r0000",
+      "room0_20260819T055117Z_ffe24566_f000000_r0004"
+    ]
+  },
+  "certainty": "LIKELY_MAPPING_CONFLICT",
+  "severity": "HIGH",
+  "policy_context": {
+    "observation_ownership": "exclusive_single_target",
+    "environment_mode": "static",
+    "policy_source": "audit_config_fallback"
+  },
+  "proven_facts": [
+    {
+      "name": "mask_iou",
+      "value": 0.9999279331219372
+    },
+    {
+      "name": "mask_containment",
+      "value": 1.0
+    },
+    {
+      "name": "clip_similarity",
+      "value": 1.0
+    },
+    {
+      "name": "symmetric_3d_support",
+      "value": 0.9887697805002552
+    }
+  ],
+  "hypotheses": [
+    {
+      "name": "duplicate_proposal",
+      "support": [
+        "2d_overlap",
+        "clip_similarity",
+        "3d_support"
+      ]
+    }
+  ],
+  "vetoes": [],
+  "missing_evidence": [],
+  "evidence_refs": {
+    "case_packet": "audit_v1/cases/finding_000002"
+  },
+  "route": "HUMAN_REVIEW",
+  "repair_allowed": false,
+  "review_priority": 11
+}

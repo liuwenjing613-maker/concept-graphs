@@ -1,0 +1,89 @@
+version: "1.0.0"
+strict_evidence: true
+environment_mode: static
+output_dir_name: audit_v1
+
+policy:
+  observation_ownership: exclusive_single_target
+  same_frame_many_to_one: allowed
+  relation_cardinality: many_to_many
+  object_granularity: instance_with_part_whole_ambiguity
+  missing_evidence_policy: unknown_not_pass
+  association_rule:
+    type: independent_greedy_argmax
+    threshold_comparison: strict_greater_than
+    max_score_equal_threshold: create_object
+  postprocess_merge:
+    source_single_consumption: true
+    source_must_be_active: true
+    target_must_be_active: true
+
+enabled_checkers:
+  system_integrity: true
+  detection: true
+  segmentation: true
+  projection_geometry: true
+  association: true
+  fusion: true
+  object_identity: true
+  caption: false
+  relation: false
+
+thresholds:
+  duplicate_proposal:
+    mask_iou: 0.85
+    containment: 0.95
+    clip_similarity: 0.90
+    symmetric_3d_support: 0.70
+  false_positive:
+    valid_depth_ratio: 0.50
+    required_signals_likely: 3
+  segmentation:
+    subtraction_loss_ratio: 0.50
+    fragmented_second_component_ratio: 0.20
+    background_second_cluster_ratio: 0.20
+    low_valid_depth_ratio: 0.30
+  geometry:
+    reprojection_iou_likely: 0.20
+    reprojection_iou_risk: 0.50
+    multi_cluster_second_ratio: 0.20
+    center_jump_normalized: 1.00
+    denoise_keep_ratio: 0.30
+  association:
+    semantic_outlier_z: 3.0
+    semantic_support_low: 0.75
+    geometric_support_low: 0.15
+    low_margin: 0.05
+    very_low_margin: 0.01
+    low_threshold_slack: 0.05
+    high_visual: 0.85
+    low_spatial: 0.05
+    counterfactual_gain: 0.10
+  fusion:
+    feature_drift: 0.15
+    center_shift_normalized: 0.30
+    volume_growth_ratio: 1.50
+    point_growth_ratio: 1.50
+    overlap_asymmetry: 0.50
+  object_pair:
+    duplicate_clip_similarity: 0.90
+    duplicate_symmetric_support: 0.75
+    center_distance_normalized: 0.20
+    repeated_separated_covisibility_veto: 2
+  weak_object:
+    required_low_support_signals: 3
+  identity:
+    class_dominant_ratio_low: 0.60
+    class_count_high: 3
+
+limits:
+  max_findings_per_rule: 500
+  max_pair_candidates_per_stage: 5000
+
+case_builder:
+  enabled: true
+  max_cases: 200
+  max_images_per_object: 6
+  save_mask_overlay: true
+  save_depth_overlay: true
+  save_3d_overlay: true

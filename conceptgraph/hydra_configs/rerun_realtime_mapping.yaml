@@ -15,9 +15,11 @@ save_detections: !!bool True
 make_edges: !!bool True
 # Unified evidence sidecar. Disabling it must not change mapping results.
 save_evidence: !!bool True
+evidence_mode: best_effort  # use strict for formal runs
 evidence_top_k: 3
 evidence_save_observation_pcd: !!bool True
-evidence_observation_pcd_max_points: 10000
+evidence_observation_pcd_max_points: 0  # 0 stores the complete fused observation PCD
+audit_environment_mode: static
 
 
 stride: 10

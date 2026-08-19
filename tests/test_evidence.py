@@ -1,4 +1,7 @@
+import gzip
+import hashlib
 import json
+import pickle
 import uuid
 from pathlib import Path
 
@@ -47,6 +50,8 @@ def test_evidence_recorder_writes_complete_minimal_chain(tmp_path):
         "evidence_observation_pcd_max_points": 100,
         "evidence_top_k": 3,
     }
+    (tmp_path / "config_params.json").write_text(json.dumps(cfg))
+    (tmp_path / "config_params_detections.json").write_text(json.dumps(cfg))
     recorder = EvidenceRecorder(tmp_path, cfg, cfg, enabled=True)
 
     masks = np.zeros((2, 8, 8), dtype=bool)
@@ -69,8 +74,16 @@ def test_evidence_recorder_writes_complete_minimal_chain(tmp_path):
             {"id": "1", "name": "chair", "caption": "small artifact"},
         ],
     }
+    detection_path = tmp_path / "detections/frame000000"
+    detection_path.mkdir(parents=True)
+    np.savez_compressed(detection_path / "mask.npz", masks)
+    np.savez_compressed(detection_path / "image_feats.npz", raw_gobs["image_feats"])
+    with gzip.open(detection_path / "image_crops.pkl.gz", "wb") as handle:
+        pickle.dump(raw_gobs["image_crops"], handle)
+    with gzip.open(detection_path / "text_feats.pkl.gz", "wb") as handle:
+        pickle.dump(raw_gobs["text_feats"], handle)
     snapshots = recorder.prepare_observations(
-        raw_gobs, frame_idx=0, detection_path=tmp_path / "detections/000000.pkl.gz"
+        raw_gobs, frame_idx=0, detection_path=detection_path
     )
 
     filtered_gobs = {
@@ -80,6 +93,20 @@ def test_evidence_recorder_writes_complete_minimal_chain(tmp_path):
     }
     point_cloud = FakePointCloud([[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]])
     bbox = FakeBBox()
+    filter_trace = [
+        {
+            "raw_det_idx": 0,
+            "decision": "KEEP",
+            "evaluated_gates": [],
+            "first_failed_gate": None,
+        },
+        {
+            "raw_det_idx": 1,
+            "decision": "REJECT",
+            "evaluated_gates": [],
+            "first_failed_gate": "mask_area_below_threshold",
+        },
+    ]
     kept_uids = recorder.record_observations(
         frame_idx=0,
         snapshots=snapshots,
@@ -87,12 +114,21 @@ def test_evidence_recorder_writes_complete_minimal_chain(tmp_path):
         obj_pcds_and_bboxes=[{"pcd": point_cloud, "bbox": bbox}],
         image_shape=(8, 8, 3),
         bg_classes=[],
+        filter_trace=filter_trace,
+        pre_subtract_masks=masks[[0]],
     )
+    recorder.record_filter_trace(0, filter_trace)
+    rgb_path = tmp_path / "rgb/000000.jpg"
+    depth_path = tmp_path / "depth/000000.png"
+    rgb_path.parent.mkdir()
+    depth_path.parent.mkdir()
+    rgb_path.write_bytes(b"rgb")
+    depth_path.write_bytes(b"depth")
     recorder.record_frame(
         frame_idx=0,
         source_frame_id="000000",
-        rgb_path=tmp_path / "rgb/000000.jpg",
-        depth_path=tmp_path / "depth/000000.png",
+        rgb_path=rgb_path,
+        depth_path=depth_path,
         pose=np.eye(4),
         intrinsics=np.eye(4),
         processed=True,
@@ -111,11 +147,13 @@ def test_evidence_recorder_writes_complete_minimal_chain(tmp_path):
         "pcd": point_cloud,
         "bbox": bbox,
         "consolidated_caption": "a chair",
+        "clip_ft": np.ones(4, dtype=np.float32),
     }
     empty = np.empty((1, 0), dtype=np.float32)
     recorder.record_associations(
         0, [detection], [], empty, empty, empty, [None]
     )
+    recorder.record_association_object_version(0, 0, None, None, detection)
     recorder.close("completed", objects=[detection], map_edges=FakeEdges())
 
     evidence_dir = tmp_path / "evidence"
@@ -137,6 +175,17 @@ def test_evidence_recorder_writes_complete_minimal_chain(tmp_path):
     assert {item["status"] for item in observations} == {"kept", "rejected"}
     assert (evidence_dir / "similarities/frame_000000.npz").exists()
     assert (evidence_dir / "observation_pcd" / f"{kept_uids[0]}.npz").exists()
+    assert (evidence_dir / "processed_masks" / f"{kept_uids[0]}.npz").exists()
+    audit_summary = json.loads((tmp_path / "audit/audit_summary.json").read_text())
+    assert audit_summary["gate_status"] == "PASS"
+    manifest = json.loads((evidence_dir / "manifest.json").read_text())
+    assert manifest["status"] == "MAP_COMPLETED_EVIDENCE_VALID"
+    assert manifest["audit_policy"]["observation_ownership"] == "exclusive_single_target"
+    assert manifest["audit_policy"]["association_rule"]["max_score_equal_threshold"] == "create_object"
+    audit_ref = manifest["audit_summary_ref"]
+    audit_path = tmp_path / audit_ref["path"]
+    assert audit_ref["format"] == "json"
+    assert audit_ref["sha256"] == hashlib.sha256(audit_path.read_bytes()).hexdigest()
 
 
 def test_new_run_removes_binary_sidecars_from_previous_run(tmp_path):

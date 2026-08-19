@@ -397,12 +397,13 @@ def main(cfg : DictConfig):
         # resize the observation if needed
         resized_gobs = resize_gobs(raw_gobs, image_rgb)
         # filter the observations
-        filtered_gobs = filter_gobs(resized_gobs, image_rgb, 
+        filtered_gobs, filter_trace = filter_gobs(resized_gobs, image_rgb,
             skip_bg=cfg.skip_bg,
             BG_CLASSES=obj_classes.get_bg_classes_arr(),
             mask_area_threshold=cfg.mask_area_threshold,
             max_bbox_area_ratio=cfg.max_bbox_area_ratio,
             mask_conf_threshold=cfg.mask_conf_threshold,
+            return_trace=True,
         )
 
         gobs = filtered_gobs
@@ -415,7 +416,10 @@ def main(cfg : DictConfig):
                 obj_pcds_and_bboxes=[],
                 image_shape=image_rgb.shape,
                 bg_classes=obj_classes.get_bg_classes_arr(),
+                filter_trace=filter_trace,
+                depth_array=depth_array,
             )
+            evidence.record_filter_trace(frame_idx, filter_trace)
             evidence.record_frame(
                 frame_idx=frame_idx,
                 source_frame_id=color_path.stem,
@@ -431,6 +435,7 @@ def main(cfg : DictConfig):
             continue
 
         # this helps make sure things like pillows on couches are separate objects
+        pre_subtract_masks = np.asarray(gobs['mask'], dtype=bool).copy()
         gobs['mask'] = mask_subtract_contained(gobs['xyxy'], gobs['mask'])
 
         obj_pcds_and_bboxes = measure_time(detections_to_obj_pcd_and_bbox)(
@@ -447,12 +452,13 @@ def main(cfg : DictConfig):
 
         for obj in obj_pcds_and_bboxes:
             if obj:
-                obj["pcd"] = init_process_pcd(
+                obj["pcd"], obj["evidence_pcd_stats"] = init_process_pcd(
                     pcd=obj["pcd"],
                     downsample_voxel_size=cfg["downsample_voxel_size"],
                     dbscan_remove_noise=cfg["dbscan_remove_noise"],
                     dbscan_eps=cfg["dbscan_eps"],
                     dbscan_min_points=cfg["dbscan_min_points"],
+                    return_stats=True,
                 )
                 obj["bbox"] = get_bounding_box(
                     spatial_sim_type=cfg['spatial_sim_type'], 
@@ -466,7 +472,11 @@ def main(cfg : DictConfig):
             obj_pcds_and_bboxes=obj_pcds_and_bboxes,
             image_shape=image_rgb.shape,
             bg_classes=obj_classes.get_bg_classes_arr(),
+            filter_trace=filter_trace,
+            pre_subtract_masks=pre_subtract_masks,
+            depth_array=depth_array,
         )
+        evidence.record_filter_trace(frame_idx, filter_trace)
 
         detection_list = make_detection_list_from_pcd_and_gobs(
             obj_pcds_and_bboxes, gobs, color_path, obj_classes, frame_idx
@@ -500,6 +510,14 @@ def main(cfg : DictConfig):
                 initial_matches,
             )
             objects.extend(detection_list)
+            for detected_obj_idx, created_object in enumerate(detection_list):
+                evidence.record_association_object_version(
+                    frame_idx=frame_idx,
+                    detected_obj_idx=detected_obj_idx,
+                    existing_obj_match_idx=None,
+                    before_object=None,
+                    after_object=created_object,
+                )
             tracker.increment_total_objects(len(detection_list))
             owandb.log({
                     "total_objects_so_far": tracker.get_total_objects(),
@@ -544,7 +562,14 @@ def main(cfg : DictConfig):
             dbscan_eps=cfg['dbscan_eps'], 
             dbscan_min_points=cfg['dbscan_min_points'], 
             spatial_sim_type=cfg['spatial_sim_type'], 
-            device=cfg['device']
+            device=cfg['device'],
+            object_update_callback=lambda detected_obj_idx, existing_obj_match_idx, before_object, after_object: evidence.record_association_object_version(
+                frame_idx=frame_idx,
+                detected_obj_idx=detected_obj_idx,
+                existing_obj_match_idx=existing_obj_match_idx,
+                before_object=before_object,
+                after_object=after_object,
+            ),
             # Note: Removed 'match_method' and 'phys_bias' as they do not appear in the provided merge function
         )
         # fix the class names for objects
@@ -665,6 +690,18 @@ def main(cfg : DictConfig):
                     overlap_ratio=overlap_ratio,
                     visual_similarity=visual_similarity,
                     text_similarity=text_similarity,
+                ),
+                merge_decision_callback=lambda source_object, target_object, overlap_ratio, visual_similarity, text_similarity, decision, reject_reason, source_active_before, target_active_before, candidate_rank: evidence.record_merge_candidate(
+                    frame_idx=frame_idx,
+                    source_object=source_object,
+                    target_object=target_object,
+                    overlap_ratio=overlap_ratio,
+                    visual_similarity=visual_similarity,
+                    text_similarity=text_similarity,
+                    decision=decision,
+                    reject_reason=reject_reason,
+                    source_active_before=source_active_before,
+                    target_active_before=target_active_before,
                 ),
             )
             # ali-dev's merge_objects returns only objects when edge merging
