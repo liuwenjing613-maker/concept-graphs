@@ -1654,6 +1654,379 @@ def _allocate_quotas(
     return quotas
 
 
+def _resolved_final_object_uids(object_uid: str, facts: FactStore) -> list[str]:
+    """Resolve an active or historically merged object into active final nodes."""
+    if object_uid in facts.object_by_uid:
+        return [object_uid]
+    resolved = []
+    for final_uid, item in facts.object_by_uid.items():
+        ancestry = {str(value) for value in item.get("parent_or_merged_from_object_uids", [])}
+        if object_uid in ancestry:
+            resolved.append(str(final_uid))
+    return sorted(set(resolved))
+
+
+def _incident_identity(finding: Finding, facts: FactStore) -> dict[str, Any]:
+    """Build a stable final-endpoint identity independent of checker name.
+
+    R1 judges the final map, so all findings that resolve to the exact same set
+    of active final objects share one review unit even when they were triggered
+    by different observations or stages.  Trigger observations are used as the
+    identity only for orphan findings that have no active final owner.
+    """
+    trigger_uids = sorted(set(_trigger_observation_uids(finding, facts)))
+    final_owner_uids = sorted(
+        {
+            str(owner)
+            for obs_uid in trigger_uids
+            for owner in facts.ownership.get(obs_uid, [])
+            if owner
+        }
+    )
+    scope = finding.scope
+    object_uids = sorted(
+        set(_uid_list(scope.get("object_uid")) + _uid_list(scope.get("object_uids")))
+    )
+    if not trigger_uids:
+        resolved = sorted(
+            {
+                final_uid
+                for object_uid in object_uids
+                for final_uid in _resolved_final_object_uids(object_uid, facts)
+            }
+        )
+        if resolved:
+            final_owner_uids = sorted(set(final_owner_uids + resolved))
+
+    if final_owner_uids:
+        identity_kind = "final_endpoint_set"
+        identity_values = final_owner_uids
+    elif trigger_uids:
+        identity_kind = "orphan_trigger_observations"
+        identity_values = trigger_uids
+    elif object_uids:
+        identity_kind = "historical_objects"
+        identity_values = object_uids
+    else:
+        identity_kind = "finding_fallback"
+        identity_values = [finding.finding_uid]
+
+    if not final_owner_uids:
+        resolution_status = "NO_ACTIVE_FINAL_OBJECT"
+    elif len(final_owner_uids) == 1 and len(trigger_uids) > 1:
+        resolution_status = "TRIGGERS_CONVERGED_TO_ONE_FINAL_OBJECT"
+    elif len(final_owner_uids) == 1:
+        resolution_status = "ONE_ACTIVE_FINAL_OBJECT"
+    else:
+        resolution_status = "MULTIPLE_ACTIVE_FINAL_OBJECTS"
+    canonical = json.dumps(
+        {
+            "scene_id": getattr(facts.context, "scene_id", "unknown"),
+            "identity_kind": identity_kind,
+            "identity_values": identity_values,
+        },
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return {
+        "incident_uid": "incident_" + hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:20],
+        "identity_kind": identity_kind,
+        "identity_values": identity_values,
+        "trigger_observation_uids": trigger_uids,
+        "final_owner_uids": final_owner_uids,
+        "machine_resolution_status": resolution_status,
+    }
+
+
+def _select_incident_candidates(
+    findings: list[Finding],
+    facts: FactStore,
+    config: dict,
+    max_cases: int,
+    population_report: Optional[dict[str, dict]] = None,
+) -> tuple[list[Finding], dict]:
+    """Sample unique, reviewable incidents instead of individual rule hits."""
+    settings = config.get("case_builder", {})
+    eligible, details = _case_candidates(findings, facts, config)
+    seed_value = settings.get("random_seed")
+    seed = int(seed_value) if seed_value is not None else int(
+        hashlib.sha256(facts.context.run_id.encode("utf-8")).hexdigest()[:8], 16
+    )
+    rng = np.random.default_rng(seed)
+    population_report = population_report or {}
+    population_censored = any(
+        bool(item.get("population_censored")) or int(item.get("suppressed_count", 0)) > 0
+        for item in population_report.values()
+    )
+
+    blocked_config = settings.get("human_review_blocked_checkers", {}) or {}
+    if isinstance(blocked_config, list):
+        blocked_reasons = {str(value): "configured as missing stage-faithful visual evidence" for value in blocked_config}
+    else:
+        blocked_reasons = {str(key): str(value) for key, value in blocked_config.items()}
+
+    grouped_findings: dict[str, list[Finding]] = defaultdict(list)
+    identity_by_uid: dict[str, dict[str, Any]] = {}
+    for item in eligible:
+        identity = _incident_identity(item, facts)
+        identity_by_uid[item.finding_uid] = identity
+        grouped_findings[identity["incident_uid"]].append(item)
+
+    records = []
+    blocked_incidents = []
+    for incident_uid, members in sorted(grouped_findings.items()):
+        reviewable = [item for item in members if item.checker_id not in blocked_reasons]
+        blocked_members = [item for item in members if item.checker_id in blocked_reasons]
+        if not reviewable:
+            blocked_incidents.append(
+                {
+                    "incident_uid": incident_uid,
+                    "finding_uids": sorted(item.finding_uid for item in members),
+                    "checker_ids": sorted({item.checker_id for item in members}),
+                    "reasons": sorted({blocked_reasons[item.checker_id] for item in members}),
+                }
+            )
+            continue
+        representative = min(
+            reviewable,
+            key=lambda item: (
+                -float(item.review_score or 0),
+                -STAGE_ORDER.get(item.stage, -1),
+                item.checker_id,
+                item.finding_uid,
+            ),
+        )
+        identity = identity_by_uid[representative.finding_uid]
+        all_trigger_uids = sorted(
+            {
+                obs_uid
+                for item in members
+                for obs_uid in identity_by_uid[item.finding_uid]["trigger_observation_uids"]
+            }
+        )
+        records.append(
+            {
+                "incident_uid": incident_uid,
+                "representative": representative,
+                "members": sorted(members, key=lambda item: item.finding_uid),
+                "blocked_members": sorted(blocked_members, key=lambda item: item.finding_uid),
+                "identity": identity,
+                "all_trigger_observation_uids": all_trigger_uids,
+                "primary_entity": details[representative.finding_uid]["primary_entity"],
+            }
+        )
+
+    calibration_target = min(
+        len(records), int(round(max_cases * float(settings.get("calibration_fraction", 0.50))))
+    )
+    strata: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in records:
+        representative = record["representative"]
+        strata[f"{representative.checker_id}|{representative.certainty}"].append(record)
+    stratum_counts = {key: len(items) for key, items in strata.items()}
+    calibration_quotas = _allocate_quotas(
+        stratum_counts,
+        calibration_target,
+        minimum=int(settings.get("min_calibration_per_stratum", 1)),
+    )
+    selected_records: list[dict[str, Any]] = []
+    selected_incident_uids: set[str] = set()
+    stratum_rows = []
+    for key in sorted(strata):
+        population = sorted(strata[key], key=lambda record: record["incident_uid"])
+        sample_size = calibration_quotas.get(key, 0)
+        indices = sorted(rng.choice(len(population), size=sample_size, replace=False).tolist()) if sample_size else []
+        probability = sample_size / len(population) if population else 0.0
+        weight = 1.0 / probability if probability else None
+        reported_probability = None if population_censored else round(probability, 12)
+        reported_weight = None if population_censored else (round(weight, 12) if weight is not None else None)
+        for index in indices:
+            record = population[index]
+            representative = record["representative"]
+            representative.selection_cohort = "calibration_random"
+            representative.selection_probability = reported_probability
+            representative.sampling_weight = reported_weight
+            selected_records.append(record)
+            selected_incident_uids.add(record["incident_uid"])
+        stratum_rows.append(
+            {
+                "stratum": key,
+                "population": len(population),
+                "selected": sample_size,
+                "inclusion_probability": reported_probability,
+                "sampling_weight": reported_weight,
+                "observed_emitted_population": len(population),
+            }
+        )
+
+    priority_target = max(0, min(max_cases - len(selected_records), len(records) - len(selected_records)))
+    remaining = [record for record in records if record["incident_uid"] not in selected_incident_uids]
+    by_checker: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in remaining:
+        by_checker[record["representative"].checker_id].append(record)
+    for items in by_checker.values():
+        items.sort(
+            key=lambda record: (
+                -float(record["representative"].review_score or 0),
+                record["incident_uid"],
+            )
+        )
+    checker_counts = {key: len(items) for key, items in by_checker.items()}
+    checker_quotas = _allocate_quotas(
+        checker_counts,
+        priority_target,
+        minimum=int(settings.get("min_priority_per_checker", 1)),
+        maximum=int(settings.get("max_priority_per_checker", 20)),
+    )
+    entity_cap = int(settings.get("max_priority_cases_per_entity", 2))
+    entity_usage = Counter(record["primary_entity"] for record in selected_records)
+    checker_selected = Counter()
+    skipped_entity_cap = 0
+
+    def try_select(record: dict[str, Any]) -> bool:
+        nonlocal skipped_entity_cap
+        if entity_usage[record["primary_entity"]] >= entity_cap:
+            skipped_entity_cap += 1
+            return False
+        representative = record["representative"]
+        representative.selection_cohort = "diagnostic_priority"
+        representative.selection_probability = None
+        representative.sampling_weight = None
+        selected_records.append(record)
+        selected_incident_uids.add(record["incident_uid"])
+        entity_usage[record["primary_entity"]] += 1
+        checker_selected[representative.checker_id] += 1
+        return True
+
+    for checker in sorted(by_checker):
+        for record in by_checker[checker]:
+            if checker_selected[checker] >= checker_quotas.get(checker, 0):
+                break
+            try_select(record)
+    if len(selected_records) < max_cases:
+        for record in sorted(
+            remaining,
+            key=lambda value: (
+                -float(value["representative"].review_score or 0),
+                value["representative"].checker_id,
+                value["incident_uid"],
+            ),
+        ):
+            if len(selected_records) >= max_cases:
+                break
+            if record["incident_uid"] in selected_incident_uids:
+                continue
+            checker = record["representative"].checker_id
+            if checker_selected[checker] >= int(settings.get("max_priority_per_checker", 20)):
+                continue
+            try_select(record)
+
+    selected_records.sort(
+        key=lambda record: (
+            0 if record["representative"].selection_cohort == "calibration_random" else 1,
+            record["representative"].checker_id,
+            record["representative"].review_priority or 10**9,
+            record["incident_uid"],
+        )
+    )
+    selected_rows = []
+    for case_rank, record in enumerate(selected_records, 1):
+        representative = record["representative"]
+        members = record["members"]
+        identity = record["identity"]
+        selected_rows.append(
+            {
+                "case_rank": case_rank,
+                "annotation_unit": "incident",
+                "incident_uid": record["incident_uid"],
+                "finding_uid": representative.finding_uid,
+                "representative_finding_uid": representative.finding_uid,
+                "checker_id": representative.checker_id,
+                "stage": representative.stage,
+                "subtype": representative.subtype,
+                "checker_ids": sorted({item.checker_id for item in members}),
+                "stages": sorted({item.stage for item in members}, key=lambda stage: STAGE_ORDER.get(stage, 99)),
+                "subtypes": sorted({item.subtype for item in members}),
+                "member_finding_uids": [item.finding_uid for item in members],
+                "blocked_checker_ids": sorted({item.checker_id for item in record["blocked_members"]}),
+                "trigger_observation_uids": identity["trigger_observation_uids"],
+                "representative_trigger_observation_uids": identity["trigger_observation_uids"],
+                "all_trigger_observation_uids": record["all_trigger_observation_uids"],
+                "final_owner_uids": identity["final_owner_uids"],
+                "machine_resolution_status": identity["machine_resolution_status"],
+                "identity_kind": identity["identity_kind"],
+                "certainty": representative.certainty,
+                "cohort": representative.selection_cohort,
+                "review_score": representative.review_score,
+                "review_priority": representative.review_priority,
+                "selection_probability": representative.selection_probability,
+                "sampling_weight": representative.sampling_weight,
+                **details[representative.finding_uid],
+            }
+        )
+
+    selected = [record["representative"] for record in selected_records]
+    manifest = {
+        "schema_version": SCHEMA_VERSION,
+        "annotation_unit": "incident",
+        "strategy": "incident_deduplicated_dual_cohort_endpoint_review",
+        "random_seed": seed,
+        "available_candidates": len(records),
+        "available_findings": len(eligible),
+        "max_cases": max_cases,
+        "selected_count": len(selected),
+        "weighted_precision_allowed": not population_censored,
+        "population_censoring": {
+            "status": "FAIL" if population_censored else "PASS",
+            "population_censored": population_censored,
+            "by_checker": population_report,
+        },
+        "precision_policy": (
+            "Weighted precision is forbidden because at least one checker population was censored before incident construction."
+            if population_censored
+            else "Calibration weights estimate precision over unique reviewable final-endpoint sets, not rule-hit findings or trigger observations. Endpoint units blocked for missing stage-faithful evidence are reported separately."
+        ),
+        "deduplication": {
+            "eligible_finding_count": len(eligible),
+            "incident_count_before_evidence_block": len(grouped_findings),
+            "reviewable_incident_count": len(records),
+            "blocked_incident_count": len(blocked_incidents),
+            "collapsed_finding_count": len(eligible) - len(grouped_findings),
+            "cross_checker_incident_count": sum(
+                len({item.checker_id for item in members}) > 1 for members in grouped_findings.values()
+            ),
+            "blocked_finding_count": sum(len(item["finding_uids"]) for item in blocked_incidents),
+        },
+        "human_review_blocked_checkers": blocked_reasons,
+        "blocked_incidents": blocked_incidents,
+        "cohorts": {
+            "calibration_random": {
+                "target": calibration_target,
+                "selected": sum(item.selection_cohort == "calibration_random" for item in selected),
+                "stratification": ["representative_checker_id", "certainty"],
+                "strata": stratum_rows,
+            },
+            "diagnostic_priority": {
+                "target": priority_target,
+                "selected": sum(item.selection_cohort == "diagnostic_priority" for item in selected),
+                "checker_quotas": checker_quotas,
+                "max_cases_per_checker": int(settings.get("max_priority_per_checker", 20)),
+                "max_cases_per_entity": entity_cap,
+                "entity_cap_skipped": skipped_entity_cap,
+            },
+        },
+        "candidate_checker_counts": dict(Counter(record["representative"].checker_id for record in records)),
+        "candidate_incident_checker_memberships": dict(
+            Counter(item.checker_id for record in records for item in record["members"])
+        ),
+        "selected_checker_counts": dict(Counter(item.checker_id for item in selected)),
+        "selected_cohort_counts": dict(Counter(item.selection_cohort for item in selected)),
+        "selected": selected_rows,
+    }
+    return selected, manifest
+
+
 def _select_case_candidates(
     findings: list[Finding],
     facts: FactStore,
@@ -1662,6 +2035,10 @@ def _select_case_candidates(
     population_report: Optional[dict[str, dict]] = None,
 ) -> tuple[list[Finding], dict]:
     settings = config.get("case_builder", {})
+    if str(settings.get("annotation_unit", "finding")) == "incident":
+        return _select_incident_candidates(
+            findings, facts, config, max_cases, population_report
+        )
     eligible, details = _case_candidates(findings, facts, config)
     seed_value = settings.get("random_seed")
     seed = int(seed_value) if seed_value is not None else int(

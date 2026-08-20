@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build traceable, human-readable evidence for Audit Validity Gate R1.
+"""Build traceable, endpoint-first evidence for incident-level R1 review.
 
 The original evidence packets are useful diagnostic exports, but their flat
 image gallery does not make three distinctions explicit:
@@ -9,7 +9,7 @@ image gallery does not make three distinctions explicit:
 3. the exact final map objects needed to judge downstream harm.
 
 This builder adds ``review_evidence.json`` and deterministic review images to
-every frozen R1 case without changing the finding, worklist, map, or label.  It
+every frozen R1 incident without changing the finding, worklist, map, or label.  It
 also writes a top-level manifest that the browser service verifies before it
 accepts labels.
 """
@@ -30,7 +30,7 @@ from typing import Any, Iterable
 import numpy as np
 
 
-SCHEMA_VERSION = "1.0.0"
+SCHEMA_VERSION = "2.1.0"
 REVIEW_FILENAME = "review_evidence.json"
 MANIFEST_FILENAME = "review_evidence_manifest.json"
 
@@ -603,6 +603,8 @@ def render_final_objects(
     final_uids: list[str],
     aliases: dict[str, str],
     scene: SceneEvidence,
+    *,
+    endpoint_uids: Iterable[str] = (),
 ) -> list[str]:
     if not final_uids:
         return []
@@ -611,6 +613,7 @@ def render_final_objects(
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
+    endpoint_uid_set = {str(value) for value in endpoint_uids}
     values = []
     for index, uid in enumerate(final_uids):
         item = scene.output_object_by_uid[uid]
@@ -625,13 +628,14 @@ def render_final_objects(
     for axis, (left, right, xlabel, ylabel) in zip(axes, projections):
         all_x, all_y = [], []
         for uid, _, shown, color in values:
+            role = "ENDPOINT" if uid in endpoint_uid_set else "context"
             axis.scatter(
                 shown[:, left],
                 shown[:, right],
                 s=1.4,
                 alpha=0.55,
                 color=color,
-                label=f"{aliases[uid]} {scene.final_by_uid[uid].get('class_name') or ''}",
+                label=f"{aliases[uid]} [{role}] {scene.final_by_uid[uid].get('class_name') or ''}",
             )
             all_x.append(shown[:, left])
             all_y.append(shown[:, right])
@@ -640,7 +644,7 @@ def render_final_objects(
         axis.set_ylabel(ylabel)
         axis.grid(alpha=0.15)
     axes[0].legend(fontsize=8, markerscale=4)
-    fig.suptitle("Exact final-map point coordinates | shared world axes | alias colors")
+    fig.suptitle("Exact final-map point coordinates | ENDPOINT is the review target | context aids comparison")
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     relative_name = "review_final_objects_relative.png"
     fig.savefig(case_dir / relative_name, dpi=140)
@@ -659,13 +663,14 @@ def render_final_objects(
             axis.grid(alpha=0.15)
             if column == 0:
                 final = scene.final_by_uid[uid]
+                role = "ENDPOINT" if uid in endpoint_uid_set else "context"
                 axis.set_title(
-                    f"{aliases[uid]} | {final.get('class_name') or 'unknown'} | "
+                    f"{aliases[uid]} [{role}] | {final.get('class_name') or 'unknown'} | "
                     f"obs={len(final.get('member_observation_uids') or [])} | points={len(points)}",
                     loc="left",
                     fontsize=9,
                 )
-    fig.suptitle("Exact final-map objects | per-object scaled views")
+    fig.suptitle("Exact final-map objects | ENDPOINT first, then comparison context")
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     detail_name = "review_final_objects_detail.png"
     fig.savefig(case_dir / detail_name, dpi=140)
@@ -844,10 +849,21 @@ def build_case(
         raise ValueError(f"case directory escaped validation root: {case_dir}")
     case_path = case_dir / "case.json"
     case = read_json(case_path)
-    if str(case.get("finding_uid")) != case_uid:
-        raise ValueError(f"case UID mismatch at {case_path}")
+    representative_uid = str(
+        row.get("representative_finding_uid") or row.get("finding_uid") or case_uid
+    )
+    if str(case.get("finding_uid")) != representative_uid:
+        raise ValueError(f"representative finding UID mismatch at {case_path}")
 
     trigger_uids = trigger_observation_uids(case, scene)
+    frozen_trigger_uids = [str(value) for value in row.get("trigger_observation_uids") or []]
+    if frozen_trigger_uids and set(frozen_trigger_uids) != set(trigger_uids):
+        raise ValueError(f"incident trigger observations changed at {case_path}")
+    all_trigger_uids = [
+        str(value) for value in row.get("all_trigger_observation_uids") or trigger_uids
+    ]
+    if not set(trigger_uids).issubset(set(all_trigger_uids)):
+        raise ValueError(f"representative triggers escaped endpoint trigger set at {case_path}")
     roles = relevant_object_roles(case, trigger_uids, scene)
     resolved_final_uids = []
     for object_uid in roles:
@@ -859,7 +875,8 @@ def build_case(
                 resolved_final_uids.extend(scene.owners.get(str(member_uid), []))
     for obs_uid in trigger_uids:
         resolved_final_uids.extend(scene.owners.get(obs_uid, []))
-    resolved_final_uids = list(dict.fromkeys(resolved_final_uids))
+    frozen_endpoint_uids = [str(value) for value in row.get("final_owner_uids") or []]
+    resolved_final_uids = list(dict.fromkeys([*frozen_endpoint_uids, *resolved_final_uids]))
     all_object_uids = list(dict.fromkeys([*roles, *resolved_final_uids]))
     aliases = aliases_for(all_object_uids)
 
@@ -998,7 +1015,13 @@ def build_case(
             }
         )
 
-    final_assets = render_final_objects(case_dir, resolved_final_uids, aliases, scene)
+    final_assets = render_final_objects(
+        case_dir,
+        resolved_final_uids,
+        aliases,
+        scene,
+        endpoint_uids=frozen_endpoint_uids,
+    )
     final_records = []
     for uid in resolved_final_uids:
         summary = scene.final_summary(uid)
@@ -1010,6 +1033,25 @@ def build_case(
         item["membership_matches_final_output"] and item["point_count_matches_final_output"]
         for item in final_records
     )
+    trigger_final_owners = {
+        obs_uid: scene.owners.get(obs_uid, []) for obs_uid in trigger_uids
+    }
+    trigger_final_owner_uids = sorted(
+        {owner for values in trigger_final_owners.values() for owner in values}
+    )
+    incident_final_owner_uids = (
+        trigger_final_owner_uids if trigger_uids else sorted(set(resolved_final_uids))
+    )
+    frozen_final_owner_uids = sorted(str(value) for value in row.get("final_owner_uids") or [])
+    if frozen_final_owner_uids and frozen_final_owner_uids != incident_final_owner_uids:
+        raise ValueError(f"incident final lineage changed at {case_path}")
+    for item in final_records:
+        item["endpoint_role"] = (
+            "INCIDENT_FINAL_OWNER"
+            if item.get("object_uid") in incident_final_owner_uids
+            else "CONTEXT_CANDIDATE_FINAL_OBJECT"
+        )
+    machine_resolution_status = str(row.get("machine_resolution_status") or "")
     final_outcome = {
         "status": "LINKED_ACTIVE_FINAL_OBJECTS" if final_records else "ABSENT_FROM_ACTIVE_FINAL_MAP",
         "message": (
@@ -1017,9 +1059,10 @@ def build_case(
             if final_records
             else "已核对完整 final_membership：触发 observation 与相关对象都未形成或进入 active final object；这是最终结果，不是页面漏图。"
         ),
-        "trigger_observation_final_owners": {
-            obs_uid: scene.owners.get(obs_uid, []) for obs_uid in trigger_uids
-        },
+        "machine_resolution_status": machine_resolution_status,
+        "trigger_observation_final_owners": trigger_final_owners,
+        "trigger_final_owner_uids": trigger_final_owner_uids,
+        "machine_resolution_is_not_human_verdict": True,
     }
     fidelity_status = "TRACEABLE_WITH_CRITICAL_GAP" if any(item.get("critical") for item in gaps) else "TRACEABLE"
 
@@ -1033,6 +1076,27 @@ def build_case(
         "schema_version": SCHEMA_VERSION,
         "scene_id": scene_id,
         "case_uid": case_uid,
+        "annotation_unit": "incident",
+        "incident": {
+            "incident_uid": str(row.get("incident_uid") or case_uid),
+            "representative_finding_uid": representative_uid,
+            "member_finding_uids": row.get("member_finding_uids") or [representative_uid],
+            "checker_ids": row.get("checker_ids") or [case.get("checker_id")],
+            "stages": row.get("stages") or [case.get("stage")],
+            "subtypes": row.get("subtypes") or [case.get("subtype")],
+            "blocked_checker_ids": row.get("blocked_checker_ids") or [],
+            "trigger_observation_uids": trigger_uids,
+            "representative_trigger_observation_uids": trigger_uids,
+            "all_trigger_observation_uids": all_trigger_uids,
+            "trigger_context_coverage": {
+                "displayed": len(trigger_uids),
+                "linked_total": len(all_trigger_uids),
+                "policy": "R1 sees an exact representative trigger context; all linked triggers remain frozen for expert trace",
+            },
+            "final_owner_uids": incident_final_owner_uids,
+            "machine_resolution_status": machine_resolution_status,
+            "review_scope": "human judges the exact final-map endpoint, not checker correctness, root stage, or repair",
+        },
         "finding_uid": case.get("finding_uid"),
         "checker_id": case.get("checker_id"),
         "stage": case.get("stage"),
@@ -1074,7 +1138,10 @@ def build_case(
     return {
         "scene_id": scene_id,
         "case_uid": case_uid,
+        "incident_uid": str(row.get("incident_uid") or case_uid),
+        "representative_finding_uid": representative_uid,
         "checker_id": case.get("checker_id"),
+        "checker_ids": row.get("checker_ids") or [case.get("checker_id")],
         "fidelity_status": fidelity_status,
         "critical_gap_count": sum(1 for item in gaps if item.get("critical")),
         "trigger_observation_count": len(observation_records),

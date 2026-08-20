@@ -9,6 +9,7 @@ from conceptgraph.audit.layered_audit import (
     Finding,
     LayeredAudit,
     _case_observation_selection,
+    _incident_identity,
     _select_case_candidates,
     _select_object_views,
     build_evidence_packets,
@@ -42,6 +43,19 @@ def test_v1_config_is_versioned_and_stage_aware():
     assert config["policy"]["missing_evidence_policy"] == "unknown_not_pass"
     assert config["enabled_checkers"]["association"] is True
     assert config["thresholds"]["duplicate_proposal"]["mask_iou"] == 0.85
+
+
+def test_v2_validation_config_uses_incidents_and_blocks_unfaithful_stage_snapshots():
+    path = Path(__file__).parents[1] / "conceptgraph/audit/configs/v2_validation.yaml"
+    config = load_audit_config(path)
+    assert config["version"] == "2.1.0"
+    assert config["case_builder"]["annotation_unit"] == "incident"
+    assert set(config["case_builder"]["human_review_blocked_checkers"]) == {
+        "SEG-002",
+        "GEO-003",
+        "GEO-005",
+        "FUSE-007",
+    }
 
 
 def test_root_cause_prefers_earliest_stage_and_preserves_uncertainty():
@@ -92,6 +106,7 @@ class _FakeFacts:
     def __init__(self, tmp_path=None):
         self.context = SimpleNamespace(
             run_id="test-run",
+            scene_id="room0",
             evidence_root=Path(tmp_path or "."),
         )
         self.obs_by_uid = {}
@@ -309,6 +324,105 @@ def test_dual_cohort_sampling_is_stratified_and_not_execution_order_biased():
     assert manifest["selected_cohort_counts"]["diagnostic_priority"] == 5
     assert manifest["cohorts"]["calibration_random"]["strata"]
     assert all(item.review_score is not None and item.review_priority is not None for item in findings)
+
+
+def test_incident_sampling_deduplicates_rule_hits_and_blocks_unreviewable_stage_only_cases():
+    facts = _FakeFacts()
+    for uid in ("obs-a", "obs-b", "obs-c"):
+        facts.obs_by_uid[uid] = {"obs_uid": uid}
+    facts.ownership = {
+        "obs-a": ["final-chair"],
+        "obs-b": ["final-chair"],
+        "obs-c": ["final-sofa"],
+    }
+    facts.object_by_uid = {
+        "final-chair": {"object_uid": "final-chair"},
+        "final-sofa": {"object_uid": "final-sofa"},
+    }
+    duplicate_findings = []
+    for uid, checker, stage in (
+        ("finding-det", "DET-001", "detection"),
+        ("finding-seg", "SEG-004", "segmentation"),
+        ("finding-assoc", "ASSOC-004", "association"),
+    ):
+        item = _finding(uid, checker, stage, "DUPLICATE_PROPOSAL_CHAIN", [])
+        item.scope = {"obs_uids": ["obs-a", "obs-b"]}
+        duplicate_findings.append(item)
+    blocked_findings = []
+    for uid, checker, stage in (
+        ("finding-pre-seg", "SEG-002", "segmentation"),
+        ("finding-pre-geo", "GEO-003", "geometry"),
+    ):
+        item = _finding(uid, checker, stage, "PRE_DBSCAN_MULTI_CLUSTER", [])
+        item.scope = {"obs_uid": "obs-c"}
+        blocked_findings.append(item)
+    config = {
+        "thresholds": {
+            "duplicate_proposal": {},
+            "segmentation": {},
+            "geometry": {},
+            "association": {},
+        },
+        "case_builder": {
+            "annotation_unit": "incident",
+            "calibration_fraction": 1.0,
+            "min_calibration_per_stratum": 1,
+            "min_priority_per_checker": 1,
+            "max_priority_per_checker": 20,
+            "max_priority_cases_per_entity": 2,
+            "random_seed": 7,
+            "human_review_blocked_checkers": {
+                "SEG-002": "missing pre-DBSCAN PCD",
+                "GEO-003": "missing pre-DBSCAN PCD",
+            },
+        },
+    }
+    selected, manifest = _select_case_candidates(
+        duplicate_findings + blocked_findings, facts, config, 10
+    )
+    assert len(selected) == 1
+    assert manifest["annotation_unit"] == "incident"
+    assert manifest["available_findings"] == 5
+    assert manifest["deduplication"]["incident_count_before_evidence_block"] == 2
+    assert manifest["deduplication"]["reviewable_incident_count"] == 1
+    assert manifest["deduplication"]["blocked_incident_count"] == 1
+    assert manifest["deduplication"]["collapsed_finding_count"] == 3
+    row = manifest["selected"][0]
+    assert row["checker_ids"] == ["ASSOC-004", "DET-001", "SEG-004"]
+    assert row["trigger_observation_uids"] == ["obs-a", "obs-b"]
+    assert row["final_owner_uids"] == ["final-chair"]
+    assert row["machine_resolution_status"] == "TRIGGERS_CONVERGED_TO_ONE_FINAL_OBJECT"
+
+
+def test_endpoint_identity_collapses_different_triggers_with_the_same_final_owner():
+    facts = _FakeFacts()
+    facts.obs_by_uid = {
+        "obs-early": {"obs_uid": "obs-early"},
+        "obs-late": {"obs_uid": "obs-late"},
+        "obs-orphan": {"obs_uid": "obs-orphan"},
+    }
+    facts.ownership = {
+        "obs-early": ["final-chair"],
+        "obs-late": ["final-chair"],
+        "obs-orphan": [],
+    }
+    facts.object_by_uid = {"final-chair": {"object_uid": "final-chair"}}
+    early = _finding("finding-early", "DET-001", "detection", "DUPLICATE", [])
+    early.scope = {"obs_uid": "obs-early"}
+    late = _finding("finding-late", "ASSOC-003", "association", "LOW_MARGIN", [])
+    late.scope = {"obs_uid": "obs-late"}
+    orphan = _finding("finding-orphan", "DET-002", "detection", "ORPHAN", [])
+    orphan.scope = {"obs_uid": "obs-orphan"}
+
+    early_identity = _incident_identity(early, facts)
+    late_identity = _incident_identity(late, facts)
+    orphan_identity = _incident_identity(orphan, facts)
+
+    assert early_identity["incident_uid"] == late_identity["incident_uid"]
+    assert early_identity["identity_kind"] == "final_endpoint_set"
+    assert early_identity["final_owner_uids"] == ["final-chair"]
+    assert orphan_identity["identity_kind"] == "orphan_trigger_observations"
+    assert orphan_identity["incident_uid"] != early_identity["incident_uid"]
 
 
 def test_finding_cap_suppression_is_counted_and_fails_validation_gate():
