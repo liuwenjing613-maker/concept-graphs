@@ -13,6 +13,8 @@ force_detection: !!bool False
 save_detections: !!bool True
 
 make_edges: !!bool True
+seed: 0
+save_parity_trace: !!bool False
 # Unified evidence sidecar. Disabling it must not change mapping results.
 save_evidence: !!bool True
 evidence_mode: best_effort  # use strict for formal runs

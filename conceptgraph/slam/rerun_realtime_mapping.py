@@ -5,6 +5,8 @@ The script is used to model Grounded SAM detections in 3D, it assumes the tag2te
 # Standard library imports
 import os
 import copy
+import json
+import random
 import uuid
 from pathlib import Path
 import pickle
@@ -120,6 +122,12 @@ def main(cfg : DictConfig):
                 config=cfg_to_dict(cfg),
                )
     cfg = process_cfg(cfg)
+    seed = int(cfg.get("seed", 0))
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
 
     # Initialize the dataset
     dataset = get_dataset(
@@ -214,6 +222,7 @@ def main(cfg : DictConfig):
         },
     )
     openai_client = evidence.wrap_openai_client(openai_client)
+    parity_trace = []
 
     if cfg.save_objects_all_frames:
         obj_all_frames_out_path = exp_out_path / "saved_obj_all_frames" / f"det_{cfg.detections_exp_suffix}"
@@ -592,6 +601,14 @@ def main(cfg : DictConfig):
             reason="online_relation_update",
             source_observation_uids=detection_obs_uids,
         )
+        frame_parity = {
+            "frame_idx": int(frame_idx),
+            "source_frame_id": color_path.stem,
+            "objects_after_association": len(objects),
+            "denoise": {"executed": False},
+            "filter": {"executed": False},
+            "merge": {"executed": False},
+        }
         is_final_frame = frame_idx == len(dataset) - 1
         if is_final_frame:
             print("Final frame detected. Performing final post-processing...")
@@ -626,6 +643,7 @@ def main(cfg : DictConfig):
             frame_idx,
             is_final_frame,
         ):
+            denoise_before_count = len(objects)
             objects_before_denoise = evidence.snapshot_objects(objects)
             objects = measure_time(denoise_objects)(
                 downsample_voxel_size=cfg['downsample_voxel_size'], 
@@ -637,6 +655,11 @@ def main(cfg : DictConfig):
                 objects=objects
             )
             evidence.record_denoise(frame_idx, objects_before_denoise, objects)
+            frame_parity["denoise"] = {
+                "executed": True,
+                "objects_before": denoise_before_count,
+                "objects_after": len(objects),
+            }
 
         # Filtering
         if processing_needed(
@@ -645,6 +668,7 @@ def main(cfg : DictConfig):
             frame_idx,
             is_final_frame,
         ):
+            filter_before_count = len(objects)
             objects_before_filter = evidence.snapshot_objects(objects)
             edges_before_filter = evidence.snapshot_edges(map_edges, objects)
             objects = filter_objects(
@@ -661,6 +685,12 @@ def main(cfg : DictConfig):
                 objects=objects,
                 reason="object_filter",
             )
+            frame_parity["filter"] = {
+                "executed": True,
+                "objects_before": filter_before_count,
+                "objects_after": len(objects),
+                "removed_count": filter_before_count - len(objects),
+            }
 
         # Merging
         if processing_needed(
@@ -669,6 +699,7 @@ def main(cfg : DictConfig):
             frame_idx,
             is_final_frame,
         ):
+            merge_before_count = len(objects)
             edges_before_merge = evidence.snapshot_edges(map_edges, objects)
             merge_result = measure_time(merge_objects)(
                 merge_overlap_thresh=cfg["merge_overlap_thresh"],
@@ -717,6 +748,15 @@ def main(cfg : DictConfig):
                 objects=objects,
                 reason="object_merge",
             )
+            frame_parity["merge"] = {
+                "executed": True,
+                "objects_before": merge_before_count,
+                "objects_after": len(objects),
+                "merged_count": merge_before_count - len(objects),
+            }
+        frame_parity["objects_final"] = len(objects)
+        frame_parity["edges_final"] = len(map_edges.edges_by_index)
+        parity_trace.append(frame_parity)
         orr_log_objs_pcd_and_bbox(objects, obj_classes)
         orr_log_edges(objects, map_edges, obj_classes)
 
@@ -781,6 +821,12 @@ def main(cfg : DictConfig):
                 "is_final_frame": is_final_frame,
                 })
     # LOOP OVER -----------------------------------------------------
+
+    if cfg.get("save_parity_trace", False):
+        (exp_out_path / "parity_trace.json").write_text(
+            json.dumps(parity_trace, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
     
     # Consolidate captions only for the VLM edge/caption mode.  In the normal
     # no-edge mapping path, keep an explicit empty field without any API call.
