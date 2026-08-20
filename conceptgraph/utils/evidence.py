@@ -120,6 +120,30 @@ def _array(value: Any) -> np.ndarray:
     return np.asarray(value)
 
 
+def _validate_similarity_matrix(
+    name: str, value: Any, expected_shape: tuple[int, int]
+) -> tuple[np.ndarray, dict]:
+    """Return a safe matrix plus an explicit validation result.
+
+    Invalid matrices are preserved as NaN-filled evidence so the evidence gate
+    can fail deterministically. They must never be ranked as association
+    candidates.
+    """
+    arr = _array(value).astype(np.float32, copy=False)
+    if arr.shape != expected_shape:
+        return (
+            np.full(expected_shape, np.nan, dtype=np.float32),
+            {
+                "valid": False,
+                "error": "SHAPE_MISMATCH",
+                "name": name,
+                "actual_shape": list(arr.shape),
+                "expected_shape": list(expected_shape),
+            },
+        )
+    return arr, {"valid": True, "name": name, "shape": list(arr.shape)}
+
+
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
@@ -955,16 +979,31 @@ class EvidenceRecorder:
         frame_uid = self.frame_uid(frame_idx)
         observation_uids = [str(det["obs_uids"][0]) for det in detection_list]
         object_uids = [_object_uid(obj) for obj in objects_before]
-        spatial = _array(spatial_sim).astype(np.float32, copy=False)
-        visual = _array(visual_sim).astype(np.float32, copy=False)
-        aggregate = _array(aggregate_sim).astype(np.float32, copy=False)
         expected_shape = (len(detection_list), len(objects_before))
-        if spatial.shape != expected_shape:
-            spatial = np.empty(expected_shape, dtype=np.float32)
-        if visual.shape != expected_shape:
-            visual = np.empty(expected_shape, dtype=np.float32)
-        if aggregate.shape != expected_shape:
-            aggregate = np.empty(expected_shape, dtype=np.float32)
+        spatial, spatial_validation = _validate_similarity_matrix(
+            "spatial_sim", spatial_sim, expected_shape
+        )
+        visual, visual_validation = _validate_similarity_matrix(
+            "visual_sim", visual_sim, expected_shape
+        )
+        aggregate, aggregate_validation = _validate_similarity_matrix(
+            "aggregate_sim", aggregate_sim, expected_shape
+        )
+        similarity_validation = {
+            "valid": all(
+                item["valid"]
+                for item in (
+                    spatial_validation,
+                    visual_validation,
+                    aggregate_validation,
+                )
+            ),
+            "matrices": {
+                "spatial_sim": spatial_validation,
+                "visual_sim": visual_validation,
+                "aggregate_sim": aggregate_validation,
+            },
+        }
 
         similarity_path = self.similarity_dir / f"frame_{int(frame_idx):06d}.npz"
         np.savez_compressed(
@@ -987,7 +1026,11 @@ class EvidenceRecorder:
         for det_index, (detection, match_index) in enumerate(
             zip(detection_list, match_indices)
         ):
-            row = aggregate[det_index] if aggregate.shape[1] else np.asarray([])
+            row = (
+                aggregate[det_index]
+                if similarity_validation["valid"] and aggregate.shape[1]
+                else np.asarray([])
+            )
             order = np.argsort(row)[::-1][:top_k] if row.size else []
             candidates = [
                 {
@@ -1028,6 +1071,8 @@ class EvidenceRecorder:
                     "spatial_sim_ref": {**similarity_ref, "key": "spatial_sim"},
                     "visual_sim_ref": {**similarity_ref, "key": "visual_sim"},
                     "aggregate_sim_ref": {**similarity_ref, "key": "aggregate_sim"},
+                    "similarity_evidence_valid": similarity_validation["valid"],
+                    "similarity_validation": similarity_validation,
                     "top_candidates": candidates,
                     "top1_score": top1,
                     "top2_score": top2,

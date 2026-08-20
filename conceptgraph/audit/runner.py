@@ -32,7 +32,7 @@ def main(argv: list[str] | None = None) -> int:
         output_dir=args.output_dir,
     )
     print(json.dumps(result["summary"], ensure_ascii=False, indent=2))
-    return 0 if result["summary"]["gate_status"] == "PASS" else 2
+    return 0 if result["summary"]["validation_gate_status"] == "PASS" else 2
 
 
 if __name__ == "__main__":

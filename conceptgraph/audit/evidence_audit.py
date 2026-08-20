@@ -573,6 +573,18 @@ def _audit_readiness(data: dict, findings: _Findings) -> None:
                 obj_axis = [str(value) for value in matrix["object_uids"].tolist()]
                 expected = (len(obs_axis), len(obj_axis))
                 invalid = []
+                invalid_statuses = [
+                    item.get("similarity_validation")
+                    for item in records
+                    if item.get("similarity_evidence_valid") is False
+                ]
+                if invalid_statuses:
+                    invalid.append(
+                        {
+                            "key": "similarity_evidence_valid",
+                            "statuses": invalid_statuses,
+                        }
+                    )
                 for key in ("spatial_sim", "visual_sim", "aggregate_sim"):
                     array = np.asarray(matrix[key])
                     if array.shape != expected or not np.isfinite(array).all():

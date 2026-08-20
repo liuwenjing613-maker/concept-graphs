@@ -1,7 +1,7 @@
 version: "1.1.0"
 strict_evidence: true
 environment_mode: static
-output_dir_name: audit_v1
+output_dir_name: audit_validity_gate_v1
 
 policy:
   observation_ownership: exclusive_single_target
@@ -77,13 +77,13 @@ thresholds:
     class_count_high: 3
 
 limits:
-  max_findings_per_rule: 500
-  fail_if_population_censored: false
+  max_findings_per_rule: 10000
+  fail_if_population_censored: true
   max_pair_candidates_per_stage: 5000
 
 case_builder:
   enabled: true
-  max_cases: 200
+  max_cases: 80
   max_images_per_object: 6
   max_total_images_per_case: 24
   max_3d_observations: 12
@@ -93,7 +93,7 @@ case_builder:
   min_priority_per_checker: 1
   max_priority_per_checker: 20
   max_priority_cases_per_entity: 2
-  random_seed: null  # deterministic SHA-256(run_id) seed when null
+  random_seed: 20260820
   save_mask_overlay: true
   save_depth_overlay: true
   save_3d_overlay: true

@@ -205,6 +205,40 @@ def test_new_run_removes_binary_sidecars_from_previous_run(tmp_path):
     recorder.close("completed", objects=[], map_edges=FakeEdges())
 
 
+def test_similarity_shape_mismatch_is_explicit_and_never_ranked(tmp_path):
+    cfg = {
+        "scene_id": "room0",
+        "evidence_mode": "strict",
+        "evidence_top_k": 3,
+    }
+    recorder = EvidenceRecorder(tmp_path, cfg, cfg, enabled=True)
+    detection = {"id": uuid.uuid4(), "obs_uids": ["obs-a"]}
+    target = {"id": uuid.uuid4()}
+
+    recorder.record_associations(
+        0,
+        [detection],
+        [target],
+        np.empty((1, 0), dtype=np.float32),
+        np.asarray([[0.7]], dtype=np.float32),
+        np.asarray([[0.8]], dtype=np.float32),
+        [0],
+    )
+    association = json.loads(
+        (tmp_path / "evidence" / "associations.jsonl").read_text().splitlines()[0]
+    )
+    with np.load(tmp_path / "evidence" / "similarities" / "frame_000000.npz") as matrix:
+        assert np.isnan(matrix["spatial_sim"]).all()
+
+    assert association["similarity_evidence_valid"] is False
+    assert association["similarity_validation"]["matrices"]["spatial_sim"]["error"] == "SHAPE_MISMATCH"
+    assert association["top_candidates"] == []
+    assert association["top1_score"] is None
+    assert association["top2_score"] is None
+    assert association["margin"] is None
+    recorder.close("failed", objects=[], map_edges=FakeEdges())
+
+
 def test_initialization_failure_is_bypassed(tmp_path):
     blocked_output = tmp_path / "not_a_directory"
     blocked_output.write_text("occupied by a file")

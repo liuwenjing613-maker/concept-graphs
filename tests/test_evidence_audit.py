@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy as np
@@ -5,6 +6,7 @@ import numpy as np
 from conceptgraph.audit.evidence_audit import (
     _Findings,
     _audit_mapping_invariants,
+    audit_evidence,
 )
 
 
@@ -132,3 +134,78 @@ def test_top_k_audit_accepts_different_order_for_equal_scores(tmp_path: Path):
         findings,
     )
     assert not any("MAP-002" in item["rule_ids"] for item in findings.items)
+
+
+def test_similarity_shape_mismatch_fails_evidence_gate(tmp_path: Path):
+    evidence_dir = tmp_path / "evidence"
+    similarity_dir = evidence_dir / "similarities"
+    similarity_dir.mkdir(parents=True)
+    config_path = tmp_path / "config_params.json"
+    config_path.write_text("{}\n", encoding="utf-8")
+    manifest = {
+        "schema_version": "0.2.0",
+        "run_id": "shape-mismatch-run",
+        "scene_id": "room0",
+        "status": "MAP_COMPLETED_EVIDENCE_INVALID",
+        "branch": "test",
+        "git_commit": "deadbeef",
+        "mapping_config_ref": {"path": "config_params.json", "format": "json"},
+        "detection_config_ref": {"path": "config_params.json", "format": "json"},
+        "runtime": {"python_version": "test"},
+        "evidence_mode": "strict",
+    }
+    (evidence_dir / "manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
+    for name in (
+        "frames.jsonl",
+        "observations.jsonl",
+        "mapping_events.jsonl",
+        "filter_trace.jsonl",
+        "object_versions.jsonl",
+        "object_pair_decisions.jsonl",
+        "vlm_events.jsonl",
+    ):
+        (evidence_dir / name).write_text("", encoding="utf-8")
+    (evidence_dir / "final_membership.json").write_text(
+        "[]\n", encoding="utf-8"
+    )
+    association = {
+        "event_uid": "event-1",
+        "frame_uid": "shape-mismatch-run_f000000",
+        "obs_uid": "obs-a",
+        "object_uids_before": ["obj-a"],
+        "similarity_evidence_valid": False,
+        "similarity_validation": {
+            "valid": False,
+            "matrices": {
+                "spatial_sim": {
+                    "valid": False,
+                    "error": "SHAPE_MISMATCH",
+                    "actual_shape": [1, 0],
+                    "expected_shape": [1, 1],
+                }
+            },
+        },
+        "top_candidates": [],
+    }
+    (evidence_dir / "associations.jsonl").write_text(
+        json.dumps(association) + "\n", encoding="utf-8"
+    )
+    np.savez_compressed(
+        similarity_dir / "frame_000000.npz",
+        observation_uids=np.asarray(["obs-a"]),
+        object_uids=np.asarray(["obj-a"]),
+        spatial_sim=np.full((1, 1), np.nan, dtype=np.float32),
+        visual_sim=np.asarray([[0.7]], dtype=np.float32),
+        aggregate_sim=np.asarray([[0.8]], dtype=np.float32),
+    )
+
+    result = audit_evidence(
+        evidence_dir, strict=True, write=False, run_semantic_rules=True
+    )
+
+    assert result["summary"]["gate_status"] == "FAIL"
+    assert result["summary"]["semantic_rules_executed"] is False
+    assert result["exit_code"] == 2
+    assert any("EVI-004" in item["rule_ids"] for item in result["findings"])

@@ -7,6 +7,7 @@ from PIL import Image
 from conceptgraph.audit.layered_audit import (
     FactStore,
     Finding,
+    LayeredAudit,
     _case_observation_selection,
     _select_case_candidates,
     _select_object_views,
@@ -308,3 +309,89 @@ def test_dual_cohort_sampling_is_stratified_and_not_execution_order_biased():
     assert manifest["selected_cohort_counts"]["diagnostic_priority"] == 5
     assert manifest["cohorts"]["calibration_random"]["strata"]
     assert all(item.review_score is not None and item.review_priority is not None for item in findings)
+
+
+def test_finding_cap_suppression_is_counted_and_fails_validation_gate():
+    context = SimpleNamespace(
+        audit_config={
+            "limits": {
+                "max_findings_per_rule": 2,
+                "fail_if_population_censored": True,
+            }
+        },
+        config={},
+        policy={},
+        environment_mode="static",
+        policy_source="test",
+        run_id="test-run",
+        scene_id="room0",
+    )
+    engine = LayeredAudit(context, _FakeFacts())
+    for _ in range(3):
+        engine.add(
+            "DET-001",
+            "detection",
+            "DUPLICATE",
+            "AMBIGUOUS_MAPPING_RISK",
+        )
+
+    summary = engine._summary(gate_passed=True, root_causes=[], elapsed=0.0)
+
+    assert summary["finding_population"]["DET-001"] == {
+        "attempted_count": 3,
+        "emitted_count": 2,
+        "suppressed_count": 1,
+        "population_censored": True,
+    }
+    assert summary["population_censoring_status"] == "FAIL"
+    assert summary["weighted_precision_allowed"] is False
+    assert summary["validation_gate_status"] == "FAIL"
+
+
+def test_censored_population_refuses_sampling_weights():
+    facts = _FakeFacts()
+    findings = [
+        _finding(
+            f"det-{index:03d}",
+            "DET-001",
+            "detection",
+            "DUPLICATE",
+            [{"name": "duplicate", "support": ["2d", "3d"]}],
+        )
+        for index in range(10)
+    ]
+    config = {
+        "thresholds": {"duplicate_proposal": {}},
+        "case_builder": {
+            "calibration_fraction": 0.5,
+            "min_calibration_per_stratum": 1,
+            "min_priority_per_checker": 1,
+            "max_priority_per_checker": 10,
+            "max_priority_cases_per_entity": 20,
+            "random_seed": 7,
+        },
+    }
+    population_report = {
+        "DET-001": {
+            "attempted_count": 20,
+            "emitted_count": 10,
+            "suppressed_count": 10,
+            "population_censored": True,
+        }
+    }
+
+    selected, manifest = _select_case_candidates(
+        findings, facts, config, 8, population_report
+    )
+
+    calibration = [
+        item
+        for item in selected
+        if item.selection_cohort == "calibration_random"
+    ]
+    assert calibration
+    assert manifest["weighted_precision_allowed"] is False
+    assert manifest["population_censoring"]["status"] == "FAIL"
+    assert "forbidden" in manifest["precision_policy"].lower()
+    assert all(item.selection_probability is None for item in calibration)
+    assert all(item.sampling_weight is None for item in calibration)

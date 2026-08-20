@@ -253,7 +253,9 @@ class LayeredAudit:
         self.facts = facts
         self.findings: list[Finding] = []
         self._counter = 0
-        self._rule_counts: Counter[str] = Counter()
+        self._attempted_counts: Counter[str] = Counter()
+        self._emitted_counts: Counter[str] = Counter()
+        self._suppressed_counts: Counter[str] = Counter()
         self._missing_keys: set[tuple[str, str]] = set()
         self.thresholds = context.audit_config.get("thresholds", {})
         self.max_per_rule = int(
@@ -279,10 +281,12 @@ class LayeredAudit:
         evidence_refs: Optional[dict] = None,
         route: str = "LOG_ONLY",
     ) -> Optional[Finding]:
-        if self._rule_counts[checker_id] >= self.max_per_rule:
+        self._attempted_counts[checker_id] += 1
+        if self._emitted_counts[checker_id] >= self.max_per_rule:
+            self._suppressed_counts[checker_id] += 1
             return None
         self._counter += 1
-        self._rule_counts[checker_id] += 1
+        self._emitted_counts[checker_id] += 1
         finding = Finding(
             finding_uid=f"finding_{self._counter:06d}",
             checker_id=checker_id,
@@ -1091,11 +1095,37 @@ class LayeredAudit:
 
     def _summary(self, gate_passed: bool, root_causes: list[dict], elapsed: float) -> dict:
         rows = [item.to_dict() for item in self.findings]
+        checker_ids = sorted(
+            set(self._attempted_counts)
+            | set(self._emitted_counts)
+            | set(self._suppressed_counts)
+        )
+        finding_population = {
+            checker_id: {
+                "attempted_count": int(self._attempted_counts[checker_id]),
+                "emitted_count": int(self._emitted_counts[checker_id]),
+                "suppressed_count": int(self._suppressed_counts[checker_id]),
+                "population_censored": bool(self._suppressed_counts[checker_id]),
+            }
+            for checker_id in checker_ids
+        }
+        population_censored = any(
+            item["population_censored"] for item in finding_population.values()
+        )
+        fail_if_censored = bool(
+            self.context.audit_config.get("limits", {}).get(
+                "fail_if_population_censored", False
+            )
+        )
+        validation_passed = gate_passed and not (
+            fail_if_censored and population_censored
+        )
         return {
             "schema_version": SCHEMA_VERSION,
             "run_id": self.context.run_id,
             "scene_id": self.context.scene_id,
             "gate_status": "PASS" if gate_passed else "FAIL",
+            "validation_gate_status": "PASS" if validation_passed else "FAIL",
             "mapping_mutated": False,
             "finding_count": len(rows),
             "root_cause_count": len(root_causes),
@@ -1103,6 +1133,11 @@ class LayeredAudit:
             "severity_counts": dict(Counter(item["severity"] for item in rows)),
             "stage_counts": dict(Counter(item["stage"] for item in rows)),
             "checker_counts": dict(Counter(item["checker_id"] for item in rows)),
+            "finding_population": finding_population,
+            "population_censored": population_censored,
+            "population_censoring_status": "FAIL" if population_censored else "PASS",
+            "fail_if_population_censored": fail_if_censored,
+            "weighted_precision_allowed": not population_censored,
             "route_counts": dict(Counter(item["route"] for item in rows)),
             "insufficient_evidence_count": sum(item["certainty"] == "INSUFFICIENT_EVIDENCE" for item in rows),
             "policy_source": self.context.policy_source,
@@ -1571,17 +1606,17 @@ def _case_candidates(
             "severity": float({"CRITICAL": 8.0, "HIGH": 6.0, "MEDIUM": 4.0, "LOW": 2.0}.get(item.severity, 0.0)),
             "certainty": float({"LIKELY_MAPPING_CONFLICT": 4.0, "AMBIGUOUS_MAPPING_RISK": 2.0}.get(item.certainty, 0.0)),
             "threshold_exceedance": round(2.5 * _threshold_strength(item, config), 6),
-            "independent_evidence": round(1.25 * min(len(support), 4), 6),
+            "support_signal_diversity": round(1.25 * min(len(support), 4), 6),
             "downstream_pollution": round(1.5 * min(math.log1p(len(downstream)), 3.0), 6),
             "veto_penalty": round(-1.5 * min(len(item.vetoes), 3), 6),
             "missing_evidence_penalty": round(-1.0 * min(len(item.missing_evidence), 3), 6),
             "redundancy_penalty": round(-min(math.log1p(max(redundancy - 1, 0)), 2.0), 6),
-            "independent_evidence_count": len(support),
+            "support_signal_diversity_count": len(support),
             "downstream_finding_count": len(downstream),
             "same_checker_entity_count": redundancy,
         }
         score_keys = (
-            "severity", "certainty", "threshold_exceedance", "independent_evidence",
+            "severity", "certainty", "threshold_exceedance", "support_signal_diversity",
             "downstream_pollution", "veto_penalty", "missing_evidence_penalty", "redundancy_penalty",
         )
         item.review_score = round(sum(float(components[key]) for key in score_keys), 6)
@@ -1620,7 +1655,11 @@ def _allocate_quotas(
 
 
 def _select_case_candidates(
-    findings: list[Finding], facts: FactStore, config: dict, max_cases: int
+    findings: list[Finding],
+    facts: FactStore,
+    config: dict,
+    max_cases: int,
+    population_report: Optional[dict[str, dict]] = None,
 ) -> tuple[list[Finding], dict]:
     settings = config.get("case_builder", {})
     eligible, details = _case_candidates(findings, facts, config)
@@ -1629,6 +1668,12 @@ def _select_case_candidates(
         hashlib.sha256(facts.context.run_id.encode("utf-8")).hexdigest()[:8], 16
     )
     rng = np.random.default_rng(seed)
+    population_report = population_report or {}
+    population_censored = any(
+        bool(item.get("population_censored"))
+        or int(item.get("suppressed_count", 0)) > 0
+        for item in population_report.values()
+    )
     calibration_target = min(
         len(eligible),
         int(round(max_cases * float(settings.get("calibration_fraction", 0.50)))),
@@ -1651,11 +1696,15 @@ def _select_case_candidates(
         indices = sorted(rng.choice(len(population), size=sample_size, replace=False).tolist()) if sample_size else []
         probability = sample_size / len(population) if population else 0.0
         weight = 1.0 / probability if probability else None
+        reported_probability = None if population_censored else round(probability, 12)
+        reported_weight = None if population_censored else (
+            round(weight, 12) if weight is not None else None
+        )
         for index in indices:
             item = population[index]
             item.selection_cohort = "calibration_random"
-            item.selection_probability = round(probability, 12)
-            item.sampling_weight = round(weight, 12) if weight is not None else None
+            item.selection_probability = reported_probability
+            item.sampling_weight = reported_weight
             selected.append(item)
             selected_uids.add(item.finding_uid)
         stratum_rows.append(
@@ -1663,8 +1712,9 @@ def _select_case_candidates(
                 "stratum": key,
                 "population": len(population),
                 "selected": sample_size,
-                "inclusion_probability": round(probability, 12),
-                "sampling_weight": round(weight, 12) if weight is not None else None,
+                "inclusion_probability": reported_probability,
+                "sampling_weight": reported_weight,
+                "observed_emitted_population": len(population),
             }
         )
 
@@ -1748,7 +1798,17 @@ def _select_case_candidates(
         "available_candidates": len(eligible),
         "max_cases": max_cases,
         "selected_count": len(selected),
-        "precision_policy": "Only calibration_random may be used for weighted precision; diagnostic_priority is for root-cause discovery and must not be treated as a probability sample.",
+        "weighted_precision_allowed": not population_censored,
+        "population_censoring": {
+            "status": "FAIL" if population_censored else "PASS",
+            "population_censored": population_censored,
+            "by_checker": population_report,
+        },
+        "precision_policy": (
+            "Weighted precision is forbidden because at least one checker population was censored before sampling."
+            if population_censored
+            else "Only calibration_random may be used for weighted precision; diagnostic_priority is for root-cause discovery and must not be treated as a probability sample."
+        ),
         "cohorts": {
             "calibration_random": {
                 "target": calibration_target,
@@ -1799,7 +1859,11 @@ def _save_timeline(overviews: list[tuple[str, Any]], destination: Path) -> None:
 
 
 def build_evidence_packets(
-    findings: list[Finding], facts: FactStore, output_dir: Path, config: dict
+    findings: list[Finding],
+    facts: FactStore,
+    output_dir: Path,
+    config: dict,
+    population_report: Optional[dict[str, dict]] = None,
 ) -> dict:
     settings = config.get("case_builder", {})
     if not settings.get("enabled", True):
@@ -1808,7 +1872,7 @@ def build_evidence_packets(
     max_images = int(settings.get("max_images_per_object", 6))
     max_total_images = int(settings.get("max_total_images_per_case", 24))
     candidates, selection_manifest = _select_case_candidates(
-        findings, facts, config, max_cases
+        findings, facts, config, max_cases, population_report
     )
     cases_root = output_dir / "cases"
     if cases_root.exists():
@@ -2035,7 +2099,13 @@ def run_layered_audit(
     facts = FactStore(context)
     engine = LayeredAudit(context, facts)
     findings, root_causes, summary = engine.run()
-    case_result = build_evidence_packets(findings, facts, output, audit_config)
+    case_result = build_evidence_packets(
+        findings,
+        facts,
+        output,
+        audit_config,
+        summary.get("finding_population"),
+    )
     summary["case_builder"] = case_result
     config_copy = output / "audit_config.yaml"
     shutil.copyfile(audit_config_path, config_copy)
@@ -2055,6 +2125,9 @@ def run_layered_audit(
         "schema_version": SCHEMA_VERSION,
         "run_id": context.run_id,
         "gate_status": summary["gate_status"],
+        "validation_gate_status": summary["validation_gate_status"],
+        "population_censoring_status": summary["population_censoring_status"],
+        "weighted_precision_allowed": summary["weighted_precision_allowed"],
         "system_findings": [item.to_dict() for item in findings if item.stage == "system"],
     }
     _json_dump(output / "evidence_validation.json", validation)
