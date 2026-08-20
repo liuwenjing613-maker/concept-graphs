@@ -276,6 +276,7 @@ main{max-width:1500px;margin:18px auto;padding:0 18px;display:grid;grid-template
 .evidence{padding:18px}.form{padding:18px;position:sticky;top:77px;align-self:start;max-height:calc(100vh - 95px);overflow:auto}.eyebrow{color:var(--blue);font-weight:700}.case-title{font-size:22px;margin:3px 0 8px}.muted{color:var(--muted)}
 .notice{padding:10px 12px;background:#eef3ff;border-radius:9px;margin:12px 0}.facts{display:grid;gap:8px;margin:14px 0}.fact{padding:10px 12px;border-left:4px solid #7b91d9;background:#f7f9fe;border-radius:6px;white-space:pre-wrap}.fact.warn{border-left-color:#e1a029;background:#fff9ed}.fact.veto{border-left-color:#b64b63;background:#fff4f6}
 details{border:1px solid var(--line);border-radius:10px;padding:9px 12px;margin:12px 0}summary{cursor:pointer;font-weight:700}.gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.figure{margin:0;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fafbfe}.figure img{display:block;width:100%;height:auto;cursor:zoom-in}.figure figcaption{padding:7px 9px;color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.guide{background:#fbfcff}.guide h3{font-size:14px;margin:13px 0 4px}.guide ul{margin:4px 0 9px;padding-left:20px}.guide li{margin:4px 0}.guide code{font-size:12px;color:#2446ad}.shortcut{padding:8px 10px;border-radius:8px;background:#f0f4ff;margin:7px 0}
 h2{font-size:18px;margin:0 0 12px}.field{margin-bottom:13px}.field label{display:block;font-weight:700;margin-bottom:5px}.required:after{content:" *";color:var(--red)}select,textarea,input{width:100%;border:1px solid #cbd2df;border-radius:9px;padding:9px 10px;background:white;color:var(--ink);font:inherit}textarea{min-height:68px;resize:vertical}.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.help{font-size:12px;color:var(--muted);margin-top:3px}.actions{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:8px;position:sticky;bottom:-18px;background:white;padding:12px 0 18px;border-top:1px solid var(--line)}button{border:0;border-radius:9px;padding:10px 12px;font-weight:700;cursor:pointer}button.primary{background:var(--blue);color:white}button.secondary{background:#edf0f6;color:var(--ink)}button:disabled{opacity:.45;cursor:not-allowed}.saved{color:var(--green);font-weight:700}.error{color:var(--red);font-weight:700}.done{padding:25px;text-align:center}.hidden{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}.form{position:static;max-height:none}.gallery{grid-template-columns:1fr}}
 </style>
@@ -293,6 +294,65 @@ h2{font-size:18px;margin:0 0 12px}.field{margin-bottom:13px}.field label{display
 </section>
 <aside class="card form">
   <h2>你的人工判断</h2><div id="savedState" class="muted">尚未保存</div>
+  <details class="guide" open><summary>先看：每个选项到底怎么选</summary>
+    <div class="shortcut"><b>核心纪律：</b>先判断规则是否真的抓到异常，再单独判断异常是否伤害最终地图。<b>真实异常也可能无害。</b></div>
+    <h3>证据够不够判断</h3><ul>
+      <li><code>YES</code>：现有图像、mask/depth、3D 或时间线足以判断核心问题和主要危害。</li>
+      <li><code>PARTIAL</code>：能判断一部分，但缺关键视角、历史状态或最终对象信息；结论仍有明显保留。</li>
+      <li><code>NO</code>：连核心问题是否存在都无法可靠判断。不要凭规则分数猜。</li>
+    </ul>
+    <h3>规则指出的问题是真的吗</h3><ul>
+      <li><code>YES</code>：你从可视证据中确实看到规则描述的异常，而不只是数值越过阈值。</li>
+      <li><code>NO</code>：这是正常视角变化、遮挡、物体部件、合法重复 proposal 等，规则误报。</li>
+      <li><code>UNCERTAIN</code>：异常和正常解释都说得通，当前证据无法排除其中一个。</li>
+    </ul>
+    <h3>根因阶段定位正确吗</h3><ul>
+      <li><code>YES</code>：最早、最主要的问题确实发生在页面显示的 detection / segmentation / geometry / association / fusion / object identity 阶段。</li>
+      <li><code>NO</code>：异常是真的，但根因来自别的阶段。例如 association 看似错，其实最早是 mask 分割错。</li>
+      <li><code>UNCERTAIN</code>：能确认异常，却无法判断最早从哪个阶段开始。</li>
+      <li><code>NOT_APPLICABLE</code>：finding 本身为 NO，因而不存在可评价的根因阶段。</li>
+    </ul>
+    <h3>真实物理关系</h3><ul><li>不要复述规则名，用一句自然语言写你看到的世界，例如“同一把椅子的两个重复 mask”“两件不同家具被吸进同一对象”“只是扶手与椅子本体的部件关系”。</li></ul>
+    <h3>对最终地图的危害</h3><ul>
+      <li><code>NONE</code>：即使 finding 为真，也没有改变最终对象身份、成员、几何或特征，只是中间过程不漂亮。</li>
+      <li><code>LOCAL_WEIGHTING_BIAS</code>：对象身份基本正确，但重复/低质量 observation 让类别计数、CLIP 特征或融合权重产生局部偏差。</li>
+      <li><code>WRONG_OBSERVATION_MEMBERSHIP</code>：一个有效 observation 被放进了错误对象。</li>
+      <li><code>FALSE_SPLIT_DUPLICATE_NODE</code>：一个真实物体被错误保留成两个或更多地图节点。</li>
+      <li><code>FALSE_MERGE_IDENTITY_POLLUTION</code>：两个或更多真实物体被错误融合成同一个节点。</li>
+      <li><code>GEOMETRY_CORRUPTION</code>：点云、bbox、位置或尺度被明显拉坏，即使对象身份可能仍对。</li>
+      <li><code>RELATION_POLLUTION</code>：错误传播到场景图关系/边。本轮正式运行未启用 edge，通常不选它。</li>
+      <li><code>UNKNOWN</code>：怀疑有害，但看不出具体伤害类型或无法确认最终是否受影响。</li>
+    </ul>
+    <h3>最合适的修复动作</h3><ul>
+      <li><code>NONE</code>：finding 为 NO，或异常真实但无下游危害。</li>
+      <li><code>DROP_OBSERVATION</code>：某个 observation 本身是重复、伪检或严重坏数据，直接移除最合适。</li>
+      <li><code>REASSIGN_OBSERVATION</code>：observation 本身有效，只是归到了错误对象，应移动到另一个对象。</li>
+      <li><code>MERGE_OBJECTS</code>：一个真实物体被拆成多个重复节点，应把节点合并。</li>
+      <li><code>SPLIT_OBJECT</code>：多个真实物体被错融成一个节点，应拆开。</li>
+      <li><code>RECOMPUTE_GEOMETRY</code>：成员和身份大体正确，主要是 mask/projection/点云/bbox 几何需要重算。</li>
+      <li><code>DOWNWEIGHT_EVIDENCE</code>：observation 仍有部分价值，不应删除，但应降低它对融合或语义的影响。</li>
+      <li><code>NEED_MORE_VIEW</code>：必须补更多视角或时间信息才能安全决定怎么修。</li>
+      <li><code>UNKNOWN</code>：确认有害，却无法给出安全、明确的动作。</li>
+    </ul>
+    <h3>修复范围</h3><ul>
+      <li><code>LOCAL</code>：只动一个 observation 或一个对象内部。</li>
+      <li><code>MULTI_OBJECT</code>：需要同时处理两个或更多对象；重归属、对象 merge/split 通常选它。</li>
+      <li><code>GLOBAL</code>：问题来自全局阈值、策略或系统规则，需要影响大量案例的改动。</li>
+      <li><code>NOT_APPLICABLE</code>：repair action 为 NONE 或 NEED_MORE_VIEW，当前没有可执行修复。</li>
+    </ul>
+    <h3>两个置信度的 1–5</h3><ul>
+      <li><code>1</code>：几乎是猜测；<code>2</code>：弱证据；<code>3</code>：更可能是，但仍有合理反例；<code>4</code>：证据很清楚；<code>5</code>：多种证据直接一致，几乎没有合理替代解释。</li>
+      <li>危害置信度只评价“伤害类型判断”；修复置信度只评价“这个动作是否安全合适”，不要因为 finding 很明显就一律填 5。</li>
+    </ul>
+    <h3>常见组合</h3><ul>
+      <li>误报：<code>finding=NO</code>、<code>root=NOT_APPLICABLE</code>、<code>harm=NONE</code>、<code>repair=NONE</code>。</li>
+      <li>真实但无害：<code>finding=YES</code>、<code>harm=NONE</code>、<code>repair=NONE</code>。</li>
+      <li>证据不足：<code>evidence=PARTIAL/NO</code>、<code>finding=UNCERTAIN</code>、<code>harm=UNKNOWN</code>、<code>repair=NEED_MORE_VIEW</code>。</li>
+      <li>一个物体变多个节点：<code>FALSE_SPLIT_DUPLICATE_NODE + MERGE_OBJECTS + MULTI_OBJECT</code>。</li>
+      <li>多个物体错融一个节点：<code>FALSE_MERGE_IDENTITY_POLLUTION + SPLIT_OBJECT + MULTI_OBJECT</code>。</li>
+      <li>观测放错对象：<code>WRONG_OBSERVATION_MEMBERSHIP + REASSIGN_OBSERVATION + MULTI_OBJECT</code>。</li>
+    </ul>
+  </details>
   <div class="field"><label class="required">证据够不够判断</label><select id="evidence_sufficient"><option value="">请选择</option><option>YES</option><option>PARTIAL</option><option>NO</option></select><div class="help">看不清或缺关键视角时选 PARTIAL/NO，不要勉强。</div></div>
   <div class="field"><label class="required">规则指出的问题是真的吗</label><select id="finding_correct"><option value="">请选择</option><option>YES</option><option>NO</option><option>UNCERTAIN</option></select></div>
   <div class="field"><label class="required">根因阶段定位正确吗</label><select id="root_stage_correct"><option value="">请选择</option><option>YES</option><option>NO</option><option>UNCERTAIN</option><option>NOT_APPLICABLE</option></select></div>
