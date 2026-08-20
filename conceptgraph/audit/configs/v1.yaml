@@ -1,4 +1,4 @@
-version: "1.0.0"
+version: "1.1.0"
 strict_evidence: true
 environment_mode: static
 output_dir_name: audit_v1
@@ -84,6 +84,15 @@ case_builder:
   enabled: true
   max_cases: 200
   max_images_per_object: 6
+  max_total_images_per_case: 24
+  max_3d_observations: 12
+  sampling_strategy: dual_cohort_stratified_random_plus_diagnostic_priority
+  calibration_fraction: 0.50
+  min_calibration_per_stratum: 1
+  min_priority_per_checker: 1
+  max_priority_per_checker: 20
+  max_priority_cases_per_entity: 2
+  random_seed: null  # deterministic SHA-256(run_id) seed when null
   save_mask_overlay: true
   save_depth_overlay: true
   save_3d_overlay: true
