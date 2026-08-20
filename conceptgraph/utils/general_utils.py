@@ -384,6 +384,17 @@ def filter_detections(
         if keep:
             filtered_detections.append(current_det)
 
+    # A frame may legitimately have no detections left after mask-size,
+    # overlap, proximity, and background filtering.  Return a well-formed
+    # empty detection batch instead of trying to unzip an empty sequence.
+    if not filtered_detections:
+        return sv.Detections(
+            class_id=np.empty((0,), dtype=np.int64),
+            confidence=np.empty((0,), dtype=np.float32),
+            xyxy=np.empty((0, 4), dtype=np.float32),
+            mask=np.empty((0, image.shape[0], image.shape[1]), dtype=np.bool_),
+        ), []
+
     # Unzip the filtered results
     confidences, class_ids, xyxy, masks, indices = zip(*filtered_detections)
     filtered_labels = [given_labels[i] for i in indices]
@@ -861,5 +872,4 @@ def vis_render_image(objects, obj_classes, obj_renderer, image_original_pil, adj
     if is_final_frame:
         # Save the video
         save_video_from_frames(frames, exp_out_path, exp_suffix)
-
 
