@@ -3,12 +3,13 @@
 更新时间：2026-08-21（Asia/Shanghai）
 服务器：`chenkejun@frp-van.com:64906`
 代码目录：`/home/chenkejun/beauty/conceptgraphs/code/official/ali-my`
+VLM-only 隔离代码目录：`/home/chenkejun/beauty/conceptgraphs/code/official/ali-my-VLM`
 当前验证目录：`/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1`
 历史目录：`validation_gate`（finding v1）与 `validation_gate_incident_v2`（trigger-incident 中间版）均完整保留，只追溯，不继续标
 
-这份文档只做一件事：让接手的人不用翻聊天记录和终端日志，就能理解为什么人工方案被简化、R1 得到了什么结论、screeners 哪部分有效或无效、R2 正在检验什么，以及下一步为什么必须做专家因果追踪与 replay。
+这份文档只做一件事：让接手的人不用翻聊天记录和终端日志，就能理解为什么人工方案被简化、R1/R2 得到了什么结论、screeners 哪部分有效或无效、最新 VLM-only 版本具体如何检查和生成隔离修复，以及下一步为什么仍必须做专家因果追踪与 replay。
 
-## 当前结论：R1 与 R2 均已完成，40 个确认错误进入专家追踪，5 个分歧单独待裁决
+## 当前结论：R1/R2 已完成，VLM-only baseline 已跑完，但自动修复精度不足
 
 旧版把一条 checker finding 当成一个人工案例，同时问证据、规则真假、根因阶段、最终危害、修复动作与修复范围。它在 **0/160** 标签时被主动停止。第一次 trigger-incident 去重后又发现 147/160 仍重复同一 final-owner set，同一个 object 最多判断 11 次，因此中间版也在 0/160 时停用。两次都没有无效标签需要迁移。
 
@@ -56,6 +57,8 @@ R1 已完成 97/97，并冻结为：
 正式决策是 `PROCEED_TO_EXPERT_TRACE`，40 例专家队列已生成。当前 `review_score` 的 ROC AUC 只有 0.420，Top 20 仅命中 6 个错误，低于 42.11% 的可判 endpoint 错误基线，因此不能把该分数当作错误概率或有效优先级。完整解释见主方法文档第 35 节。
 
 R2 也已完成 24/24：证据充分性一致 23/24，最终状态一致 20/24（83.33%，κ=0.706），三字段完全一致 19/24。R1 的 10 个 `WRONG` 在 R2 全部仍为 `WRONG`，两轮都判错时错误类型 9/10 一致；分歧主要是 3 个 `CORRECT` 和 1 个 `UNCLEAR` 在第二轮改判 `WRONG`。这些结果是同一复核者、短间隔 test-retest，不是 inter-rater reliability。
+
+在不改动原 `ali-my` 工作树、冻结证据和 R1/R2 标签的前提下，独立分支 `ali-my-VLM` 已对同一批 97 个唯一 endpoint 完成纯 VLM 标签盲检查。事后对齐 R1 后，状态准确率为 67.01%，WRONG 检测 precision/recall/F1 为 58.49%/77.50%/66.67%。系统在隔离派生图中执行 19 个高置信修复（17 个重标、2 个合并），但其中只有 11 个对应 R1 WRONG，8 个对应 R1 CORRECT。因此它是一个高召回、高误报的可复现 baseline，不是可覆盖原图的最终修复器。
 
 ## 实际完成量
 
@@ -109,11 +112,204 @@ ssh -N -L 8766:127.0.0.1:8766 -p 64906 chenkejun@frp-van.com
 
 只有 `evidence_sufficient=YES + final_state=WRONG` 的 40 个 incidents 已进入 expert trace queue。专家阶段只建立根因假设与候选干预；随后执行真实 intervention/replay，对比对象图是否改善。没有 replay 改善就不能写成“修复有效”。本轮 R2 确由同一人完成，所以只报告 intra-rater/test-retest 稳定性；没有伪造成 inter-rater agreement。
 
+## 最新独立实现：`ali-my-VLM-only-repair-v1`
+
+### 先看执行边界
+
+这个版本是为回答一个很窄的问题：**不使用 checker 类型、规则 subtype、R1/R2 答案和专家根因，只把已经固化的可追溯视觉证据给 VLM，它能否检查最终对象并提出可执行的最小修复？**
+
+为了不让这个方法和原版混在一起，已固定为：
+
+- 独立工作树：`/home/chenkejun/beauty/conceptgraphs/code/official/ali-my-VLM`
+- 独立分支：`ali-my-VLM`
+- 实现提交：`4e4a3b7 feat: add isolated VLM-only endpoint repair pipeline`
+- 派生图一致性修复：`02bf0e9 fix: keep derived map graph snapshots coherent`
+- 冻结输入：`/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1`
+- 正式结果：`/home/chenkejun/beauty/conceptgraphs/experiments/ali-my-VLM/full_97_locked_v1`
+- 隔离派生图：`/home/chenkejun/beauty/conceptgraphs/experiments/ali-my-VLM/full_97_locked_v1_derived_maps`
+
+原 `ali-my` 工作树、原 pickle、冻结 membership、R1/R2 worklist 和人工标签都没有被修改。后文中的“应用修复”始终是指应用到新派生文件，不是原地覆盖。
+
+### 整个实现一眼看懂
+
+```text
+97 个冻结 endpoint case directories
+        ↓ 读取 review_evidence.json，拒绝人工标签字段
+evidence contract validation
+        ↓ TRACEABLE + 资产哈希一致 + exact final-map linkage
+最多 10 张角色化证据图
+        ↓
+gpt-5.6-terra 强制分项证据审计
+        ↓ 六个必答检查 + context relations + 假设概率
+gpt-5.6-sol 最终状态、错误类型和最小修复
+        ↓ schema/cross-field/endpoint UID 校验
+确定性执行门控
+        ├─ CORRECT / UNCLEAR / 低置信 → NO_MUTATION
+        ├─ 拆分/修剪/成员重分配 → NEEDS_FULL_MEMBER_PASS
+        └─ RELABEL / DELETE / MERGE_WITH 达到动作门槛
+                 ↓
+           gpt-5.5 独立 verifier
+                 ↓ approve + 复核置信门槛
+           APPROVED_FOR_DERIVED_MAP
+                 ↓
+       deep-copy 原地图并生成隔离 overlay
+                 ↓
+pickle + membership + object summary + repair manifest + SHA-256
+                 ↓
+所有 97 个结果落盘后，才加载 R1 做事后评估
+```
+
+### 输入证据是怎么限定的
+
+每个 case 的入口是已经由 final endpoint census v2.1 固化的 `review_evidence.json`。`EndpointEvidence.load` 先做三类阻断：
+
+1. evidence contract 必须是 `TRACEABLE`，`artifact_hashes_match=true`，`exact_final_map_linkage=true`，不能存在 critical gap。
+2. 每一张实际发给 VLM 的图都重算 SHA-256；任一图被替换、编辑或路径错位就停止该 case。
+3. 证据包中若出现 `final_state`、`final_error_type`、reviewer 结论或其他人工答案字段，直接拒绝。checker 名、stage、subtype 和 review score 也不进入 prompt。
+
+图像数量上限为 10，且不是随机抽图。固定优先级是：
+
+```text
+2 张 final-object geometry（relative + detail）
++ 最多 2 张 trigger observation panel
++ 1 张 representative timeline
++ 剩余位置给 endpoint/context 的 context crop 与 masked crop
+```
+
+prompt 中的目标始终是 `O1 [ENDPOINT]`，其他对象只是 context。文本摘要中包含 final label、成员数、帧覆盖、点数、bbox、observation class histogram 和确定性 endpoint-to-context 几何，但不包含任何人工对错信号。
+
+### 三个 VLM 角色分工和强制 schema
+
+| 阶段 | 默认模型 | 必须回答的内容 | 为什么不合并成一次提问 |
+|---|---|---|---|
+| evidence audit | `gpt-5.6-terra` | `REAL_USABLE_OBJECT`、`SAVED_LABEL_MATCH`、`SINGLE_PHYSICAL_OBJECT`、`GEOMETRY_COMPLETE_AND_WELL_PLACED`、`MEMBERSHIP_COHERENT`、`NOT_BACKGROUND_OR_NOISE`；context 与目标是否同物体；各错误假设概率 | 先迫使模型完成证据清点，减少看到某个标签后直接猜结论 |
+| terminal decision | `gpt-5.6-sol` | `final_state`、`error_type`、`physical_identity`、`confidence`、`evidence_sufficient`以及只允许指向已知 alias 的修复对象 | 将证据摘要收敛为一个可机器校验的终态决策 |
+| repair verifier | `gpt-5.5` | `approve`、`confidence`、`diagnosis_supported`、`action_supported`和理由 | 用独立模型阻断诊断阶段的高置信误修；不达门槛就不进派生图 |
+
+三阶段都只允许一个 JSON object，不允许 JSON 前后有解释。格式错误只允许一次 schema-only retry；跨字段矛盾会直接被拒绝，例如 `final_state=CORRECT` 却同时请求 RELABEL，或声称 evidence insufficient 却提供可执行修复。
+
+审计 prompt 和判定 prompt 共同强调：只评判最终 endpoint，不因为历史 trigger 曾经异常就判错；若中间异常已被后续 merge/denoise 解决，应判 CORRECT；只有物理身份和视觉证据足以支持时才可重标，不允许根据一张局部图猜细粒度类别。
+
+### 确定性修复门控
+
+| 动作 | 诊断置信门槛 | verifier 置信门槛 | v1 是否可直接执行 | 执行内容 |
+|---|---:|---:|---|---|
+| `RELABEL` | 0.85 | 0.80 | 是 | 保留对象和成员，只替换 `class_name` |
+| `DELETE` | 0.97 | 0.95 | 是 | 只在极高置信伪对象上删除派生图节点 |
+| `MERGE_WITH` | 0.95 | 0.90 | 是 | 只能合并到证据包已知 context alias，不允许自由填 UID |
+| `SPLIT_OBJECT` | — | — | 否 | 只保留计划，需要完整 observation/member pass |
+| `TRIM_GEOMETRY` / 成员重分配 | — | — | 否 | 只保留计划，不凭缩略图直接改点云 |
+
+门控还有三个硬限制：修复只能指向当前 case 中的 target/context UID；同一对象若已被其他通过门控的动作触及，后续动作会因 conflict 跳过；target 或 other UID 在派生图中不存在时不得猜测替代。
+
+### 派生图 overlay 具体怎么改
+
+overlay 不操作原文件。它读取信任边界内的 gzip pickle 和 `final_membership.json`，先 `deepcopy`，然后校验对象数、`current_object_index`、object UID 和 `edges["objects"]` 快照是否与顶层 `objects` 精确对齐。
+
+- RELABEL：同时修改派生 object 与 membership 的 `class_name`，不改成员、点和 UID。
+- DELETE：仅从派生 object/membership 中删除 target，随后重建索引和 bbox 摘要。
+- MERGE_WITH：以 `num_detections` 较多的对象作为 primary，合并 detection fields、`pcd_np`、`pcd_color_np`、member observation UID 和 merged-from provenance，重算 `num_detections`、`n_points` 与 bbox，然后删除 secondary。
+- graph snapshot：每次结构变更后重新对齐 `edges["objects"]`。若原图存在非空 graph edges，DELETE/MERGE 直接阻断，因为 v1 不猜测边重定向。当前 room0/office0 的边集均为空。
+- JSON summary：源 object `id` 若为 UUID 或 NumPy scalar，先转成稳定 JSON 标量，避免点云已写完而摘要在最后一步失败。
+
+每个场景最终只产生新文件：
+
+```text
+pcd_<scene>_ali_my_vlm_repaired_v1.pkl.gz
+final_membership_vlm_repaired_v1.json
+obj_json_vlm_repaired_v1.json
+repair_manifest.json
+```
+
+`repair_manifest.json` 记录源 pickle/membership 路径与 SHA-256、每个候选的 result SHA-256、动作、置信度、实际 apply status 和所有输出哈希。总清单 `derived_map_manifest.json` 显式写入 `in_place_mutation=false`。
+
+### 97 个 endpoint 是怎么正式跑完的
+
+正式 prompt 在全量运行前锁定。开发期先用 6 例做分层 prompt 可行性检查，再用额外 12 例做分层回归；调整结束后不再根据 97 例的 R1 标签改 prompt。
+
+全量运行使用 5 个 API 密钥作为 5 个独立进程环境，每个进程写入互斥的 output root，不共享可变文件。任务中断后已落盘 case 保留，重启时使用 `case_uid` 和已完成结果集合跳过，不重复计费。最后以冻结 worklist 和所有 result JSON 做集合等值检查：
+
+```text
+worklist rows       97
+unique expected UID 97
+result files        97
+unique result UID   97
+missing             0
+extra               0
+duplicate           0
+API errors          0
+```
+
+13 个并行/补跑清单的 worklist SHA-256、三段 prompt SHA-256、模型角色和 schema version 全部一致。根目录重建的 `run_manifest.json` 只引用 97 个已完成 case，没有再次发起 API 请求。API 密钥只通过静默输入注入 `VLM_API_KEY`，清单只保存环境变量名和 `api_key_persisted=false`。完成后 5 个环境变量均清除，SSH 会话均关闭。
+
+整个 VLM 路线只使用第三方 OpenAI-compatible `chat/completions` API，没有启动本地 VLM，没有使用任何 GPU，GPU3 也没有使用。
+
+### 正式结果与它能说明什么
+
+97 是可评审 endpoint 数，不是确认错误数。冻结 R1 是 55 CORRECT、40 WRONG、2 UNCLEAR。
+
+| R1 真值（行）/ VLM 判定（列） | CORRECT | UNCLEAR | WRONG | 合计 |
+|---|---:|---:|---:|---:|
+| CORRECT | 33 | 0 | 22 | 55 |
+| UNCLEAR | 0 | 1 | 1 | 2 |
+| WRONG | 8 | 1 | 31 | 40 |
+| 合计 | 41 | 2 | 54 | 97 |
+
+| 指标 | 结果 |
+|---|---:|
+| 状态完全一致 | 65/97 = 67.01% |
+| WRONG 检测 TP / FP / FN / TN | 31 / 22 / 9 / 33 |
+| WRONG precision / recall / F1 | 58.49% / 77.50% / 66.67% |
+| WRONG probability Brier score | 0.2662 |
+| 两者均判 WRONG 时的错误类型正确率 | 15/31 = 48.39% |
+
+WRONG 二分类指标排除 2 个 R1 UNCLEAR，因此 TP+FP+FN+TN=95。这个结果说明纯 VLM 有一定的错误召回，但 22 个 false positives 使它不能直接当作自动修复器。
+
+| execution status | 数量 | 解释 |
+|---|---:|---|
+| `APPROVED_FOR_DERIVED_MAP` | 19 | 诊断和 verifier 都达到该动作门槛 |
+| `BELOW_DIAGNOSIS_THRESHOLD` | 14 | 诊断置信不足 |
+| `BELOW_VERIFICATION_THRESHOLD` | 2 | verifier 同意方向但置信不足 |
+| `NEEDS_FULL_MEMBER_PASS` | 12 | 需要完整成员级重建，v1 只产生计划 |
+| `VERIFIER_REJECTED` | 2 | verifier 拒绝诊断或动作 |
+| `NO_MUTATION` | 48 | 正确/不明确，或没有可安全执行的动作 |
+
+19 个通过门控的动作是 17 个 RELABEL 和 2 个 MERGE_WITH，全部在隔离派生图中应用。room0 从 72 个对象变为 70，office0 仍为 29。顶层 objects、membership 和 graph snapshot 三方已经验证一致，源文件和所有输出哈希复算通过。
+
+但在结果全部落盘后用 R1 做事后核对，19 个已应用候选中只有 11 个对应 R1 WRONG，8 个对应 R1 CORRECT，候选 true-error precision 为 57.89%。这 8 个标签没有用来过滤派生图，否则会把人工真值泄漏进方法。派生图因此是完整保留成功和失败的研究产物，不是可替换原图的产物。
+
+一个已知结构性失败是 `incident_05c2ca82e74170f33cb1`：R1/R2 均判定 FALSE_SPLIT，但 Terra/Sol 在获得完整 10 张证据后仍判 CORRECT。这说明只用 endpoint 视觉摘要难以稳定恢复成员级结构，不能继续靠提高语言模型置信门槛解决。
+
+### 耗时怎么理解
+
+代表性正式分片的 `run_manifest.json` 记录 12 个 endpoint 用时 662.26 秒，即 **55.19 秒/endpoint**。这是单 endpoint 的端到端延迟，不会因 5 密钥并行就降为 11 秒；五路并行改变的是吞吐量，理想上约每 11.04 秒完成一个 endpoint。
+
+按该观测值线性折算，97 个 endpoint 完全串行约 89.2 分钟，理想五路并行约 17.8 分钟，实际会增加分组、网络和格式重试开销。如果把扫描全部 97 个 endpoint 的成本均摊到 R1 的 40 个真错误，约为 134 秒/真错误。
+
+### 产物和最小复现入口
+
+- 方法说明：`docs/ALI_MY_VLM_ONLY_REPAIR_V1.md`
+- 运行入口：`scripts/run_vlm_endpoint_repair.py`
+- 事后评估：`scripts/evaluate_vlm_endpoint_repair.py`
+- 派生图：`scripts/apply_vlm_repair_overlay.py`
+- 实现包：`conceptgraph/vlm_repair/`
+- 回归测试：`tests/test_vlm_repair.py` 与 `tests/test_vlm_overlay_serialization.py`，合计 `12 passed`
+- 正式评估：`/home/chenkejun/beauty/conceptgraphs/experiments/ali-my-VLM/full_97_locked_v1/evaluation_r1_frozen.json`
+- 派生图清单：`/home/chenkejun/beauty/conceptgraphs/experiments/ali-my-VLM/full_97_locked_v1_derived_maps/derived_map_manifest.json`
+
+接手时不要重跑已完成的 97 例，也不要把 19 个派生修复复制回原图。若继续研究 VLM 路线，应优先对 8 个高置信误修和已知 FALSE_SPLIT 漏检做证据缺口分类，再决定是补全成员级视图、增加几何工具调用，还是将 VLM 降级为只排序不修复的 candidate generator。
+
 ## 已完成的工程核验
 
 - 新协议相关测试与底层 evidence/audit 回归共 63 项通过。
+- VLM-only 的 schema、证据哈希绑定、标签字段拒绝、门控、overlay 非原地修改、UUID 序列化和 graph snapshot 一致性回归共 12 项通过。
+- VLM-only 正式运行对 97 个 worklist UID 做了集合等值检查，结果为 97 文件、97 唯一 UID、0 missing、0 extra、0 duplicate、0 API errors。
+- 13 个并行/补跑清单的 worklist、三段 prompt、schema 和模型角色哈希一致；97/97 的 `labels_used_for_inference=false`。
+- 派生 room0/office0 的 source/output SHA-256 全部复算通过；顶层 objects、membership 与 `edges["objects"]` 三方对齐。
+- VLM-only 代码、正式 JSON 结果和派生清单的 API 密钥/服务器密码模式扫描为 CLEAN。
 - 额外纳入 `test_general_utils.py` 时，当前基础环境因既有的 `supervision` 缺失在收集阶段停止；它与本次实现无关。
 - 正式新审计、组包、服务与指标预检均使用 CPU，`CUDA_VISIBLE_DEVICES` 为空；未占用任何人的 GPU，GPU3 也完全未使用。
+- VLM-only 视觉推理使用第三方 API，本地只做 CPU/磁盘证据组装和派生图序列化，同样未使用 GPU3 或其他 GPU。
 - 历史 root、失败现场和现有未跟踪权重/缓存均保留，没有清理或覆盖他人文件。
 
 更完整的方法逻辑、每个选项的解释与真实 R1/R2 评估，见 `docs/ALI_MY_EVIDENCE_AUDIT_METHOD_GUIDE.md` 第 34～35 节。
