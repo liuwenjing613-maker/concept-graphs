@@ -42,6 +42,7 @@ def _map_object(object_id, label: str, offset: float):
         "id": object_id,
         "class_name": label,
         "num_detections": 1,
+        "clip_ft": np.asarray([1.0, 0.0], dtype=np.float32),
         "pcd_np": points,
         "pcd_color_np": np.ones_like(points),
     }
@@ -61,6 +62,8 @@ def _membership(uid: str, index: int, label: str):
 
 def test_overlay_keeps_edge_object_snapshot_aligned_after_merge():
     objects = [_map_object(uuid4(), "chair", 0), _map_object(uuid4(), "chair", 2)]
+    objects[1]["num_detections"] = 3
+    objects[1]["clip_ft"] = np.asarray([0.0, 1.0], dtype=np.float32)
     bundle = {
         "objects": objects,
         "edges": {"edges": [], "objects": copy.deepcopy(objects)},
@@ -85,6 +88,10 @@ def test_overlay_keeps_edge_object_snapshot_aligned_after_merge():
     assert len(derived["objects"]) == len(derived_membership) == 1
     assert len(derived["edges"]["objects"]) == 1
     assert derived["edges"]["objects"][0]["id"] == derived["objects"][0]["id"]
+    expected_feature = np.asarray([1.0, 3.0], dtype=np.float32) / np.sqrt(10.0)
+    assert derived["objects"][0]["clip_ft"].shape == (2,)
+    assert np.allclose(derived["objects"][0]["clip_ft"], expected_feature)
+    assert np.allclose(derived["edges"]["objects"][0]["clip_ft"], expected_feature)
 
 
 def test_overlay_rejects_structural_repair_with_nonempty_edges():

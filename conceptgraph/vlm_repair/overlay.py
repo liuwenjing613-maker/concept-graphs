@@ -73,7 +73,6 @@ def _merge_objects(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[s
         "xyxy",
         "conf",
         "obs_uids",
-        "clip_ft",
     }
     for key in detection_fields:
         if key in primary and key in secondary:
@@ -85,6 +84,26 @@ def _merge_objects(primary: dict[str, Any], secondary: dict[str, Any]) -> dict[s
             [np.asarray(primary[key]), np.asarray(secondary[key])], axis=0
         )
     merged["num_detections"] = primary_count + secondary_count
+    if "clip_ft" not in primary or "clip_ft" not in secondary:
+        raise OverlayError("MERGE_WITH requires clip_ft in both serialized objects")
+    primary_feature = np.asarray(primary["clip_ft"])
+    secondary_feature = np.asarray(secondary["clip_ft"])
+    if primary_feature.shape != secondary_feature.shape or primary_feature.size == 0:
+        raise OverlayError("MERGE_WITH requires aligned non-empty clip_ft arrays")
+    total_count = primary_count + secondary_count
+    if total_count <= 0:
+        raise OverlayError("MERGE_WITH requires a positive combined detection count")
+    feature_dtype = np.result_type(
+        primary_feature.dtype, secondary_feature.dtype, np.float32
+    )
+    merged_feature = (
+        primary_feature.astype(np.float64) * primary_count
+        + secondary_feature.astype(np.float64) * secondary_count
+    ) / total_count
+    feature_norm = float(np.linalg.norm(merged_feature))
+    if not np.isfinite(feature_norm) or feature_norm <= 0.0:
+        raise OverlayError("MERGE_WITH produced an invalid clip_ft vector")
+    merged["clip_ft"] = (merged_feature / feature_norm).astype(feature_dtype)
     merged["n_points"] = int(len(merged["pcd_np"]))
     merged["bbox_np"] = _bbox_corners(np.asarray(merged["pcd_np"]))
     return merged
