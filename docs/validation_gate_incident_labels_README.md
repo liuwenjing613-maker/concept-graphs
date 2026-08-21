@@ -40,12 +40,32 @@
 
 R1 完成后，系统只把 `evidence_sufficient=YES + final_state=WRONG` 的 endpoint 送入专家因果追踪队列。最终修复只有在重跑后确实改善对象图时才算验证通过。
 
-## 页面地址
+## R1 已完成
 
-服务只绑定服务器 `127.0.0.1:8765`。保持 SSH 隧道后打开：
+2026-08-21，R1 已完成 97/97，并冻结为 `labels/labels_r1_frozen_20260821.jsonl`。冻结 SHA-256：
 
-`http://127.0.0.1:8765/`
+```text
+f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a
+```
 
-当前协议是 `final_endpoint_r1_v2_1`，验证根目录为 `/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1`。
+R1 结果是 55 `CORRECT`、40 `WRONG`、2 `UNCLEAR`；40 个确认错误已进入专家队列。为防止第二轮误改首轮答案，R1 的 8765 服务已经关闭。
 
-页面自动保存到 `labels/labels_r1.jsonl`。不要手工改 `r1_worklist.jsonl`，它是冻结的 97 个 final-endpoint 普查清单。
+## R2 已完成
+
+R2 复核了 24 个 endpoint，字段和上面的 R1 完全相同。R1 答案只用于机器端分层，已从 R2 worklist 和页面 API 中移除。R2 已完成 24/24 并冻结为 `labels/labels_r2_frozen_20260821.jsonl`，SHA-256：
+
+```text
+83de2b09a8d3022a555465e81dbb61e6d1ed4360915bfe745af43f020de9671b
+```
+
+最终状态一致率为 20/24 = 83.33%，Cohen's kappa 为 0.706；三字段完全一致 19/24。R1 的 10 个 `WRONG` 在 R2 全部保持 `WRONG`。5 个任一字段不一致的 endpoint 位于 `expert/r2_disagreement_queue.jsonl`，没有混入 40 个确认错误。
+
+R2 服务已在冻结后关闭。以下是历史重开方式，当前不需要运行：
+
+```bash
+ssh -N -L 8766:127.0.0.1:8766 -p 64906 chenkejun@frp-van.com
+```
+
+服务运行时打开 `http://127.0.0.1:8766/`。协议是 `final_endpoint_r2_v2_1`。
+
+若 R1 与 R2 都由同一人完成，最终只能报告同一复核者的 test-retest / intra-rater 稳定性，不能称为 inter-rater reliability。两轮间隔短还可能因记忆使一致率偏高。不要手工修改任何 worklist 或冻结标签。

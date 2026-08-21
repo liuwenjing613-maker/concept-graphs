@@ -1,0 +1,7 @@
+﻿calibration_endpoint_error_rate_lower_bound,calibration_endpoint_error_rate_upper_bound,calibration_incident_count,calibration_weighted_endpoint_error_precision,calibration_weighted_evidence_sufficiency,confirmed_endpoint_error_yield,confirmed_error_coverage,endpoint_correct_count,endpoint_error_count,endpoint_error_rate_conditional,endpoint_error_rate_lower_bound,endpoint_error_rate_upper_bound,evidence_sufficiency,evidence_sufficient_count,group,incident_count,unclear_count
+0.476797,0.487998,62,0.482198,0.988798,0.428571,0.975,51,39,0.433333,0.428571,0.43956,0.989011,90,association,91,1
+0.481593,0.498122,41,0.489687,0.983471,0.42623,0.65,34,26,0.433333,0.42623,0.442623,0.983607,60,detection,61,1
+0.581876,0.581876,16,0.581876,1.0,0.423077,0.275,15,11,0.423077,0.423077,0.423077,1.0,26,fusion,26,0
+0.562319,0.562319,21,0.562319,1.0,0.40625,0.325,19,13,0.40625,0.40625,0.40625,1.0,32,geometry,32,0
+0.489308,0.544654,27,0.517976,0.944654,0.454545,0.375,16,15,0.483871,0.454545,0.515152,0.939394,31,object_identity,33,2
+0.435315,0.435315,33,0.435315,1.0,0.388889,0.525,33,21,0.388889,0.388889,0.388889,1.0,54,segmentation,54,0

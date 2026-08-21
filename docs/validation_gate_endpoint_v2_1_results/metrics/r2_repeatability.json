@@ -1,0 +1,668 @@
+{
+  "schema_version": "1.0.0",
+  "status": "COMPLETE",
+  "agreement_type": "intra_rater_test_retest",
+  "relationship": "same-reviewer",
+  "case_count": 24,
+  "source_integrity": {
+    "r2_worklist_sha256": "8712c36dc70aece24297715abe92613cdd54b816787724fb54149a5f0eb8f576",
+    "frozen_r1_labels_sha256": "f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a",
+    "r2_labels_sha256": "83de2b09a8d3022a555465e81dbb61e6d1ed4360915bfe745af43f020de9671b"
+  },
+  "evidence_sufficiency": {
+    "case_count": 24,
+    "agreed_count": 23,
+    "raw_agreement": 0.958333,
+    "raw_agreement_wilson_95": [
+      0.797582,
+      0.992607
+    ],
+    "cohen_kappa": 0.647059,
+    "r1_distribution": {
+      "NO": 2,
+      "YES": 22
+    },
+    "r2_distribution": {
+      "YES": 23,
+      "NO": 1
+    },
+    "confusion_r1_rows_r2_columns": {
+      "NO": {
+        "NO": 1,
+        "YES": 1
+      },
+      "YES": {
+        "NO": 0,
+        "YES": 22
+      }
+    }
+  },
+  "final_state": {
+    "case_count": 24,
+    "agreed_count": 20,
+    "raw_agreement": 0.833333,
+    "raw_agreement_wilson_95": [
+      0.641469,
+      0.933213
+    ],
+    "cohen_kappa": 0.705521,
+    "r1_distribution": {
+      "UNCLEAR": 2,
+      "CORRECT": 12,
+      "WRONG": 10
+    },
+    "r2_distribution": {
+      "WRONG": 14,
+      "CORRECT": 9,
+      "UNCLEAR": 1
+    },
+    "confusion_r1_rows_r2_columns": {
+      "CORRECT": {
+        "CORRECT": 9,
+        "UNCLEAR": 0,
+        "WRONG": 3
+      },
+      "UNCLEAR": {
+        "CORRECT": 0,
+        "UNCLEAR": 1,
+        "WRONG": 1
+      },
+      "WRONG": {
+        "CORRECT": 0,
+        "UNCLEAR": 0,
+        "WRONG": 10
+      }
+    }
+  },
+  "endpoint_class": {
+    "case_count": 24,
+    "agreed_count": 20,
+    "raw_agreement": 0.833333,
+    "raw_agreement_wilson_95": [
+      0.641469,
+      0.933213
+    ],
+    "cohen_kappa": 0.705521,
+    "r1_distribution": {
+      "UNADJUDICABLE": 2,
+      "CONFIRMED_CORRECT": 12,
+      "CONFIRMED_ERROR": 10
+    },
+    "r2_distribution": {
+      "CONFIRMED_ERROR": 14,
+      "CONFIRMED_CORRECT": 9,
+      "UNADJUDICABLE": 1
+    },
+    "confusion_r1_rows_r2_columns": {
+      "CONFIRMED_CORRECT": {
+        "CONFIRMED_CORRECT": 9,
+        "CONFIRMED_ERROR": 3,
+        "UNADJUDICABLE": 0
+      },
+      "CONFIRMED_ERROR": {
+        "CONFIRMED_CORRECT": 0,
+        "CONFIRMED_ERROR": 10,
+        "UNADJUDICABLE": 0
+      },
+      "UNADJUDICABLE": {
+        "CONFIRMED_CORRECT": 0,
+        "CONFIRMED_ERROR": 1,
+        "UNADJUDICABLE": 1
+      }
+    }
+  },
+  "exact_three_field_label": {
+    "case_count": 24,
+    "agreed_count": 19,
+    "raw_agreement": 0.791667,
+    "raw_agreement_wilson_95": [
+      0.595295,
+      0.907552
+    ],
+    "cohen_kappa": 0.722222,
+    "r1_distribution": {
+      "NO|UNCLEAR|NOT_APPLICABLE": 2,
+      "YES|CORRECT|NOT_APPLICABLE": 12,
+      "YES|WRONG|FALSE_MERGE": 2,
+      "YES|WRONG|GEOMETRY_CORRUPTION": 1,
+      "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 4,
+      "YES|WRONG|FALSE_SPLIT": 1,
+      "YES|WRONG|SPURIOUS_OBJECT": 2
+    },
+    "r2_distribution": {
+      "YES|WRONG|SPURIOUS_OBJECT": 2,
+      "YES|CORRECT|NOT_APPLICABLE": 9,
+      "YES|WRONG|FALSE_MERGE": 3,
+      "YES|WRONG|GEOMETRY_CORRUPTION": 2,
+      "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 5,
+      "YES|WRONG|FALSE_SPLIT": 2,
+      "NO|UNCLEAR|NOT_APPLICABLE": 1
+    },
+    "confusion_r1_rows_r2_columns": {
+      "NO|UNCLEAR|NOT_APPLICABLE": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 1,
+        "YES|CORRECT|NOT_APPLICABLE": 0,
+        "YES|WRONG|FALSE_MERGE": 0,
+        "YES|WRONG|FALSE_SPLIT": 0,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 0,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 0,
+        "YES|WRONG|SPURIOUS_OBJECT": 1
+      },
+      "YES|CORRECT|NOT_APPLICABLE": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 0,
+        "YES|CORRECT|NOT_APPLICABLE": 9,
+        "YES|WRONG|FALSE_MERGE": 1,
+        "YES|WRONG|FALSE_SPLIT": 1,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 1,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 0,
+        "YES|WRONG|SPURIOUS_OBJECT": 0
+      },
+      "YES|WRONG|FALSE_MERGE": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 0,
+        "YES|CORRECT|NOT_APPLICABLE": 0,
+        "YES|WRONG|FALSE_MERGE": 2,
+        "YES|WRONG|FALSE_SPLIT": 0,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 0,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 0,
+        "YES|WRONG|SPURIOUS_OBJECT": 0
+      },
+      "YES|WRONG|FALSE_SPLIT": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 0,
+        "YES|CORRECT|NOT_APPLICABLE": 0,
+        "YES|WRONG|FALSE_MERGE": 0,
+        "YES|WRONG|FALSE_SPLIT": 1,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 0,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 0,
+        "YES|WRONG|SPURIOUS_OBJECT": 0
+      },
+      "YES|WRONG|GEOMETRY_CORRUPTION": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 0,
+        "YES|CORRECT|NOT_APPLICABLE": 0,
+        "YES|WRONG|FALSE_MERGE": 0,
+        "YES|WRONG|FALSE_SPLIT": 0,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 1,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 0,
+        "YES|WRONG|SPURIOUS_OBJECT": 0
+      },
+      "YES|WRONG|SEMANTIC_IDENTITY_ERROR": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 0,
+        "YES|CORRECT|NOT_APPLICABLE": 0,
+        "YES|WRONG|FALSE_MERGE": 0,
+        "YES|WRONG|FALSE_SPLIT": 0,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 0,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 4,
+        "YES|WRONG|SPURIOUS_OBJECT": 0
+      },
+      "YES|WRONG|SPURIOUS_OBJECT": {
+        "NO|UNCLEAR|NOT_APPLICABLE": 0,
+        "YES|CORRECT|NOT_APPLICABLE": 0,
+        "YES|WRONG|FALSE_MERGE": 0,
+        "YES|WRONG|FALSE_SPLIT": 0,
+        "YES|WRONG|GEOMETRY_CORRUPTION": 0,
+        "YES|WRONG|SEMANTIC_IDENTITY_ERROR": 1,
+        "YES|WRONG|SPURIOUS_OBJECT": 1
+      }
+    }
+  },
+  "error_type_all_cases": {
+    "case_count": 24,
+    "agreed_count": 19,
+    "raw_agreement": 0.791667,
+    "raw_agreement_wilson_95": [
+      0.595295,
+      0.907552
+    ],
+    "cohen_kappa": 0.701493,
+    "r1_distribution": {
+      "NOT_APPLICABLE": 14,
+      "FALSE_MERGE": 2,
+      "GEOMETRY_CORRUPTION": 1,
+      "SEMANTIC_IDENTITY_ERROR": 4,
+      "FALSE_SPLIT": 1,
+      "SPURIOUS_OBJECT": 2
+    },
+    "r2_distribution": {
+      "SPURIOUS_OBJECT": 2,
+      "NOT_APPLICABLE": 10,
+      "FALSE_MERGE": 3,
+      "GEOMETRY_CORRUPTION": 2,
+      "SEMANTIC_IDENTITY_ERROR": 5,
+      "FALSE_SPLIT": 2
+    },
+    "confusion_r1_rows_r2_columns": {
+      "FALSE_MERGE": {
+        "FALSE_MERGE": 2,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "NOT_APPLICABLE": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "FALSE_SPLIT": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 1,
+        "GEOMETRY_CORRUPTION": 0,
+        "NOT_APPLICABLE": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "GEOMETRY_CORRUPTION": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 1,
+        "NOT_APPLICABLE": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "NOT_APPLICABLE": {
+        "FALSE_MERGE": 1,
+        "FALSE_SPLIT": 1,
+        "GEOMETRY_CORRUPTION": 1,
+        "NOT_APPLICABLE": 10,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 1
+      },
+      "SEMANTIC_IDENTITY_ERROR": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "NOT_APPLICABLE": 0,
+        "SEMANTIC_IDENTITY_ERROR": 4,
+        "SPURIOUS_OBJECT": 0
+      },
+      "SPURIOUS_OBJECT": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "NOT_APPLICABLE": 0,
+        "SEMANTIC_IDENTITY_ERROR": 1,
+        "SPURIOUS_OBJECT": 1
+      }
+    }
+  },
+  "error_type_when_either_round_wrong": {
+    "case_count": 14,
+    "agreed_count": 9,
+    "raw_agreement": 0.642857,
+    "raw_agreement_wilson_95": [
+      0.387644,
+      0.836553
+    ],
+    "cohen_kappa": 0.567901,
+    "r1_distribution": {
+      "NON_WRONG": 4,
+      "FALSE_MERGE": 2,
+      "GEOMETRY_CORRUPTION": 1,
+      "SEMANTIC_IDENTITY_ERROR": 4,
+      "FALSE_SPLIT": 1,
+      "SPURIOUS_OBJECT": 2
+    },
+    "r2_distribution": {
+      "SPURIOUS_OBJECT": 2,
+      "FALSE_MERGE": 3,
+      "GEOMETRY_CORRUPTION": 2,
+      "SEMANTIC_IDENTITY_ERROR": 5,
+      "FALSE_SPLIT": 2
+    },
+    "confusion_r1_rows_r2_columns": {
+      "FALSE_MERGE": {
+        "FALSE_MERGE": 2,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "NON_WRONG": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "FALSE_SPLIT": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 1,
+        "GEOMETRY_CORRUPTION": 0,
+        "NON_WRONG": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "GEOMETRY_CORRUPTION": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 1,
+        "NON_WRONG": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "NON_WRONG": {
+        "FALSE_MERGE": 1,
+        "FALSE_SPLIT": 1,
+        "GEOMETRY_CORRUPTION": 1,
+        "NON_WRONG": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 1
+      },
+      "SEMANTIC_IDENTITY_ERROR": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "NON_WRONG": 0,
+        "SEMANTIC_IDENTITY_ERROR": 4,
+        "SPURIOUS_OBJECT": 0
+      },
+      "SPURIOUS_OBJECT": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "NON_WRONG": 0,
+        "SEMANTIC_IDENTITY_ERROR": 1,
+        "SPURIOUS_OBJECT": 1
+      }
+    }
+  },
+  "error_type_when_both_rounds_wrong": {
+    "case_count": 10,
+    "agreed_count": 9,
+    "raw_agreement": 0.9,
+    "raw_agreement_wilson_95": [
+      0.59585,
+      0.982124
+    ],
+    "cohen_kappa": 0.861111,
+    "r1_distribution": {
+      "FALSE_MERGE": 2,
+      "GEOMETRY_CORRUPTION": 1,
+      "SEMANTIC_IDENTITY_ERROR": 4,
+      "FALSE_SPLIT": 1,
+      "SPURIOUS_OBJECT": 2
+    },
+    "r2_distribution": {
+      "FALSE_MERGE": 2,
+      "GEOMETRY_CORRUPTION": 1,
+      "SEMANTIC_IDENTITY_ERROR": 5,
+      "FALSE_SPLIT": 1,
+      "SPURIOUS_OBJECT": 1
+    },
+    "confusion_r1_rows_r2_columns": {
+      "FALSE_MERGE": {
+        "FALSE_MERGE": 2,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "FALSE_SPLIT": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 1,
+        "GEOMETRY_CORRUPTION": 0,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "GEOMETRY_CORRUPTION": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 1,
+        "SEMANTIC_IDENTITY_ERROR": 0,
+        "SPURIOUS_OBJECT": 0
+      },
+      "SEMANTIC_IDENTITY_ERROR": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "SEMANTIC_IDENTITY_ERROR": 4,
+        "SPURIOUS_OBJECT": 0
+      },
+      "SPURIOUS_OBJECT": {
+        "FALSE_MERGE": 0,
+        "FALSE_SPLIT": 0,
+        "GEOMETRY_CORRUPTION": 0,
+        "SEMANTIC_IDENTITY_ERROR": 1,
+        "SPURIOUS_OBJECT": 1
+      }
+    }
+  },
+  "by_scene_final_state": [
+    {
+      "case_count": 7,
+      "agreed_count": 5,
+      "raw_agreement": 0.714286,
+      "raw_agreement_wilson_95": [
+        0.358934,
+        0.917781
+      ],
+      "cohen_kappa": 0.461538,
+      "r1_distribution": {
+        "CORRECT": 4,
+        "WRONG": 3
+      },
+      "r2_distribution": {
+        "CORRECT": 2,
+        "WRONG": 5
+      },
+      "confusion_r1_rows_r2_columns": {
+        "CORRECT": {
+          "CORRECT": 2,
+          "WRONG": 2
+        },
+        "WRONG": {
+          "CORRECT": 0,
+          "WRONG": 3
+        }
+      },
+      "scene_id": "office0"
+    },
+    {
+      "case_count": 17,
+      "agreed_count": 15,
+      "raw_agreement": 0.882353,
+      "raw_agreement_wilson_95": [
+        0.656636,
+        0.96712
+      ],
+      "cohen_kappa": 0.797619,
+      "r1_distribution": {
+        "UNCLEAR": 2,
+        "CORRECT": 8,
+        "WRONG": 7
+      },
+      "r2_distribution": {
+        "WRONG": 9,
+        "CORRECT": 7,
+        "UNCLEAR": 1
+      },
+      "confusion_r1_rows_r2_columns": {
+        "CORRECT": {
+          "CORRECT": 7,
+          "UNCLEAR": 0,
+          "WRONG": 1
+        },
+        "UNCLEAR": {
+          "CORRECT": 0,
+          "UNCLEAR": 1,
+          "WRONG": 1
+        },
+        "WRONG": {
+          "CORRECT": 0,
+          "UNCLEAR": 0,
+          "WRONG": 7
+        }
+      },
+      "scene_id": "room0"
+    }
+  ],
+  "final_state_transitions": {
+    "UNCLEAR -> WRONG": 1,
+    "CORRECT -> CORRECT": 9,
+    "WRONG -> WRONG": 10,
+    "CORRECT -> WRONG": 3,
+    "UNCLEAR -> UNCLEAR": 1
+  },
+  "r1_state_stability_in_stratified_subset": {
+    "CORRECT": {
+      "r1_case_count": 12,
+      "same_state_count": 9,
+      "same_state_rate": 0.75
+    },
+    "UNCLEAR": {
+      "r1_case_count": 2,
+      "same_state_count": 1,
+      "same_state_rate": 0.5
+    },
+    "WRONG": {
+      "r1_case_count": 10,
+      "same_state_count": 10,
+      "same_state_rate": 1.0
+    }
+  },
+  "disagreement_count": 5,
+  "disagreements": [
+    {
+      "scene_id": "room0",
+      "incident_uid": "incident_6a87b2bb28d50f7d6bcf",
+      "case_dir": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/cases/room0/finding_003706",
+      "adjudication_status": "PENDING_HUMAN_ADJUDICATION",
+      "changed_fields": {
+        "evidence_sufficient": {
+          "R1": "NO",
+          "R2": "YES"
+        },
+        "final_state": {
+          "R1": "UNCLEAR",
+          "R2": "WRONG"
+        },
+        "final_error_type": {
+          "R1": "NOT_APPLICABLE",
+          "R2": "SPURIOUS_OBJECT"
+        }
+      },
+      "r1_label": {
+        "evidence_sufficient": "NO",
+        "final_state": "UNCLEAR",
+        "final_error_type": "NOT_APPLICABLE",
+        "notes": "证据不够不太确定"
+      },
+      "r2_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "SPURIOUS_OBJECT",
+        "notes": null
+      }
+    },
+    {
+      "scene_id": "room0",
+      "incident_uid": "incident_f21944af9860dc40e7b2",
+      "case_dir": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/cases/room0/finding_001957",
+      "adjudication_status": "PENDING_HUMAN_ADJUDICATION",
+      "changed_fields": {
+        "final_state": {
+          "R1": "CORRECT",
+          "R2": "WRONG"
+        },
+        "final_error_type": {
+          "R1": "NOT_APPLICABLE",
+          "R2": "GEOMETRY_CORRUPTION"
+        }
+      },
+      "r1_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "CORRECT",
+        "final_error_type": "NOT_APPLICABLE",
+        "notes": null
+      },
+      "r2_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "GEOMETRY_CORRUPTION",
+        "notes": null
+      }
+    },
+    {
+      "scene_id": "office0",
+      "incident_uid": "incident_29b019e9fb5191ab6d92",
+      "case_dir": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/cases/office0/finding_000180",
+      "adjudication_status": "PENDING_HUMAN_ADJUDICATION",
+      "changed_fields": {
+        "final_state": {
+          "R1": "CORRECT",
+          "R2": "WRONG"
+        },
+        "final_error_type": {
+          "R1": "NOT_APPLICABLE",
+          "R2": "FALSE_MERGE"
+        }
+      },
+      "r1_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "CORRECT",
+        "final_error_type": "NOT_APPLICABLE",
+        "notes": null
+      },
+      "r2_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_MERGE",
+        "notes": null
+      }
+    },
+    {
+      "scene_id": "office0",
+      "incident_uid": "incident_563480d3b29c1a4a1f9a",
+      "case_dir": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/cases/office0/finding_000253",
+      "adjudication_status": "PENDING_HUMAN_ADJUDICATION",
+      "changed_fields": {
+        "final_state": {
+          "R1": "CORRECT",
+          "R2": "WRONG"
+        },
+        "final_error_type": {
+          "R1": "NOT_APPLICABLE",
+          "R2": "FALSE_SPLIT"
+        }
+      },
+      "r1_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "CORRECT",
+        "final_error_type": "NOT_APPLICABLE",
+        "notes": null
+      },
+      "r2_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_SPLIT",
+        "notes": null
+      }
+    },
+    {
+      "scene_id": "office0",
+      "incident_uid": "incident_c560995ad318c99275f8",
+      "case_dir": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/cases/office0/finding_000981",
+      "adjudication_status": "PENDING_HUMAN_ADJUDICATION",
+      "changed_fields": {
+        "final_error_type": {
+          "R1": "SPURIOUS_OBJECT",
+          "R2": "SEMANTIC_IDENTITY_ERROR"
+        }
+      },
+      "r1_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "SPURIOUS_OBJECT",
+        "notes": "是potted plant一部分"
+      },
+      "r2_label": {
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "SEMANTIC_IDENTITY_ERROR",
+        "notes": null
+      }
+    }
+  ],
+  "r2_review_seconds": {
+    "total": 507.2,
+    "mean": 21.133,
+    "median": 13.65,
+    "minimum": 6.2,
+    "maximum": 98.9
+  },
+  "interpretation_limits": [
+    "The same person completed R1 and R2, so these are test-retest/intra-rater measurements, not independent-reviewer reliability.",
+    "The 24-case subset is enriched for endpoint states and error types; it is not a new population error-rate sample.",
+    "A short interval between rounds can inflate agreement through memory, so the result is a lower-strength sensitivity check.",
+    "Kappa is descriptive for this stratified subset and should be read alongside raw agreement and confusion matrices."
+  ]
+}

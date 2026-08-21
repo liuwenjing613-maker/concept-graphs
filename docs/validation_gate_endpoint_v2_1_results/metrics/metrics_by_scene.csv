@@ -1,0 +1,3 @@
+﻿calibration_endpoint_error_rate_lower_bound,calibration_endpoint_error_rate_upper_bound,calibration_incident_count,calibration_weighted_endpoint_error_precision,calibration_weighted_evidence_sufficiency,confirmed_endpoint_error_yield,endpoint_correct_count,endpoint_error_count,endpoint_error_rate_conditional,endpoint_error_rate_lower_bound,endpoint_error_rate_upper_bound,evidence_sufficiency,evidence_sufficient_count,group,incident_count,unclear_count
+0.464286,0.464286,28,0.464286,1.0,0.464286,15,13,0.464286,0.464286,0.464286,1.0,28,office0,28,0
+0.44297,0.471956,40,0.456193,0.971014,0.391304,40,27,0.402985,0.391304,0.42029,0.971014,67,room0,69,2

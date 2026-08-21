@@ -1,14 +1,14 @@
 # ConceptGraphs `ali-my` 有效性门执行总览：final endpoint census v2.1
 
-更新时间：2026-08-20（Asia/Shanghai）
+更新时间：2026-08-21（Asia/Shanghai）
 服务器：`chenkejun@frp-van.com:64906`
 代码目录：`/home/chenkejun/beauty/conceptgraphs/code/official/ali-my`
 当前验证目录：`/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1`
 历史目录：`validation_gate`（finding v1）与 `validation_gate_incident_v2`（trigger-incident 中间版）均完整保留，只追溯，不继续标
 
-这份文档只做一件事：让接手的人不用翻聊天记录和终端日志，就能理解为什么人工方案被简化、机器实际完成了什么、用户现在只需判断什么，以及 R1 后机器还会做什么。
+这份文档只做一件事：让接手的人不用翻聊天记录和终端日志，就能理解为什么人工方案被简化、R1 得到了什么结论、screeners 哪部分有效或无效、R2 正在检验什么，以及下一步为什么必须做专家因果追踪与 replay。
 
-## 当前结论：该做的机器工作已经完成，下一步只等简化 R1
+## 当前结论：R1 与 R2 均已完成，40 个确认错误进入专家追踪，5 个分歧单独待裁决
 
 旧版把一条 checker finding 当成一个人工案例，同时问证据、规则真假、根因阶段、最终危害、修复动作与修复范围。它在 **0/160** 标签时被主动停止。第一次 trigger-incident 去重后又发现 147/160 仍重复同一 final-owner set，同一个 object 最多判断 11 次，因此中间版也在 0/160 时停用。两次都没有无效标签需要迁移。
 
@@ -44,6 +44,19 @@ WRONG   → 进入专家因果追踪
 只有重跑真实改善才叫 repair verified
 ```
 
+R1 已完成 97/97，并冻结为：
+
+```text
+55 CORRECT
+40 WRONG
+ 2 UNCLEAR
+95 / 97 evidence sufficient
+```
+
+正式决策是 `PROCEED_TO_EXPERT_TRACE`，40 例专家队列已生成。当前 `review_score` 的 ROC AUC 只有 0.420，Top 20 仅命中 6 个错误，低于 42.11% 的可判 endpoint 错误基线，因此不能把该分数当作错误概率或有效优先级。完整解释见主方法文档第 35 节。
+
+R2 也已完成 24/24：证据充分性一致 23/24，最终状态一致 20/24（83.33%，κ=0.706），三字段完全一致 19/24。R1 的 10 个 `WRONG` 在 R2 全部仍为 `WRONG`，两轮都判错时错误类型 9/10 一致；分歧主要是 3 个 `CORRECT` 和 1 个 `UNCLEAR` 在第二轮改判 `WRONG`。这些结果是同一复核者、短间隔 test-retest，不是 inter-rater reliability。
+
 ## 实际完成量
 
 | 项目 | room0 | office0 | 合计 |
@@ -61,7 +74,7 @@ WRONG   → 进入专家因果追踪
 
 阻断的不是“系统觉得难”，而是 endpoint 若只剩依赖正式运行未保存历史 PCD 的信号，就不能让人用别的图代替。若同一 final object 还有其他可复核信号，缺口信号只保留在内部历史，不再单独制造人工案例。
 
-## 用户现在只做三项判断
+## 人工复核已经完成；若要统一最终真值，只需裁决 5 个分歧
 
 页面先展示最终对象，再展示成员代表视图；只有仍有疑问时才展开代表性 trigger 和当时的 association。待判对象固定为 `O1 [ENDPOINT]`，其他对象明确写 `[context]`。checker 名、阶段、规则 subtype、抽样队列和 review score 均不显示，避免暗示答案。
 
@@ -74,36 +87,36 @@ WRONG   → 进入专家因果追踪
    - `UNCLEAR`：证据不够；`evidence_sufficient=NO` 时固定选它。
 3. 仅在 `WRONG` 时选一个可见终态错误类型：`FALSE_MERGE`、`FALSE_SPLIT`、`SPURIOUS_OBJECT`、`MISSING_OBJECT`、`WRONG_MEMBERSHIP`、`GEOMETRY_CORRUPTION`、`SEMANTIC_IDENTITY_ERROR` 或 `OTHER`。其他情况固定为 `NOT_APPLICABLE`。
 
-不再要求用户判断 checker 是否正确、最早根因、危害置信度、修复动作或修复范围。`OTHER` 必须写一句备注，其余备注可选；页面自动计时和保存。
+R1 97 例和 R2 24 例都已完成，不需要继续打开标注页。R2 页面和 worklist 均未包含 R1 答案。5 个任一字段不一致的 endpoint 已写入 `expert/r2_disagreement_queue.jsonl`，未混入 40 个确认错误。若论文需要一份最终统一真值，最小的后续人工任务是让另一位不知道两轮答案的人只裁决这 5 例；否则直接把它们作为重复稳定性限制报告。
 
 ## 当前入口
 
-服务只绑定服务器回环地址 `127.0.0.1:8765`，没有暴露到公网，也没有申请任何 GPU。先在本机保持隧道：
+R1 与 R2 都已冻结，`8765` 和 `8766` 服务均已关闭。下面的隧道只保留作历史操作记录，当前不需要再运行：
 
 ```bash
-ssh -N -L 8765:127.0.0.1:8765 -p 64906 chenkejun@frp-van.com
+ssh -N -L 8766:127.0.0.1:8766 -p 64906 chenkejun@frp-van.com
 ```
 
-再打开 `http://127.0.0.1:8765/`。当前服务协议为 `final_endpoint_r1_v2_1`，状态 `READY`，进度 `0/97`。标签写入：
+服务运行时打开 `http://127.0.0.1:8766/`。协议为 `final_endpoint_r2_v2_1`，共 24 例。冻结标签为：
 
-`/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/labels_r1.jsonl`
+`/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/labels_r2_frozen_20260821.jsonl`
 
-不要编辑冻结的 `r1_worklist.jsonl`，不要回到历史 finding v1 页面。
+不要编辑冻结的 R1/R2 worklist 或 R1 标签，不要回到历史 finding v1 页面。
 
-## R1 后不需要用户手工做什么
+## R1 后机器已经完成的工作
 
-机器会先严格校验 97 条标签并计算完整 endpoint 普查的 coverage、confirmed error count、条件错误率、全样本 confirmed yield 与上下界。当前没有抽样缺口，因此 headline 不使用 calibration 权重。没有完成全部标签时工具固定返回 `NOT_READY`，不会提前制造结论。
+机器已严格校验 97 条标签并计算完整 endpoint 普查的 coverage、confirmed error count、条件错误率、全样本 confirmed yield、上下界、错误类型、linked checker/stage、review_score 排序和复核时长。当前没有抽样缺口，因此 headline 不使用 calibration 权重。
 
-只有 `evidence_sufficient=YES + final_state=WRONG` 的 incidents 会自动生成 expert trace queue。专家阶段只建立根因假设与候选干预；随后执行真实 intervention/replay，对比对象图是否改善。没有 replay 改善就不能写成“修复有效”。本轮只有一位 R1 复核者，因此不会伪造 inter-rater agreement，论文中应明确列为限制。
+只有 `evidence_sufficient=YES + final_state=WRONG` 的 40 个 incidents 已进入 expert trace queue。专家阶段只建立根因假设与候选干预；随后执行真实 intervention/replay，对比对象图是否改善。没有 replay 改善就不能写成“修复有效”。本轮 R2 确由同一人完成，所以只报告 intra-rater/test-retest 稳定性；没有伪造成 inter-rater agreement。
 
 ## 已完成的工程核验
 
-- 新协议相关测试与底层 evidence/audit 回归共 56 项通过。
-- 仓库无关的全量测试收集仍有三个既有环境问题：作者机器硬编码图片、缺 `transformers`、缺 `supervision`；它们与本次实现无关。
+- 新协议相关测试与底层 evidence/audit 回归共 63 项通过。
+- 额外纳入 `test_general_utils.py` 时，当前基础环境因既有的 `supervision` 缺失在收集阶段停止；它与本次实现无关。
 - 正式新审计、组包、服务与指标预检均使用 CPU，`CUDA_VISIBLE_DEVICES` 为空；未占用任何人的 GPU，GPU3 也完全未使用。
 - 历史 root、失败现场和现有未跟踪权重/缓存均保留，没有清理或覆盖他人文件。
 
-更完整的方法逻辑、为什么这样选择以及每个 R1 选项的解释，见 `docs/ALI_MY_EVIDENCE_AUDIT_METHOD_GUIDE.md` 第 34 节。
+更完整的方法逻辑、每个选项的解释与真实 R1/R2 评估，见 `docs/ALI_MY_EVIDENCE_AUDIT_METHOD_GUIDE.md` 第 34～35 节。
 
 ---
 

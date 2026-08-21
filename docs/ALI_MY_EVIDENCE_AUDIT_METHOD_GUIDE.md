@@ -4,7 +4,7 @@
 > 它的目标是让你真正理解目前 `ali-my` 已经做成了什么、为什么这样设计、每份证据在解决什么问题、查错器到底如何判断、哪些结论能说到什么程度，以及未来如果把这一部分写进论文，应当怎样把代码实现抽象成一个清晰的方法。
 >
 > **当前代码基准**：`ali-my`，Evidence schema `0.2.0`，基础 Layered Audit schema `1.1.0`；当前人工有效性门使用 Final Endpoint Validation config `2.1.0`、Review Evidence schema `2.1.0` 与 endpoint metrics `2.1.0`。
-> **当前可复核的完整实测产物**：2026-08-20 已在同一冻结配置上完成 Replica `room0`、`office0` 两个 200 帧正式运行，并在不重跑检测/建图的前提下完成 final-endpoint 级重新审计。5587 条 checker findings 最终归并为 98 个不同的 final-object endpoints；1 个证据阻断，剩余 97 个全部进入普查，而不是再抽取 160 条重复案例。97/97 的最终对象证据投影和新版 R1 页面已经就绪。
+> **当前可复核的完整实测产物**：2026-08-20 已在同一冻结配置上完成 Replica `room0`、`office0` 两个 200 帧正式运行，并在不重跑检测/建图的前提下完成 final-endpoint 级重新审计。5587 条 checker findings 最终归并为 98 个不同的 final-object endpoints；1 个证据阻断，剩余 97 个全部进入普查，而不是再抽取 160 条重复案例。2026-08-21，R1 已完成 97/97：55 个最终正确、40 个确认仍错、2 个证据不足；正式决策是进入 40 个确认错误的专家因果追踪，不是直接宣称已经修复。隐藏 R1 答案的 24 例 R2 也已完成：最终状态一致率 83.33%，Cohen’s κ=0.706；它是同一复核者的重复稳定性，不是独立评审者一致性。完整结果见第 35 节。
 >
 > **最重要的一句话**：
 >
@@ -55,7 +55,7 @@ ConceptGraphs 原始增量建图
    专家因果追踪 → intervention / replay → 修复验证
 ```
 
-目前真正已经实现的是 **①到⑦**，以及“只把确认的最终错误生成专家队列”的出口；新版 R1 页面已就绪，但真实人工标签仍为 0/97。
+目前真正已经实现的是 **①到⑦**、完整 R1 指标、筛查排序诊断、24 例 R2 重复稳定性评估，以及“只把确认的最终错误生成专家队列”的出口。R1 已完成 97/97，并生成 40 例专家队列；R2 已完成 24/24，另有 5 例分歧单独进入待裁决队列，没有污染 40 例确认错误。
 
 目前**还没有**实现的是最后一段：
 
@@ -4674,42 +4674,52 @@ R1 API 仍隐藏 checker、stage、subtype、linked findings、review score 和 
 /home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1
 ```
 
-只绑定服务器 loopback：
+R1 已在 2026-08-21 完成并冻结：
 
 ```text
-127.0.0.1:8765
-protocol = final_endpoint_r1_v2_1
-progress = 0 / 97
+progress = 97 / 97
+labels SHA-256 = f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a
+frozen copy = labels/labels_r1_frozen_20260821.jsonl
 ```
 
-本机保持 SSH 隧道：
+为避免冻结标签被误改，R1 的 `8765` 页面与 R2 的 `8766` 页面均已在完成后关闭。R2 完成状态为：
+
+```text
+protocol = final_endpoint_r2_v2_1
+progress = 24 / 24
+labels SHA-256 = 83de2b09a8d3022a555465e81dbb61e6d1ed4360915bfe745af43f020de9671b
+frozen copy = labels/labels_r2_frozen_20260821.jsonl
+```
+
+若以后确实需要重新开放页面，可按原命令重启 loopback 服务后再建立隧道；当前评估不再需要打开网页。历史隧道命令是：
 
 ```bash
-ssh -N -L 8765:127.0.0.1:8765 -p 64906 chenkejun@frp-van.com
+ssh -N -L 8766:127.0.0.1:8766 -p 64906 chenkejun@frp-van.com
 ```
 
-然后打开：
+服务运行时才打开：
 
 ```text
-http://127.0.0.1:8765/
+http://127.0.0.1:8766/
 ```
 
-标签保存到：
+R1 与 R2 标签分别保存到：
 
 ```text
 /home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/labels_r1.jsonl
+/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/labels_r2.jsonl
 ```
 
-不要编辑 `r1_worklist.jsonl`。两个历史目录完整保留但不要继续标：
+不要编辑 `r1_worklist.jsonl`、`r2_worklist.jsonl` 或冻结标签。两个历史目录完整保留但不要继续标：
 
 ```text
 /home/chenkejun/beauty/conceptgraphs/validation_gate              # finding v1
 /home/chenkejun/beauty/conceptgraphs/validation_gate_incident_v2  # trigger-incident 中间版
 ```
 
-## 34.7 R1 完成后机器会做什么
+## 34.7 R1 完成后机器已经做了什么
 
-当前是完整 flagged-endpoint census，因此机器直接报告：
+R1 满 97 条后，机器已重新验证全部标签键、字段约束、证据哈希、final-pickle 绑定和系统门，并直接报告：
 
 ```text
 evidence coverage
@@ -4720,7 +4730,7 @@ confirmed endpoint-error count
 room0 / office0 分场景结果
 ```
 
-不会把当前 headline 写成不必要的 calibration 加权估计。标签未满 97 条时工具固定返回 `NOT_READY`。
+不会把当前 headline 写成不必要的 calibration 加权估计。正式实测结果与解释见第 35 节。
 
 随后只有：
 
@@ -4729,9 +4739,9 @@ evidence_sufficient = YES
 + final_state = WRONG
 ```
 
-进入专家队列。专家读取完整 linked findings、checkers、stages、3205 条 trigger 集合与事件链，建立最早因果阶段和候选干预。修复仍必须实际执行 `intervention → replay → final graph comparison`，只有重跑改善才能写 `repair_verified=true`。
+进入专家队列。当前恰有 40 例满足条件，已经生成 `expert/confirmed_endpoint_error_queue.jsonl`。专家读取完整 linked findings、checkers、stages、3205 条 trigger 集合与事件链，建立最早因果阶段和候选干预。修复仍必须实际执行 `intervention → replay → final graph comparison`，只有重跑改善才能写 `repair_verified=true`。
 
-当前不再强制一轮与主问题无关的 32 例复杂 R2。单 R1 复核者是明确限制，不能伪造 inter-rater agreement；如果论文阶段需要可靠性研究，应另设一个小而独立、只复核 endpoint labels 的子集，而不是恢复旧版十字段问卷。
+旧的 32 例十字段复杂 R2 仍然退役。为检查简化终点标签本身是否稳定，现在另设 24 例 R2：页面与 R1 使用完全相同的三个字段，隐藏 R1 答案，覆盖两个场景、三种 R1 最终状态和本轮出现的五种终点错误类型。若仍由同一人完成，它只能报告 `intra-rater / test-retest` 稳定性，不能写成独立评审者 `inter-rater reliability`；两轮间隔短还可能因记忆使一致率偏高。
 
 ## 34.8 代码、测试与资源边界
 
@@ -4745,10 +4755,12 @@ scripts/build_validation_gate_review_packets.py
 scripts/serve_validation_gate_incident_r1.py
 scripts/compute_validation_gate_incident_metrics.py
 scripts/generate_validation_gate_expert_queue.py
+scripts/generate_validation_gate_endpoint_r2.py
+scripts/compute_validation_gate_r2_agreement.py
 docs/validation_gate_incident_labels_README.md
 ```
 
-证据、审计、新旧协议兼容回归共 `56 passed`。无筛选运行全仓 pytest 仍有三个与本任务无关的既有收集问题：作者本机硬编码图片、缺 `transformers`、缺 `supervision`。
+证据、审计、新旧协议兼容及新增 R2 回归共 `63 passed`。额外纳入 `test_general_utils.py` 时，当前基础环境会因既有的 `supervision` 缺失在收集阶段停止；这不是本次改动造成的失败，也不影响上述 63 项相关测试。
 
 本轮 final-endpoint 审计、案例投影、测试和服务全部显式 `CUDA_VISIBLE_DEVICES=""`；没有使用 GPU3，也没有占用其他人的 GPU。旧运行、旧验证根、权重链接和他人的缓存均未删除。
 
@@ -4765,6 +4777,258 @@ replay：验证修复，而不是让人猜修复
 ```
 
 这不是削弱方法，而是消除伪独立样本、阶段泄漏和无效人工推断。论文可以诚实报告“5587 条风险信号 → 97 个不同 flagged final objects → 人工确认错误 → replay 验证修复”，而不能把规则触发次数包装成错误数量。
+
+---
+
+# 35. 2026-08-21 R1 实测评估与精简 R2
+
+这一节记录真实标签完成后的正式结果。若只想知道“现在得到什么结论、下一步为什么这样做”，直接读本节即可。
+
+## 35.1 一句话结论
+
+R1 证明这套旁路审计不是只会产生大量无效报警：在 97 个不同、可复核的 flagged final objects 中，人工确认 40 个最终状态仍然错误。但当前复合 `review_score` 没有把这些错误排到前面，因此正确动作是：
+
+```text
+保留 evidence ledger、endpoint 去重和证据页面
+        ↓
+废弃“review_score 可以直接代表错误概率”的解释
+        ↓
+40 个确认错误进入 expert causal trace
+        ↓
+只选因果集中、可局部干预的错误族做 intervention / replay
+        ↓
+重跑后 final graph 真正改善，才能声称修复有效
+```
+
+正式状态是：
+
+```text
+PROCEED_TO_EXPERT_TRACE
+repair gate = PENDING_EXPERT_TRACE_AND_REPLAY
+```
+
+它既不是“整套方法失败”，也不是“自动修复已经成功”。它说明证据化诊断找到了大量真实终点错误，但排序分数和修复环节仍需要下一阶段验证。R2 进一步说明：R1 的 `WRONG` 判断很稳定，但 `CORRECT/UNCLEAR` 与 `WRONG` 的边界仍有复核者内波动，最终标签不能被描述成完全无主观性。
+
+## 35.2 先确认这 97 个标签可以被统计
+
+正式计算前没有直接相信网页上的 `97/97`，而是重新做了以下检查：
+
+| 检查 | 结果 |
+|---|---|
+| R1 标签行数 / worklist 行数 | 97 / 97 |
+| endpoint 键缺失、额外或重复 | 0 / 0 / 0 |
+| 字段枚举与条件逻辑 | PASS |
+| R1 标签与 97 个 endpoint 一一对应 | PASS |
+| 系统 Evidence Gate、Audit Gate、parity | 全部 PASS |
+| 人类页面与系统 source case、final pickle、资产哈希 | PASS |
+| 重新核对的页面资产 | 5069 个 |
+| R1 冻结 SHA-256 | `f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a` |
+
+正式冻结文件为：
+
+```text
+labels/labels_r1_frozen_20260821.jsonl
+```
+
+冻结副本与原 `labels_r1.jsonl` 哈希完全一致。R1 服务随后关闭，避免做 R2 时误改首轮答案。
+
+## 35.3 R1 headline：40 个确认错误，不是 5587 个
+
+| 场景 | 可复核 endpoint | 证据充分 | CORRECT | WRONG | UNCLEAR | 证据充分条件下错误率 |
+|---|---:|---:|---:|---:|---:|---:|
+| room0 | 69 | 67 | 40 | 27 | 2 | 27 / 67 = 40.30% |
+| office0 | 28 | 28 | 15 | 13 | 0 | 13 / 28 = 46.43% |
+| 合计 | 97 | 95 | 55 | 40 | 2 | 40 / 95 = 42.11% |
+
+证据充分率是：
+
+```text
+95 / 97 = 97.94%
+```
+
+因为两例人工选择 `UNCLEAR`，对 97 个可复核 endpoints 的错误率不能只写一个假装精确的点估计。保守范围是：
+
+```text
+lower = 40 / 97 = 41.24%
+upper = (40 + 2) / 97 = 43.30%
+```
+
+若把机器侧完全证据阻断的 1 个 endpoint 也放回最初 98 个 flagged endpoints，范围是：
+
+```text
+lower = 40 / 98 = 40.82%
+upper = (40 + 2 + 1) / 98 = 43.88%
+```
+
+这两个范围分别回答“在 97 个可人工复核 endpoints 中怎样界定不确定性”和“把 1 个机器阻断也按最保守情况计入时怎样界定”。它们不是从样本外推总体的置信区间，因为这次对本轮全部 flagged endpoints 做的是普查。
+
+room0 与 office0 的条件错误率相差约 6.13 个百分点，但只有两个具体场景，且 2×2 Fisher 检验 `p=0.651`。因此目前只能描述这两个 run 的差异，不能据此声称 office0 在一般意义上显著更差。
+
+## 35.4 错误组成：先看什么最值得追踪
+
+| 最终错误类型 | 数量 | 占 40 个确认错误 | room0 | office0 |
+|---|---:|---:|---:|---:|
+| `SEMANTIC_IDENTITY_ERROR` | 17 | 42.5% | 8 | 9 |
+| `GEOMETRY_CORRUPTION` | 11 | 27.5% | 10 | 1 |
+| `SPURIOUS_OBJECT` | 6 | 15.0% | 4 | 2 |
+| `FALSE_SPLIT` | 3 | 7.5% | 2 | 1 |
+| `FALSE_MERGE` | 3 | 7.5% | 3 | 0 |
+
+语义身份错与几何损坏合计 28 / 40，即 70%。这使它们成为专家追踪的首要“错误族”，但频数本身还不能决定修哪个：还要看最早因果阶段是否集中、能否局部干预、replay 后是否改善。尤其是 room0 的几何损坏 10 例与 office0 的语义身份错 9 例，值得分别检查是否共享同一因果链，不能先假定它们来自同一个 checker。
+
+## 35.5 人工标签本身有没有明显阶段性或提交异常
+
+| 复核行为 | 结果 |
+|---|---:|
+| 总复核时间 | 4765.7 秒，约 79.4 分钟 |
+| 每例中位时间 | 28.0 秒 |
+| 四分位范围 | 15.2～50.3 秒 |
+| 少于 5 秒 | 0 例 |
+| 少于 10 秒 | 6 例，全部为 `CORRECT` |
+| `WRONG` 中位 / 最短 | 34.95 秒 / 13.7 秒 |
+| 有文字备注 | 35 例 |
+
+这些行为数据没有显示批量秒点、空标签或把证据不足硬猜成对错的异常。两例 `UNCLEAR` 都在 room0，备注分别说明“视角不够，只看到一点点”和“证据不够不太确定”，与 `evidence_sufficient=NO` 的选择一致。
+
+这不等于单复核者标签天然可靠。它只说明 R1 文件在覆盖、逻辑和基本复核行为上可以进入统计；主观重复稳定性由下面的精简 R2 检查。
+
+## 35.6 对 screeners 的真正评估：能找到错，但当前排序分数方向不对
+
+首先要区分两个问题：
+
+1. 这些规则筛出的 endpoint 中有没有真实错误？有，40 / 97 已确认。
+2. 当前 `review_score` 能不能把最可能错误的排在前面？本轮不能。
+
+对 95 个可判 endpoints，以“分数越高越应优先”为方向：
+
+| 排序诊断 | 结果 |
+|---|---:|
+| 真实错误基线 | 40 / 95 = 42.11% |
+| ROC AUC | 0.420 |
+| Average Precision | 0.366 |
+| Top 5 | 1 / 5 = 20% |
+| Top 10 | 2 / 10 = 20% |
+| Top 20 | 6 / 20 = 30% |
+| Top 40 | 13 / 40 = 32.5% |
+
+AUC 低于 0.5，所有 top-k precision 又低于 42.11% 基线；旧分区也呈现同一现象：`calibration_random` 是 31 / 68 = 45.59%，`diagnostic_priority` 反而只有 9 / 29 = 31.03%。因此 `review_score` 不能在论文中写成错误概率或有效优先级，下一版必须重新学习/校准组合方向，至少先按 R1 结果做 leave-one-scene-out 验证，避免在这两个场景上直接调到过拟合。
+
+linked checker 的数字可以用于安排专家追踪，但不能当成独立规则的因果精度，因为同一 endpoint 可同时属于多个 checker：
+
+| linked checker | 涉及 endpoints | 确认错误 | 证据充分条件 precision | 覆盖 40 个错误 |
+|---|---:|---:|---:|---:|
+| `ASSOC-002` | 59 | 31 | 53.45% | 77.5% |
+| `DET-002` | 26 | 15 | 60.00% | 37.5% |
+| `OBJ-003` | 9 | 4 | 57.14% | 10.0% |
+| `OBJ-005` | 24 | 11 | 45.83% | 27.5% |
+| `FUSE-007` | 26 | 11 | 42.31% | 27.5% |
+
+`ASSOC-002` 最适合优先做“高覆盖候选入口”，`DET-002` 适合做“较高纯度候选入口”。但 association 阶段一共触及 91 / 97 endpoints 和 39 / 40 errors，这也说明“触及很多错误”部分来自覆盖极广，不等于 association 就是 39 个错误的根因。根因必须回到完整事件链逐例确认。
+
+还有一个不能从这次数据回答的问题：未被任何 screener 标记的普通 final objects 没有人工真值，因此当前只能报告 flagged-endpoint yield / precision，不能报告全地图层面的 recall、specificity 或 false-positive rate。若论文需要这些量，必须另抽一组未报警 final objects 做盲审对照。
+
+## 35.7 精简 R2：检查同一终点判断能否重复，不恢复复杂问卷
+
+R2 固定为 24 例，占 R1 的 24.7%，设计如下：
+
+| 分层 | R2 数量 |
+|---|---:|
+| room0 / office0 | 17 / 7 |
+| R1 `CORRECT / WRONG / UNCLEAR` | 12 / 10 / 2 |
+| R1 出现的错误类型 | 五类全部至少一例 |
+
+R1 状态只用于机器端分层抽样，不写入 `r2_worklist.jsonl`，也不由 API 返回。实测检查结果：24 行 worklist 中没有 `reviewer_id`、`evidence_sufficient`、`final_state`、`final_error_type`、`review_seconds` 或 `notes`；首例 API 的 `label` 为 `null`。R2 页面仍只显示同一份哈希锁定 endpoint evidence，并填写与 R1 相同的三个字段。
+
+这 24 例是为了让少数状态和五类错误都有机会被重复检验，属于有意分层的稳定性样本。因此：
+
+- 可以报告证据充分性一致率、最终状态一致率、三字段完全一致率、错误类型一致率、confusion matrix 和 Cohen's kappa。
+- 不能用 24 例重新估计 97 例的错误率。
+- 若由同一人完成，只能写 `intra-rater test-retest`。
+- 若 R1 后马上做 R2，要把“短间隔记忆可能抬高一致率”写入限制。
+- 真正的 `inter-rater reliability` 仍需要另一位不知道 R1 答案的人独立复核。
+
+R2 完成后运行：
+
+```bash
+CUDA_VISIBLE_DEVICES="" python scripts/compute_validation_gate_r2_agreement.py \
+  --validation-root /home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1 \
+  --r1-labels /home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/labels_r1_frozen_20260821.jsonl \
+  --relationship same-reviewer
+```
+
+未满 24 例时固定返回 `NOT_READY`，不会用部分标签提前计算一个看似完整的一致率。
+
+本轮已经完成 24/24，R2 冻结 SHA-256 为：
+
+```text
+83de2b09a8d3022a555465e81dbb61e6d1ed4360915bfe745af43f020de9671b
+```
+
+实际一致性结果：
+
+| 比较项 | 一致数 | 一致率 | Cohen's kappa |
+|---|---:|---:|---:|
+| 证据充分性 | 23 / 24 | 95.83% | 0.647 |
+| 最终状态 | 20 / 24 | 83.33% | 0.706 |
+| 三字段完全一致 | 19 / 24 | 79.17% | 0.722 |
+| 两轮都判 `WRONG` 时的错误类型 | 9 / 10 | 90.00% | 0.861 |
+
+24 例仍是小样本：最终状态一致率的 Wilson 95% 区间为 64.15%～93.32%，三字段完全一致率为 59.53%～90.76%。因此这里应报告具体分子/分母、区间和混淆矩阵，不把单个 κ 值包装成“可靠性已经证明”。
+
+状态迁移比单个一致率更能说明问题：
+
+| R1 → R2 | 数量 |
+|---|---:|
+| `WRONG → WRONG` | 10 |
+| `CORRECT → CORRECT` | 9 |
+| `CORRECT → WRONG` | 3 |
+| `UNCLEAR → UNCLEAR` | 1 |
+| `UNCLEAR → WRONG` | 1 |
+
+没有任何 `WRONG → CORRECT/UNCLEAR`。也就是说，R1 已确认的 10 个错误在第二轮全部保留；一旦两轮都认为它是错的，主错误类型也有 9/10 一致。主要不稳定性不是“错误后来被推翻”，而是第二轮把 3 个首轮正确和 1 个首轮不清楚改判成错误；另有 1 例保持 `WRONG` 但从 `SPURIOUS_OBJECT` 改为 `SEMANTIC_IDENTITY_ERROR`。
+
+这支持两个同时成立的结论：
+
+1. 已确认 `WRONG` 的正例相当稳定，可以继续进入因果追踪。
+2. `CORRECT/UNCLEAR` 与 `WRONG` 的判断阈值还不够稳定，R1 可能偏保守，也可能是第二轮因熟悉页面而提高了报错敏感度；同一人、短间隔 R2 无法区分这两种解释。
+
+因此没有用 R2 自动覆盖 R1，也没有把 4 个新增 `WRONG` 偷加进 40 例确认错误。5 个存在任一字段分歧的 endpoint 已单独写入 `expert/r2_disagreement_queue.jsonl`，状态固定为 `PENDING_HUMAN_ADJUDICATION`。若后续需要一个最终统一真值，应让另一位独立复核者只裁决这 5 例；若暂不裁决，则论文同时报告 R1 主分析和这里的 repeatability sensitivity analysis。
+
+R2 总用时 507.2 秒，中位每例 13.65 秒；第二轮明显快于 R1，符合重复熟悉效应，也进一步要求把短间隔记忆偏差写进限制。
+
+## 35.8 当前正式产物在哪里
+
+| 产物 | 路径 | 作用 |
+|---|---|---|
+| 冻结 R1 | `labels/labels_r1_frozen_20260821.jsonl` | 正式首轮人工真值 |
+| R1 完整指标 | `metrics/incident_endpoint_metrics.json` | 总体、场景、错误类型、排序、checker、时长 |
+| 分场景 / linked checker / linked stage CSV | `metrics/metrics_by_*.csv` | 便于表格检查 |
+| 正式决策 | `decision.md` | `PROCEED_TO_EXPERT_TRACE` |
+| 40 例专家队列 | `expert/confirmed_endpoint_error_queue.jsonl` | 后续因果追踪与 replay 入口 |
+| R2 分层设计 | `r2_selection_manifest.json` | 记录种子、数量、哈希与不泄漏约束 |
+| R2 空白工作清单 | `labels/r2_worklist.jsonl` | 24 个稳定性复核 endpoint |
+| R2 页面证据清单 | `r2_review_evidence_manifest.json` | 绑定 R2 worklist 与原始冻结证据 |
+| 冻结 R2 | `labels/labels_r2_frozen_20260821.jsonl` | 正式第二轮人工选择 |
+| R2 一致性结果 | `metrics/r2_repeatability.json`、`r2_repeatability.md` | intra-rater 统计、混淆矩阵与分歧 |
+| R2 分歧队列 | `expert/r2_disagreement_queue.jsonl` | 5 例待独立裁决，不混入 40 例确认错误 |
+
+所有评估、R2 生成、测试和服务继续显式禁用 CUDA；没有占用 GPU3，也没有占用任何其他 GPU。
+
+## 35.9 现在能写进论文与不能写进论文的话
+
+可以写：
+
+> 在两个冻结的 Replica 200 帧运行中，5587 个多阶段风险 findings 经 final-object endpoint 去重后对应 98 个不同 flagged endpoints。1 个因证据不足被机器阻断，其余 97 个进行完整人工普查；95 个可判，其中 40 个最终错误得到确认。确认错误以语义身份错误和几何损坏为主。当前启发式复合排序分数未表现出有效优先级，因此后续工作转向确认错误的因果追踪与干预重放，而不把规则分数解释为错误概率。24 例同一复核者重复复核的最终状态一致率为 83.33%（κ=0.706）；R1 的 10 个 `WRONG` 全部在 R2 保持 `WRONG`，但 4 个非错误/不清楚案例改判为错误，说明正例稳定而决策边界仍需独立裁决验证。
+
+不能写：
+
+- “发现了 5587 个真实错误”；
+- “40 个错误都由 association 引起”；
+- “R1 已证明修复有效”；
+- “同一人立刻做的 R2 是独立评审者一致性”；
+- “只看 flagged endpoints 就测得了全地图 recall / specificity”。
+
+这组边界让结果看起来更克制，但也更可信：每个数字都对应一个明确分母，每个阶段只回答自己有证据回答的问题。
 
 ---
 

@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "frozen_date": "2026-08-21",
+  "validation_root": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1",
+  "status": "R1_R2_COMPLETE_EXPERT_TRACE_PENDING",
+  "system_gates": "PASS",
+  "r1": {
+    "case_count": 97,
+    "evidence_sufficient": 95,
+    "correct": 55,
+    "wrong": 40,
+    "unclear": 2,
+    "frozen_labels": "labels/labels_r1_frozen_20260821.jsonl",
+    "frozen_labels_sha256": "f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a"
+  },
+  "r2": {
+    "case_count": 24,
+    "agreement_type": "intra_rater_test_retest",
+    "evidence_agreement": 0.958333,
+    "final_state_agreement": 0.833333,
+    "final_state_cohen_kappa": 0.705521,
+    "exact_three_field_agreement": 0.791667,
+    "disagreement_count": 5,
+    "frozen_labels": "labels/labels_r2_frozen_20260821.jsonl",
+    "frozen_labels_sha256": "83de2b09a8d3022a555465e81dbb61e6d1ed4360915bfe745af43f020de9671b"
+  },
+  "artifacts": {
+    "metrics/incident_endpoint_metrics.json": "6784a16bd1d6cab076bae82e6fa6177e0919fa39d869e10a70af650867f5e0c6",
+    "metrics/r2_repeatability.json": "c31887bdfcf7568d506d64e7b6541260a82b4c740cb3a5738fca20b87e21eb18",
+    "decision.md": "ee34e16fb0d9299422cd1f8cc186e730e93f237a37d51dd138c649c773d95348",
+    "expert/confirmed_endpoint_error_queue.jsonl": "a8445b5acb8b7f1cac72aedde1948ea7c7edd9a72eae375608ba089a57666feb",
+    "expert/r2_disagreement_queue.jsonl": "0b26a0bc90398547f10ac715b16fe7253acbc0b7aff2f7cdad8e127d03d4bb19",
+    "r2_selection_manifest.json": "03dcd7abcd7dcae135ed8fc40e74d75f471c9cedb95a2fa3697acfee093a6f8a",
+    "r2_review_evidence_manifest.json": "f0dcd4c52f845fa216beefcd376c7126db28c94f7a6c57fc31f00a0a4af01eec"
+  },
+  "service_state": {
+    "r1_port_8765": "STOPPED_AFTER_FREEZE",
+    "r2_port_8766": "STOPPED_AFTER_FREEZE"
+  },
+  "resource_boundary": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "gpu_used": false
+  }
+}
