@@ -9,6 +9,7 @@ import pickle
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from uuid import UUID
 
 import numpy as np
 
@@ -122,6 +123,23 @@ def apply_repairs_to_bundle(
         raise OverlayError("unexpected map bundle/membership schema")
     if len(objects) != len(derived_membership):
         raise OverlayError("final membership is not aligned with serialized objects")
+    edge_bundle = derived.get("edges")
+    if isinstance(edge_bundle, dict) and "objects" in edge_bundle:
+        edge_objects = edge_bundle["objects"]
+        if not isinstance(edge_objects, list) or len(edge_objects) != len(objects):
+            raise OverlayError("edge-bundle object snapshot is not aligned with objects")
+        object_ids = [str(obj.get("id", index)) for index, obj in enumerate(objects)]
+        edge_object_ids = [
+            str(obj.get("id", index)) for index, obj in enumerate(edge_objects)
+        ]
+        if edge_object_ids != object_ids:
+            raise OverlayError("edge-bundle object IDs are not aligned with objects")
+        if edge_bundle.get("edges") and any(
+            repair.get("action") in {"DELETE", "MERGE_WITH"} for repair in repairs
+        ):
+            raise OverlayError(
+                "structural repair is unsafe while serialized graph edges are non-empty"
+            )
     for index, member in enumerate(derived_membership):
         if member.get("current_object_index") != index:
             raise OverlayError("membership current_object_index is not exact")
@@ -233,6 +251,8 @@ def apply_repairs_to_bundle(
         touched.update(resources)
         _refresh_membership_indices(objects, derived_membership)
     derived["objects"] = objects
+    if isinstance(edge_bundle, dict) and "objects" in edge_bundle:
+        edge_bundle["objects"] = copy.deepcopy(objects)
     return derived, derived_membership, reports
 
 
@@ -241,8 +261,13 @@ def _object_summary(objects: list[dict[str, Any]]) -> dict[str, Any]:
     for index, obj in enumerate(objects, start=1):
         points = np.asarray(obj["pcd_np"])
         center, extent = _membership_bbox(points)
+        object_id = obj.get("id", index - 1)
+        if isinstance(object_id, UUID):
+            object_id = str(object_id)
+        elif isinstance(object_id, np.generic):
+            object_id = object_id.item()
         result[f"object_{index}"] = {
-            "id": obj.get("id", index - 1),
+            "id": object_id,
             "object_tag": obj.get("class_name"),
             "object_caption": obj.get("consolidated_caption", ""),
             "bbox_extent": [round(float(value), 2) for value in extent],
