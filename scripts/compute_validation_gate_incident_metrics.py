@@ -7,6 +7,8 @@ import argparse
 import csv
 import hashlib
 import json
+import math
+import statistics
 from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Iterable
@@ -248,6 +250,136 @@ def grouped(rows: list[dict[str, Any]], field: str) -> list[dict[str, Any]]:
     return [group_record(value, [row for row in rows if str(row.get(field)) == value]) for value in values]
 
 
+def grouped_membership(rows: list[dict[str, Any]], field: str) -> list[dict[str, Any]]:
+    values = sorted({str(value) for row in rows for value in (row.get(field) or [])})
+    records = []
+    total_errors = sum(is_endpoint_error(row) for row in rows)
+    for value in values:
+        selected = [row for row in rows if value in {str(item) for item in (row.get(field) or [])}]
+        record = group_record(value, selected)
+        record["confirmed_error_coverage"] = safe_ratio(
+            sum(is_endpoint_error(row) for row in selected), total_errors
+        )
+        records.append(record)
+    return records
+
+
+def percentile(values: list[float], fraction: float) -> float | None:
+    if not values:
+        return None
+    ordered = sorted(values)
+    position = (len(ordered) - 1) * fraction
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return round(ordered[lower], 3)
+    result = ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
+    return round(result, 3)
+
+
+def timing_record(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    values = [float(row.get("review_seconds") or 0) for row in rows]
+    return {
+        "case_count": len(values),
+        "total_seconds": round(sum(values), 3),
+        "mean_seconds": None if not values else round(statistics.mean(values), 3),
+        "median_seconds": percentile(values, 0.5),
+        "p25_seconds": percentile(values, 0.25),
+        "p75_seconds": percentile(values, 0.75),
+        "minimum_seconds": None if not values else min(values),
+        "maximum_seconds": None if not values else max(values),
+        "under_5_seconds": sum(value < 5 for value in values),
+        "under_10_seconds": sum(value < 10 for value in values),
+    }
+
+
+def ranking_diagnostics(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    ranked = [
+        row
+        for row in rows
+        if is_adjudicable(row) and row.get("review_score") is not None
+    ]
+    ranked.sort(
+        key=lambda row: (
+            -float(row["review_score"]),
+            str(row.get("scene_id")),
+            str(row.get("incident_uid")),
+        )
+    )
+    positive = [float(row["review_score"]) for row in ranked if is_endpoint_error(row)]
+    negative = [float(row["review_score"]) for row in ranked if not is_endpoint_error(row)]
+    auc = None
+    if positive and negative:
+        wins = sum(left > right for left in positive for right in negative)
+        ties = sum(left == right for left in positive for right in negative)
+        auc = round((wins + 0.5 * ties) / (len(positive) * len(negative)), 6)
+    average_precision = None
+    if positive:
+        precisions = []
+        errors_seen = 0
+        for rank, row in enumerate(ranked, 1):
+            if is_endpoint_error(row):
+                errors_seen += 1
+                precisions.append(errors_seen / rank)
+        average_precision = round(sum(precisions) / len(positive), 6)
+    prevalence = safe_ratio(len(positive), len(ranked))
+    top_k = []
+    for requested in (5, 10, 20, 40):
+        selected = ranked[:requested]
+        if not selected:
+            continue
+        precision = rate(selected, is_endpoint_error)
+        top_k.append(
+            {
+                "requested_k": requested,
+                "evaluated_k": len(selected),
+                "confirmed_error_count": sum(is_endpoint_error(row) for row in selected),
+                "confirmed_error_precision": precision,
+                "lift_over_adjudicable_prevalence": (
+                    None
+                    if precision is None or prevalence in (None, 0)
+                    else round(precision / prevalence, 6)
+                ),
+            }
+        )
+    return {
+        "score_direction": "higher review_score was intended to mean higher diagnostic priority",
+        "adjudicable_scored_endpoint_count": len(ranked),
+        "confirmed_error_count": len(positive),
+        "confirmed_correct_count": len(negative),
+        "confirmed_error_prevalence": prevalence,
+        "roc_auc": auc,
+        "average_precision": average_precision,
+        "wrong_score_mean": None if not positive else round(statistics.mean(positive), 6),
+        "correct_score_mean": None if not negative else round(statistics.mean(negative), 6),
+        "wrong_score_median": percentile(positive, 0.5),
+        "correct_score_median": percentile(negative, 0.5),
+        "top_k": top_k,
+    }
+
+
+def endpoint_error_types(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    errors = [row for row in rows if is_endpoint_error(row)]
+    values = sorted({str(row["final_error_type"]) for row in errors})
+    return [
+        {
+            "endpoint_error_type": value,
+            "count": sum(row["final_error_type"] == value for row in errors),
+            "share_of_confirmed_errors": safe_ratio(
+                sum(row["final_error_type"] == value for row in errors), len(errors)
+            ),
+            "by_scene": dict(
+                Counter(
+                    str(row["scene_id"])
+                    for row in errors
+                    if row["final_error_type"] == value
+                )
+            ),
+        }
+        for value in values
+    ]
+
+
 def verify_review_projection(root: Path, worklist: list[dict[str, Any]]) -> dict[str, Any]:
     worklist_path = root / "labels" / "r1_worklist.jsonl"
     manifest = read_json(root / "review_evidence_manifest.json")
@@ -348,12 +480,25 @@ def system_gates(root: Path, worklist: list[dict[str, Any]]) -> dict[str, Any]:
     projection = verify_review_projection(root, worklist)
     parity_pass = parity.get("status") == "PASS"
     all_pass = parity_pass and all(scene["status"] == "PASS" for scene in scenes) and projection["structural_gate"] == "PASS"
+    before_block = sum(
+        int(((scene.get("deduplication") or {}).get("incident_count_before_evidence_block") or 0))
+        for scene in assembly.get("scenes") or []
+    )
+    blocked = sum(
+        int(((scene.get("deduplication") or {}).get("blocked_incident_count") or 0))
+        for scene in assembly.get("scenes") or []
+    )
     return {
         "all_system_gates_pass": all_pass,
         "selection_mode": assembly.get("selection_mode"),
         "full_endpoint_census": assembly.get("full_endpoint_census") is True,
         "parity": {"status": parity.get("status"), "accepted": parity_pass},
         "scenes": scenes,
+        "endpoint_census_denominators": {
+            "before_machine_evidence_block": before_block,
+            "machine_evidence_blocked": blocked,
+            "human_reviewable": len(worklist),
+        },
         "human_system_evidence_projection": projection,
     }
 
@@ -429,6 +574,8 @@ def write_csv(path: Path, records: list[dict[str, Any]]) -> None:
 
 def markdown(metrics: dict[str, Any], result: dict[str, Any]) -> str:
     overall = metrics["overall"]
+    timing = metrics["review_timing"]["overall"]
+    ranking = metrics["ranking_diagnostics"]
     return "\n".join(
         [
             "# Incident-level validation gate",
@@ -441,8 +588,20 @@ def markdown(metrics: dict[str, Any], result: dict[str, Any]) -> str:
             f"- Unique incidents: {overall['incident_count']}",
             f"- Evidence sufficiency: {overall['evidence_sufficiency']}",
             f"- Confirmed endpoint errors: {overall['endpoint_error_count']}",
+            f"- Confirmed endpoint correct: {overall['endpoint_correct_count']}",
+            f"- Human-unclear endpoints: {overall['unclear_count']}",
             f"- Endpoint-error rate among sufficient cases: {overall['endpoint_error_rate_conditional']}",
             f"- Full endpoint bounds: [{overall['endpoint_error_rate_lower_bound']}, {overall['endpoint_error_rate_upper_bound']}]",
+            f"- Bounds including the machine-blocked endpoint: [{overall['all_flagged_endpoint_error_lower_bound']}, {overall['all_flagged_endpoint_error_upper_bound']}]",
+            f"- Total / median review time: {timing['total_seconds']} s / {timing['median_seconds']} s",
+            "",
+            "## Screener ranking diagnostic",
+            "",
+            f"- review_score ROC AUC: {ranking['roc_auc']}",
+            f"- review_score average precision: {ranking['average_precision']}",
+            f"- adjudicable endpoint-error prevalence: {ranking['confirmed_error_prevalence']}",
+            "",
+            "Higher review_score was intended to rank risk. AUC and top-k lift below the prevalence baseline mean the score should be revised rather than used as a probability.",
             "",
             "## Interpretation",
             "",
@@ -482,14 +641,47 @@ def compute(root: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             ),
         }
     )
+    gates = system_gates(root, worklist)
+    denominators = gates["endpoint_census_denominators"]
+    all_flagged = int(denominators["before_machine_evidence_block"])
+    blocked = int(denominators["machine_evidence_blocked"])
+    overall.update(
+        {
+            "all_flagged_endpoint_error_lower_bound": safe_ratio(
+                overall["endpoint_error_count"], all_flagged
+            ),
+            "all_flagged_endpoint_error_upper_bound": safe_ratio(
+                overall["endpoint_error_count"] + overall["unclear_count"] + blocked,
+                all_flagged,
+            ),
+        }
+    )
     metrics = {
         "schema_version": SCHEMA_VERSION,
         "annotation_unit": "incident",
-        "system_gates": system_gates(root, worklist),
+        "system_gates": gates,
         "overall": overall,
         "by_scene": grouped(rows, "scene_id"),
+        "by_cohort": grouped(rows, "cohort"),
         "by_representative_checker": grouped(rows, "checker_id"),
         "by_representative_stage": grouped(rows, "stage"),
+        "by_linked_checker": grouped_membership(rows, "checker_ids"),
+        "by_linked_stage": grouped_membership(rows, "stages"),
+        "endpoint_error_types": endpoint_error_types(rows),
+        "ranking_diagnostics": ranking_diagnostics(rows),
+        "review_timing": {
+            "overall": timing_record(rows),
+            "by_final_state": {
+                state: timing_record([row for row in rows if row["final_state"] == state])
+                for state in sorted(FINAL_STATES)
+            },
+        },
+        "label_quality": {
+            "semantic_validation": "PASS",
+            "exact_worklist_coverage": True,
+            "labels_r1_sha256": sha256_file(labels_dir / "labels_r1.jsonl"),
+            "nonempty_notes_count": sum(bool(str(row.get("notes") or "").strip()) for row in rows),
+        },
         "linked_checker_count_distribution": dict(
             Counter(len(row.get("checker_ids") or []) for row in rows)
         ),
@@ -516,6 +708,9 @@ def main() -> int:
     write_csv(metrics_dir / "metrics_by_scene.csv", metrics["by_scene"])
     write_csv(metrics_dir / "metrics_by_representative_checker.csv", metrics["by_representative_checker"])
     write_csv(metrics_dir / "metrics_by_representative_stage.csv", metrics["by_representative_stage"])
+    write_csv(metrics_dir / "metrics_by_linked_checker.csv", metrics["by_linked_checker"])
+    write_csv(metrics_dir / "metrics_by_linked_stage.csv", metrics["by_linked_stage"])
+    write_csv(metrics_dir / "endpoint_error_types.csv", metrics["endpoint_error_types"])
     (root / "decision.md").write_text(markdown(metrics, result), encoding="utf-8")
     print(json.dumps({"status": "COMPLETE", "decision": result}, ensure_ascii=False, indent=2))
     return 0

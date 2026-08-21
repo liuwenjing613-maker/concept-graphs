@@ -54,6 +54,11 @@ def test_endpoint_label_contract_is_small_and_conditionally_consistent():
     assert unclear["final_state"] == "UNCLEAR"
 
 
+def test_same_contract_can_be_saved_as_blinded_r2_round():
+    result = MODULE.validate_label(valid_payload(), reviewer_id="R2")
+    assert result["reviewer_id"] == "R2"
+
+
 def test_store_binds_incident_to_representative_packet_and_hides_checker_metadata(tmp_path):
     labels = tmp_path / "labels"
     case_dir = tmp_path / "cases" / "room0" / "finding_1"

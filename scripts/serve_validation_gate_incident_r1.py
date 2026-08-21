@@ -71,9 +71,11 @@ def case_key(row: dict[str, Any]) -> tuple[str, str]:
     return scene_id, incident_uid
 
 
-def validate_label(payload: dict[str, Any]) -> dict[str, Any]:
+def validate_label(payload: dict[str, Any], reviewer_id: str = "R1") -> dict[str, Any]:
+    if reviewer_id not in {"R1", "R2"}:
+        raise ValueError("reviewer_id must identify review round R1 or R2")
     cleaned = {field: payload.get(field) for field in LABEL_FIELDS}
-    cleaned["reviewer_id"] = "R1"
+    cleaned["reviewer_id"] = reviewer_id
     missing = [
         field
         for field in ("evidence_sufficient", "final_state", "final_error_type", "review_seconds")
@@ -114,15 +116,30 @@ def validate_label(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 class ReviewStore:
-    def __init__(self, validation_root: Path):
+    def __init__(
+        self,
+        validation_root: Path,
+        *,
+        reviewer_id: str = "R1",
+        worklist_name: str = "r1_worklist.jsonl",
+        labels_name: str = "labels_r1.jsonl",
+        review_manifest_name: str = REVIEW_MANIFEST_FILENAME,
+        blind_seed: str | None = None,
+    ):
         self.root = validation_root.resolve()
+        if reviewer_id not in {"R1", "R2"}:
+            raise ValueError("reviewer_id must identify review round R1 or R2")
+        for name in (worklist_name, labels_name, review_manifest_name):
+            if Path(name).name != name:
+                raise ValueError("review input filenames must not contain directories")
+        self.reviewer_id = reviewer_id
         self.labels_dir = self.root / "labels"
-        self.worklist_path = self.labels_dir / "r1_worklist.jsonl"
-        self.labels_path = self.labels_dir / "labels_r1.jsonl"
+        self.worklist_path = self.labels_dir / worklist_name
+        self.labels_path = self.labels_dir / labels_name
         self.worklist = read_jsonl(self.worklist_path)
-        manifest_path = self.root / REVIEW_MANIFEST_FILENAME
+        manifest_path = self.root / review_manifest_name
         if not manifest_path.is_file():
-            raise ValueError(f"缺少 {REVIEW_MANIFEST_FILENAME}，R1 暂停")
+            raise ValueError(f"缺少 {review_manifest_name}，{reviewer_id} 暂停")
         self.review_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if self.review_manifest.get("schema_version") != SCHEMA_VERSION:
             raise ValueError("review evidence schema 不兼容")
@@ -136,7 +153,7 @@ class ReviewStore:
         self.by_key: dict[tuple[str, str], dict[str, Any]] = {}
         for row in self.worklist:
             if row.get("annotation_unit") != "incident":
-                raise ValueError("R1 worklist 不是 incident 级")
+                raise ValueError(f"{reviewer_id} worklist 不是 incident 级")
             key = case_key(row)
             if key in self.by_key:
                 raise ValueError(f"duplicate incident: {key}")
@@ -153,7 +170,7 @@ class ReviewStore:
         self.display_rows = sorted(
             self.worklist,
             key=lambda row: hashlib.sha256(
-                f"R1_ENDPOINT_BLIND_V2:{case_key(row)[0]}:{case_key(row)[1]}".encode()
+                f"{blind_seed or f'{reviewer_id}_ENDPOINT_BLIND_V2'}:{case_key(row)[0]}:{case_key(row)[1]}".encode()
             ).hexdigest(),
         )
         self.labels: dict[tuple[str, str], dict[str, Any]] = {}
@@ -162,7 +179,9 @@ class ReviewStore:
             for row in read_jsonl(self.labels_path):
                 key = case_key(row)
                 if key not in self.by_key:
-                    raise ValueError(f"labels_r1 contains unknown incident: {key}")
+                    raise ValueError(f"{labels_name} contains unknown incident: {key}")
+                if row.get("reviewer_id") != reviewer_id:
+                    raise ValueError(f"{labels_name} contains a label from another review round: {key}")
                 self.labels[key] = row
 
     @property
@@ -234,7 +253,8 @@ class ReviewStore:
         if incident.get("incident_uid") != key[1]:
             raise ValueError(f"review evidence incident UID mismatch：{key[0]}/{key[1]}")
 
-        # R1 is deliberately endpoint-blind to checker name, stage and score.
+        # Both review rounds are deliberately endpoint-blind to checker name,
+        # stage, score, and the other round's answers.
         safe_review = copy.deepcopy(review)
         for field in ("finding_uid", "checker_id", "stage", "subtype"):
             safe_review.pop(field, None)
@@ -276,7 +296,7 @@ class ReviewStore:
         key = (str(payload.get("scene_id") or ""), str(payload.get("case_uid") or ""))
         if key not in self.by_key:
             raise ValueError("未知 incident，未保存")
-        label = validate_label(payload)
+        label = validate_label(payload, self.reviewer_id)
         with self.lock:
             output = dict(self.by_key[key])
             output.update(label)
@@ -293,6 +313,17 @@ class ReviewStore:
         result = self.status()
         result["saved_case"] = f"{key[0]}/{key[1]}"
         return result
+
+    def page_html(self) -> str:
+        page = HTML.replace("R1", self.reviewer_id)
+        if self.reviewer_id == "R2":
+            reminder = (
+                '<div class="notice warning"><b>这是隐藏 R1 答案的重复复核。</b>'
+                "请只根据当前页面证据重新判断，不回想或寻找 R1 选择。"
+                "本页字段与 R1 完全相同，也不会显示 R1 结果。</div>"
+            )
+            page = page.replace('<div id="contractStatus"></div>', reminder + '<div id="contractStatus"></div>')
+        return page
 
 
 HTML = r"""<!doctype html>
@@ -376,7 +407,7 @@ class Handler(BaseHTTPRequestHandler):
         query = parse_qs(parsed.query)
         try:
             if parsed.path == "/":
-                data = HTML.encode("utf-8")
+                data = self.store.page_html().encode("utf-8")
                 self.send_response(HTTPStatus.OK)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(data)))
@@ -428,15 +459,27 @@ def main() -> int:
     parser.add_argument("--validation-root", required=True, type=Path)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--reviewer-id", choices=("R1", "R2"), default="R1")
+    parser.add_argument("--worklist-name", default="r1_worklist.jsonl")
+    parser.add_argument("--labels-name", default="labels_r1.jsonl")
+    parser.add_argument("--review-manifest-name", default=REVIEW_MANIFEST_FILENAME)
+    parser.add_argument("--blind-seed")
     args = parser.parse_args()
-    store = ReviewStore(args.validation_root)
+    store = ReviewStore(
+        args.validation_root,
+        reviewer_id=args.reviewer_id,
+        worklist_name=args.worklist_name,
+        labels_name=args.labels_name,
+        review_manifest_name=args.review_manifest_name,
+        blind_seed=args.blind_seed,
+    )
     Handler.store = store
     server = ThreadingHTTPServer((args.host, args.port), Handler)
     print(
         json.dumps(
             {
                 "status": "READY",
-                "protocol": "final_endpoint_r1_v2_1",
+                "protocol": f"final_endpoint_{args.reviewer_id.lower()}_v2_1",
                 "url": f"http://{args.host}:{args.port}",
                 "completed": store.status()["completed"],
                 "total": store.total,

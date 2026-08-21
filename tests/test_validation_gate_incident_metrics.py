@@ -68,6 +68,27 @@ def test_priority_reports_conditional_precision_and_full_queue_yield():
     assert MODULE.p_at_k(ordered, 2, MODULE.is_endpoint_error) == 0.5
 
 
+def test_ranking_diagnostics_detects_reversed_priority_score():
+    rows = [
+        dict(row("wrong-low", state="WRONG"), review_score=1),
+        dict(row("wrong-mid", state="WRONG"), review_score=2),
+        dict(row("correct-mid", state="CORRECT"), review_score=8),
+        dict(row("correct-high", state="CORRECT"), review_score=9),
+    ]
+    result = MODULE.ranking_diagnostics(rows)
+    assert result["roc_auc"] == 0.0
+    assert result["confirmed_error_prevalence"] == 0.5
+    assert result["top_k"][0]["confirmed_error_precision"] == 0.5
+
+
+def test_linked_checker_groups_use_all_incident_memberships():
+    rows = [row("one", state="WRONG"), row("two", state="CORRECT")]
+    records = {record["group"]: record for record in MODULE.grouped_membership(rows, "checker_ids")}
+    assert records["DET-001"]["incident_count"] == 2
+    assert records["SEG-004"]["endpoint_error_count"] == 1
+    assert records["SEG-004"]["confirmed_error_coverage"] == 1.0
+
+
 def test_label_merge_requires_exact_incident_coverage():
     worklist = [row("one"), row("two")]
     try:
