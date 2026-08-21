@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "method": "ali-my-VLM-only-repair-v1",
+  "backend": "openai_compatible_chat_completions",
+  "base_url": "https://api.pinaic.com/v1",
+  "api_key_env": "VLM_API_KEY",
+  "model_roles": {
+    "audit": "gpt-5.6-terra",
+    "decision": "gpt-5.6-sol",
+    "verification": "gpt-5.5"
+  },
+  "max_images": 10,
+  "verify_mutations": true,
+  "source_labels_allowed_during_inference": false,
+  "in_place_map_mutation": false,
+  "automatic_actions": [
+    "RELABEL",
+    "DELETE",
+    "MERGE_WITH"
+  ],
+  "planned_only_actions": [
+    "SPLIT_OBJECT",
+    "REASSIGN_MEMBERS",
+    "TRIM_GEOMETRY"
+  ]
+}
