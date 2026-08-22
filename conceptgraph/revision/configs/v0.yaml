@@ -1,0 +1,25 @@
+revision:
+  enabled: false
+  mode: controlled_validation
+  corruption_plan: null
+  log_dir_name: revision
+  maturity:
+    enabled: true
+    min_unique_frames_for_structural_repair: 3
+    min_members_per_split_group: 2
+    require_non_degenerate_geometry: true
+  replay:
+    strategy: dependency_local
+    rebuild_features: true
+    rebuild_geometry: true
+    replay_postprocess_events: true
+  relation_backend:
+    type: ali_dev_baseline
+    rebuild_scope: full_temporal_baseline
+  transaction:
+    shadow_only: true
+    allow_commit_to_derived_map: true
+    max_rebase_count: 3
+  debug:
+    save_snapshots: true
+    save_event_trace: true
