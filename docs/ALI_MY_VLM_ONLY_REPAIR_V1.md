@@ -100,3 +100,22 @@ python scripts/apply_vlm_repair_overlay.py \
 - `derived map` 不等于 repair verified；仍需对象级 diff、可视复核或下游 ReplicaSSG 评测。
 - 第三方 API 只接收每例必要图片和无人工标签摘要；密钥、人工答案和完整数据目录不会发送。
 - 原冻结 pickle、evidence 与原 `ali-my` 工作树始终保持只读。
+
+## 7. 两场景修复感知评测（2026-08-22）
+
+在 `room0 + office0` 的既有 Replica GT 上完成评测，没有引入新增人工标注。主口径
+`n_exclude=6` 下，直接读取地图保存标签的 `map_class_name` 轨道表现为：mIoU
+`32.49% → 45.04%`（`+12.55 pp`）、mF1 `+14.06 pp`、fwIoU `+19.18 pp`、
+点准确率 `+16.10 pp`。ReplicaSSG 对象分类中，标签轨道 R@1 `+2.70 pp`、
+mR@1 `+13.87 pp`；74 个 GT 排名改善 5、恶化 1、不变 68。
+
+与之相对，原生 `native_clip_ft` 轨道在主口径上完全不变；GT 几何覆盖仍为
+`52.70%`，碎片化 excess 仍为 12。预测对象由 101 减至 99，但闭集几何有效预测数
+没有增加。因此 v1 的可靠结论是：**VLM 修复明显改善了保存标签的下游可用性，但没有
+改善原生视觉表征、几何覆盖或碎片化**。其中 `pot` IoU 下降 `80.22 pp`，需结合
+标签到闭集词表的映射差异单独复核，不能只按总均值判定个别修复正确性。
+
+可追溯产物：
+
+- [精简可读报告](../artifacts/ali_my_vlm_repair_aware_20260821/repair_aware_summary.md)
+- [完整机器可读结果](../artifacts/ali_my_vlm_repair_aware_20260821/repair_aware_summary.json)

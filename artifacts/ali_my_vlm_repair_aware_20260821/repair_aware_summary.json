@@ -1,0 +1,1200 @@
+{
+  "format_version": 1,
+  "created_at": "2026-08-21T14:15:53.696785Z",
+  "method": "ali-my-VLM-only-repair-v1-repair-aware-evaluation",
+  "new_manual_annotations_used": false,
+  "repair_actions": {
+    "applied": 19,
+    "by_action": {
+      "MERGE_WITH": 2,
+      "RELABEL": 17
+    }
+  },
+  "semantic": {
+    "aggregate_comparison": [
+      {
+        "score_source": "native_clip_ft",
+        "n_exclude": 1,
+        "scope": "all_2_scenes",
+        "baseline_percent": {
+          "miou": 15.53043894780497,
+          "mrecall": 39.112439987771594,
+          "mprecision": 17.683226606180366,
+          "mf1score": 21.460340161269663,
+          "fmiou": 18.647698607781916,
+          "point_accuracy": 33.81539008768818
+        },
+        "repaired_percent": {
+          "miou": 15.514639084906007,
+          "mrecall": 39.112439987771594,
+          "mprecision": 17.667426743281403,
+          "mf1score": 21.43825379366086,
+          "fmiou": 18.63742916485262,
+          "point_accuracy": 33.81539008768818
+        },
+        "delta_percentage_points": {
+          "miou": -0.01579986289896418,
+          "mrecall": 0.0,
+          "mprecision": -0.015799862898962402,
+          "mf1score": -0.02208636760880367,
+          "fmiou": -0.010269442929295991,
+          "point_accuracy": 0.0
+        }
+      },
+      {
+        "score_source": "native_clip_ft",
+        "n_exclude": 4,
+        "scope": "all_2_scenes",
+        "baseline_percent": {
+          "miou": 26.561935257522247,
+          "mrecall": 43.87240993580352,
+          "mprecision": 32.464732821194055,
+          "mf1score": 32.6832958753597,
+          "fmiou": 47.83214477379245,
+          "point_accuracy": 60.900788549048734
+        },
+        "repaired_percent": {
+          "miou": 26.561935257522247,
+          "mrecall": 43.87240993580352,
+          "mprecision": 32.464732821194055,
+          "mf1score": 32.6832958753597,
+          "fmiou": 47.83214477379245,
+          "point_accuracy": 60.900788549048734
+        },
+        "delta_percentage_points": {
+          "miou": 0.0,
+          "mrecall": 0.0,
+          "mprecision": 0.0,
+          "mf1score": 0.0,
+          "fmiou": 0.0,
+          "point_accuracy": 0.0
+        }
+      },
+      {
+        "score_source": "native_clip_ft",
+        "n_exclude": 6,
+        "scope": "all_2_scenes",
+        "baseline_percent": {
+          "miou": 26.695507560388123,
+          "mrecall": 43.48183505311081,
+          "mprecision": 33.19093411745802,
+          "mf1score": 32.629857555862266,
+          "fmiou": 49.74304123974536,
+          "point_accuracy": 61.36720719564428
+        },
+        "repaired_percent": {
+          "miou": 26.695507560388123,
+          "mrecall": 43.48183505311081,
+          "mprecision": 33.19093411745802,
+          "mf1score": 32.629857555862266,
+          "fmiou": 49.74304123974536,
+          "point_accuracy": 61.36720719564428
+        },
+        "delta_percentage_points": {
+          "miou": 0.0,
+          "mrecall": 0.0,
+          "mprecision": 0.0,
+          "mf1score": 0.0,
+          "fmiou": 0.0,
+          "point_accuracy": 0.0
+        }
+      },
+      {
+        "score_source": "map_class_name",
+        "n_exclude": 1,
+        "scope": "all_2_scenes",
+        "baseline_percent": {
+          "miou": 20.26914034299825,
+          "mrecall": 48.95972853470807,
+          "mprecision": 23.93503848673419,
+          "mf1score": 27.4689702585857,
+          "fmiou": 26.791742710765405,
+          "point_accuracy": 41.836925748400425
+        },
+        "repaired_percent": {
+          "miou": 26.546832138211496,
+          "mrecall": 58.63273538640442,
+          "mprecision": 32.601819802083185,
+          "mf1score": 35.549628671616894,
+          "fmiou": 40.20088225353808,
+          "point_accuracy": 55.66059589526513
+        },
+        "delta_percentage_points": {
+          "miou": 6.277691795213247,
+          "mrecall": 9.67300685169635,
+          "mprecision": 8.666781315348995,
+          "mf1score": 8.080658413031195,
+          "fmiou": 13.409139542772678,
+          "point_accuracy": 13.823670146864707
+        }
+      },
+      {
+        "score_source": "map_class_name",
+        "n_exclude": 4,
+        "scope": "all_2_scenes",
+        "baseline_percent": {
+          "miou": 31.53680836176115,
+          "mrecall": 51.17349851513898,
+          "mprecision": 33.815299115343116,
+          "mf1score": 37.954474909467216,
+          "fmiou": 41.68537023310161,
+          "point_accuracy": 55.923097492593854
+        },
+        "repaired_percent": {
+          "miou": 43.52507550839762,
+          "mrecall": 64.27120911439556,
+          "mprecision": 47.77482548750376,
+          "mf1score": 51.56505298753673,
+          "fmiou": 58.81600703696337,
+          "point_accuracy": 71.33515027738757
+        },
+        "delta_percentage_points": {
+          "miou": 11.98826714663647,
+          "mrecall": 13.09771059925658,
+          "mprecision": 13.959526372160646,
+          "mf1score": 13.610578078069516,
+          "fmiou": 17.130636803861762,
+          "point_accuracy": 15.412052784793715
+        }
+      },
+      {
+        "score_source": "map_class_name",
+        "n_exclude": 6,
+        "scope": "all_2_scenes",
+        "baseline_percent": {
+          "miou": 32.49255297808831,
+          "mrecall": 51.54236135723062,
+          "mprecision": 34.469482962871716,
+          "mf1score": 38.89925400024565,
+          "fmiou": 43.4605950315194,
+          "point_accuracy": 57.60561833021383
+        },
+        "repaired_percent": {
+          "miou": 45.04153044945872,
+          "mrecall": 65.45882897324203,
+          "mprecision": 49.52862436956346,
+          "mf1score": 52.96112118011427,
+          "fmiou": 62.64201794839236,
+          "point_accuracy": 73.7091827793143
+        },
+        "delta_percentage_points": {
+          "miou": 12.548977471370407,
+          "mrecall": 13.916467616011417,
+          "mprecision": 15.059141406691744,
+          "mf1score": 14.06186717986862,
+          "fmiou": 19.18142291687296,
+          "point_accuracy": 16.103564449100475
+        }
+      }
+    ],
+    "n_exclude_6_per_class": {
+      "native_clip_ft": [
+        {
+          "class_name": "basket",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "bin",
+          "baseline_iou_percent": 34.90113241506887,
+          "repaired_iou_percent": 34.90113241506887,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "blanket",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "blinds",
+          "baseline_iou_percent": 63.84725855690536,
+          "repaired_iou_percent": 63.84725855690536,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "book",
+          "baseline_iou_percent": 22.955807408534266,
+          "repaired_iou_percent": 22.955807408534266,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "camera",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "cabinet",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "candle",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "chair",
+          "baseline_iou_percent": 44.72561554528768,
+          "repaired_iou_percent": 44.72561554528768,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "clock",
+          "baseline_iou_percent": 100.0,
+          "repaired_iou_percent": 100.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "cushion",
+          "baseline_iou_percent": 55.763486593926345,
+          "repaired_iou_percent": 55.763486593926345,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "desk-organizer",
+          "baseline_iou_percent": 0.24199862392939334,
+          "repaired_iou_percent": 0.24199862392939334,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "indoor-plant",
+          "baseline_iou_percent": 15.466938646517173,
+          "repaired_iou_percent": 15.466938646517173,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "lamp",
+          "baseline_iou_percent": 55.200554104004226,
+          "repaired_iou_percent": 55.200554104004226,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "panel",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "picture",
+          "baseline_iou_percent": 81.77877013923914,
+          "repaired_iou_percent": 81.77877013923914,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "pillar",
+          "baseline_iou_percent": 25.521543594951403,
+          "repaired_iou_percent": 25.521543594951403,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "plant-stand",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "plate",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "pot",
+          "baseline_iou_percent": 80.112433632925,
+          "repaired_iou_percent": 80.112433632925,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "sofa",
+          "baseline_iou_percent": 81.26017610395732,
+          "repaired_iou_percent": 81.26017610395732,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "stool",
+          "baseline_iou_percent": 52.71857473878079,
+          "repaired_iou_percent": 52.71857473878079,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "switch",
+          "baseline_iou_percent": 4.506060512599081,
+          "repaired_iou_percent": 4.506060512599081,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "table",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "tablet",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "tissue-paper",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "tv-screen",
+          "baseline_iou_percent": 52.46445389030831,
+          "repaired_iou_percent": 52.46445389030831,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "vase",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "vent",
+          "baseline_iou_percent": 2.6416643603499246,
+          "repaired_iou_percent": 2.6416643603499246,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "wall-plug",
+          "baseline_iou_percent": 17.28108048267464,
+          "repaired_iou_percent": 17.28108048267464,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "rug",
+          "baseline_iou_percent": 36.173185022072545,
+          "repaired_iou_percent": 36.173185022072545,
+          "delta_iou_percentage_points": 0.0
+        }
+      ],
+      "map_class_name": [
+        {
+          "class_name": "clock",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 100.0,
+          "delta_iou_percentage_points": 100.0
+        },
+        {
+          "class_name": "pot",
+          "baseline_iou_percent": 80.21821467041941,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": -80.21821467041941
+        },
+        {
+          "class_name": "plate",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 71.90500252652855,
+          "delta_iou_percentage_points": 71.90500252652855
+        },
+        {
+          "class_name": "blanket",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 53.59899896751431,
+          "delta_iou_percentage_points": 53.59899896751431
+        },
+        {
+          "class_name": "panel",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 52.63638736622291,
+          "delta_iou_percentage_points": 52.63638736622291
+        },
+        {
+          "class_name": "cushion",
+          "baseline_iou_percent": 34.74085723300321,
+          "repaired_iou_percent": 76.92225592130424,
+          "delta_iou_percentage_points": 42.18139868830102
+        },
+        {
+          "class_name": "rug",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 41.358841434414536,
+          "delta_iou_percentage_points": 41.358841434414536
+        },
+        {
+          "class_name": "tablet",
+          "baseline_iou_percent": 31.097008159564822,
+          "repaired_iou_percent": 65.13836136733586,
+          "delta_iou_percentage_points": 34.04135320777104
+        },
+        {
+          "class_name": "table",
+          "baseline_iou_percent": 26.667488727931676,
+          "repaired_iou_percent": 56.31186639022094,
+          "delta_iou_percentage_points": 29.644377662289266
+        },
+        {
+          "class_name": "sofa",
+          "baseline_iou_percent": 62.84223037230849,
+          "repaired_iou_percent": 82.98073560998351,
+          "delta_iou_percentage_points": 20.13850523767502
+        },
+        {
+          "class_name": "vase",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 15.233108950386438,
+          "delta_iou_percentage_points": 15.233108950386438
+        },
+        {
+          "class_name": "switch",
+          "baseline_iou_percent": 0.6149404000269378,
+          "repaired_iou_percent": 4.25104748603352,
+          "delta_iou_percentage_points": 3.636107086006582
+        },
+        {
+          "class_name": "stool",
+          "baseline_iou_percent": 38.68775189562129,
+          "repaired_iou_percent": 41.328642168360695,
+          "delta_iou_percentage_points": 2.6408902727394103
+        },
+        {
+          "class_name": "book",
+          "baseline_iou_percent": 44.640778507240306,
+          "repaired_iou_percent": 46.496120271580985,
+          "delta_iou_percentage_points": 1.8553417643406844
+        },
+        {
+          "class_name": "indoor-plant",
+          "baseline_iou_percent": 34.38594335565522,
+          "repaired_iou_percent": 34.75214647436773,
+          "delta_iou_percentage_points": 0.3662031187125103
+        },
+        {
+          "class_name": "basket",
+          "baseline_iou_percent": 81.84283592690645,
+          "repaired_iou_percent": 81.84283592690645,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "bin",
+          "baseline_iou_percent": 65.37889696671701,
+          "repaired_iou_percent": 65.37889696671701,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "blinds",
+          "baseline_iou_percent": 71.83797274163905,
+          "repaired_iou_percent": 71.83797274163905,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "camera",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "cabinet",
+          "baseline_iou_percent": 98.79444286929402,
+          "repaired_iou_percent": 98.79444286929402,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "candle",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "chair",
+          "baseline_iou_percent": 64.97709842821968,
+          "repaired_iou_percent": 64.97709842821968,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "desk-organizer",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "lamp",
+          "baseline_iou_percent": 73.38246609473062,
+          "repaired_iou_percent": 73.38246609473062,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "picture",
+          "baseline_iou_percent": 98.93524870760744,
+          "repaired_iou_percent": 98.93524870760744,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "pillar",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "plant-stand",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "tissue-paper",
+          "baseline_iou_percent": 12.491825316087777,
+          "repaired_iou_percent": 12.491825316087777,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "tv-screen",
+          "baseline_iou_percent": 85.73314194776422,
+          "repaired_iou_percent": 85.73314194776422,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "vent",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        },
+        {
+          "class_name": "wall-plug",
+          "baseline_iou_percent": 0.0,
+          "repaired_iou_percent": 0.0,
+          "delta_iou_percentage_points": 0.0
+        }
+      ]
+    }
+  },
+  "object": {
+    "methods": {
+      "main_native_clip_ft": {
+        "baseline": {
+          "gt_objects": 74,
+          "geometry_matched": 39,
+          "geometry_coverage": 0.527027027027027,
+          "hits_at_1": 15,
+          "hits_at_5": 27,
+          "recall_at_1": 0.20270270270270271,
+          "recall_at_5": 0.36486486486486486,
+          "mean_recall_at_1": 0.3335667600373483,
+          "mean_recall_at_5": 0.4856676003734827,
+          "classes_present": 17,
+          "per_class": {
+            "basket": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "book": {
+              "count": 7,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.14285714285714285,
+              "recall_at_5": 0.14285714285714285
+            },
+            "cabinet": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "chair": {
+              "count": 10,
+              "hits_at_1": 0,
+              "hits_at_5": 8,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.8
+            },
+            "clock": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "curtain": {
+              "count": 10,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "door": {
+              "count": 2,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.5,
+              "recall_at_5": 0.5
+            },
+            "lamp": {
+              "count": 8,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 0.25,
+              "recall_at_5": 0.25
+            },
+            "pillow": {
+              "count": 9,
+              "hits_at_1": 7,
+              "hits_at_5": 7,
+              "recall_at_1": 0.7777777777777778,
+              "recall_at_5": 0.7777777777777778
+            },
+            "plant": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.5
+            },
+            "plate": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "pot": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "screen": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "stand": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "table": {
+              "count": 7,
+              "hits_at_1": 0,
+              "hits_at_5": 2,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.2857142857142857
+            },
+            "vase": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 1.0
+            },
+            "window": {
+              "count": 9,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            }
+          }
+        },
+        "repaired": {
+          "gt_objects": 74,
+          "geometry_matched": 39,
+          "geometry_coverage": 0.527027027027027,
+          "hits_at_1": 15,
+          "hits_at_5": 27,
+          "recall_at_1": 0.20270270270270271,
+          "recall_at_5": 0.36486486486486486,
+          "mean_recall_at_1": 0.3335667600373483,
+          "mean_recall_at_5": 0.4856676003734827,
+          "classes_present": 17,
+          "per_class": {
+            "basket": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "book": {
+              "count": 7,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.14285714285714285,
+              "recall_at_5": 0.14285714285714285
+            },
+            "cabinet": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "chair": {
+              "count": 10,
+              "hits_at_1": 0,
+              "hits_at_5": 8,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.8
+            },
+            "clock": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "curtain": {
+              "count": 10,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "door": {
+              "count": 2,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.5,
+              "recall_at_5": 0.5
+            },
+            "lamp": {
+              "count": 8,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 0.25,
+              "recall_at_5": 0.25
+            },
+            "pillow": {
+              "count": 9,
+              "hits_at_1": 7,
+              "hits_at_5": 7,
+              "recall_at_1": 0.7777777777777778,
+              "recall_at_5": 0.7777777777777778
+            },
+            "plant": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.5
+            },
+            "plate": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "pot": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "screen": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "stand": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "table": {
+              "count": 7,
+              "hits_at_1": 0,
+              "hits_at_5": 2,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.2857142857142857
+            },
+            "vase": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 1.0
+            },
+            "window": {
+              "count": 9,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            }
+          }
+        },
+        "delta_percentage_points": {
+          "geometry_coverage": 0.0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0,
+          "mean_recall_at_1": 0.0,
+          "mean_recall_at_5": 0.0
+        },
+        "gt_rank_changes": {
+          "gt_objects": 74,
+          "rank_improved": 0,
+          "rank_worsened": 0,
+          "rank_unchanged": 74,
+          "top1_gained": 0,
+          "top1_lost": 0,
+          "top5_gained": 0,
+          "top5_lost": 0,
+          "mean_reciprocal_rank_baseline": 0.29075714995526314,
+          "mean_reciprocal_rank_repaired": 0.29075714995526314,
+          "mean_reciprocal_rank_delta": 0.0
+        }
+      },
+      "map_class_name": {
+        "baseline": {
+          "gt_objects": 74,
+          "geometry_matched": 39,
+          "geometry_coverage": 0.527027027027027,
+          "hits_at_1": 27,
+          "hits_at_5": 31,
+          "recall_at_1": 0.36486486486486486,
+          "recall_at_5": 0.4189189189189189,
+          "mean_recall_at_1": 0.35354808590102715,
+          "mean_recall_at_5": 0.48361344537815126,
+          "classes_present": 17,
+          "per_class": {
+            "basket": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "book": {
+              "count": 7,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.14285714285714285,
+              "recall_at_5": 0.14285714285714285
+            },
+            "cabinet": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "chair": {
+              "count": 10,
+              "hits_at_1": 8,
+              "hits_at_5": 9,
+              "recall_at_1": 0.8,
+              "recall_at_5": 0.9
+            },
+            "clock": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "curtain": {
+              "count": 10,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "door": {
+              "count": 2,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.5,
+              "recall_at_5": 0.5
+            },
+            "lamp": {
+              "count": 8,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 0.25,
+              "recall_at_5": 0.25
+            },
+            "pillow": {
+              "count": 9,
+              "hits_at_1": 8,
+              "hits_at_5": 8,
+              "recall_at_1": 0.8888888888888888,
+              "recall_at_5": 0.8888888888888888
+            },
+            "plant": {
+              "count": 2,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "plate": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "pot": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 1.0
+            },
+            "screen": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "stand": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "table": {
+              "count": 7,
+              "hits_at_1": 3,
+              "hits_at_5": 3,
+              "recall_at_1": 0.42857142857142855,
+              "recall_at_5": 0.42857142857142855
+            },
+            "vase": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 1.0
+            },
+            "window": {
+              "count": 9,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.1111111111111111
+            }
+          }
+        },
+        "repaired": {
+          "gt_objects": 74,
+          "geometry_matched": 39,
+          "geometry_coverage": 0.527027027027027,
+          "hits_at_1": 29,
+          "hits_at_5": 33,
+          "recall_at_1": 0.3918918918918919,
+          "recall_at_5": 0.44594594594594594,
+          "mean_recall_at_1": 0.492203548085901,
+          "mean_recall_at_5": 0.569327731092437,
+          "classes_present": 17,
+          "per_class": {
+            "basket": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "book": {
+              "count": 7,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.14285714285714285,
+              "recall_at_5": 0.14285714285714285
+            },
+            "cabinet": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "chair": {
+              "count": 10,
+              "hits_at_1": 8,
+              "hits_at_5": 10,
+              "recall_at_1": 0.8,
+              "recall_at_5": 1.0
+            },
+            "clock": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "curtain": {
+              "count": 10,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "door": {
+              "count": 2,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.5,
+              "recall_at_5": 0.5
+            },
+            "lamp": {
+              "count": 8,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 0.25,
+              "recall_at_5": 0.25
+            },
+            "pillow": {
+              "count": 9,
+              "hits_at_1": 8,
+              "hits_at_5": 8,
+              "recall_at_1": 0.8888888888888888,
+              "recall_at_5": 0.8888888888888888
+            },
+            "plant": {
+              "count": 2,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "plate": {
+              "count": 2,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 0.5,
+              "recall_at_5": 0.5
+            },
+            "pot": {
+              "count": 1,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 1.0
+            },
+            "screen": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "stand": {
+              "count": 2,
+              "hits_at_1": 0,
+              "hits_at_5": 0,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.0
+            },
+            "table": {
+              "count": 7,
+              "hits_at_1": 2,
+              "hits_at_5": 2,
+              "recall_at_1": 0.2857142857142857,
+              "recall_at_5": 0.2857142857142857
+            },
+            "vase": {
+              "count": 1,
+              "hits_at_1": 1,
+              "hits_at_5": 1,
+              "recall_at_1": 1.0,
+              "recall_at_5": 1.0
+            },
+            "window": {
+              "count": 9,
+              "hits_at_1": 0,
+              "hits_at_5": 1,
+              "recall_at_1": 0.0,
+              "recall_at_5": 0.1111111111111111
+            }
+          }
+        },
+        "delta_percentage_points": {
+          "geometry_coverage": 0.0,
+          "recall_at_1": 2.7027027027027026,
+          "recall_at_5": 2.7027027027027026,
+          "mean_recall_at_1": 13.865546218487385,
+          "mean_recall_at_5": 8.57142857142857
+        },
+        "gt_rank_changes": {
+          "gt_objects": 74,
+          "rank_improved": 5,
+          "rank_worsened": 1,
+          "rank_unchanged": 68,
+          "top1_gained": 3,
+          "top1_lost": 1,
+          "top5_gained": 3,
+          "top5_lost": 1,
+          "mean_reciprocal_rank_baseline": 0.3833928676586965,
+          "mean_reciprocal_rank_repaired": 0.40985441417838253,
+          "mean_reciprocal_rank_delta": 0.026461546519686036
+        }
+      }
+    },
+    "geometry_and_fragmentation": {
+      "baseline": {
+        "gt_objects": 74,
+        "predicted_objects": 101,
+        "prediction_minus_gt_count": 27,
+        "covered_gt_objects": 39,
+        "geometry_coverage": 0.527027027027027,
+        "geometry_valid_predicted_objects": 51,
+        "geometry_valid_prediction_rate": 0.504950495049505,
+        "geometry_one_to_one_coverage_per_prediction": 0.38613861386138615,
+        "gt_objects_with_multiple_fragments": 11,
+        "fragmentation_excess": 12,
+        "mean_valid_fragments_per_covered_gt": 1.3076923076923077,
+        "scope_warning": "ReplicaSSG does not annotate every map object; prediction-side rates are closed-scope diagnostics, not unrestricted real-world precision."
+      },
+      "repaired": {
+        "gt_objects": 74,
+        "predicted_objects": 99,
+        "prediction_minus_gt_count": 25,
+        "covered_gt_objects": 39,
+        "geometry_coverage": 0.527027027027027,
+        "geometry_valid_predicted_objects": 51,
+        "geometry_valid_prediction_rate": 0.5151515151515151,
+        "geometry_one_to_one_coverage_per_prediction": 0.3939393939393939,
+        "gt_objects_with_multiple_fragments": 11,
+        "fragmentation_excess": 12,
+        "mean_valid_fragments_per_covered_gt": 1.3076923076923077,
+        "scope_warning": "ReplicaSSG does not annotate every map object; prediction-side rates are closed-scope diagnostics, not unrestricted real-world precision."
+      },
+      "delta": {
+        "predicted_objects": -2,
+        "prediction_minus_gt_count": -2,
+        "covered_gt_objects": 0,
+        "geometry_coverage": 0.0,
+        "geometry_valid_predicted_objects": 0,
+        "geometry_valid_prediction_rate": 0.010201020102010183,
+        "geometry_one_to_one_coverage_per_prediction": 0.007800780078007774,
+        "gt_objects_with_multiple_fragments": 0,
+        "fragmentation_excess": 0,
+        "mean_valid_fragments_per_covered_gt": 0.0
+      }
+    }
+  },
+  "interpretation": {
+    "native_clip_ft": "standard visual-feature benchmark control",
+    "map_class_name": "repair-aware score from the saved object label through the same OpenCLIP text vocabulary",
+    "manual_only_metrics_omitted": [
+      "independent repair correctness",
+      "human beneficial/neutral/harmful adjudication",
+      "unflagged-object error recall"
+    ]
+  }
+}
