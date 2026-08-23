@@ -1,5 +1,6 @@
 from conceptgraph.revision.cases import (
     apply_controlled_membership_corruption,
+    apply_static_final_membership_corruption,
     canonical_membership,
     stable_entity_uid,
 )
@@ -43,3 +44,19 @@ def test_final_member_assignment_is_canonical_and_stable():
     second = canonical_membership({"a": ["run_f000001_r0000"], "b": ["run_f000002_r0000"]})
     assert first == second
     assert stable_entity_uid(first["a"]) == stable_entity_uid(second["a"])
+
+
+def test_legacy_static_corruption_name_is_explicit_and_backward_compatible():
+    membership = {
+        "A": ["run_f000001_r0000", "run_f000002_r0000"],
+        "B": ["run_f000001_r0001", "run_f000002_r0001"],
+    }
+    case = {
+        "failure_type": "WRONG_MEMBERSHIP",
+        "obs_uid": "run_f000002_r0000",
+        "source_identity_uid": "A",
+        "target_identity_uid": "B",
+    }
+    assert apply_static_final_membership_corruption(
+        membership, case
+    ) == apply_controlled_membership_corruption(membership, case)

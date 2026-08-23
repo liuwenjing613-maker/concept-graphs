@@ -39,6 +39,15 @@ def _object_summary(obj: Mapping[str, Any], entity_uid: str) -> dict[str, Any]:
     extent = np.asarray(bbox.extent, dtype=np.float64)
     members = tuple(sorted(dict.fromkeys(str(item) for item in obj.get("obs_uids", ()))))
     point_digest = hashlib.sha256(np.ascontiguousarray(points, dtype=np.float32).tobytes()).hexdigest()
+    clip_value = obj.get("clip_ft")
+    if hasattr(clip_value, "detach"):
+        clip_value = clip_value.detach().cpu().numpy()
+    clip = (
+        np.asarray(clip_value, dtype=np.float32).reshape(-1)
+        if clip_value is not None
+        else np.asarray([], dtype=np.float32)
+    )
+    class_histogram = dict(Counter(str(int(value)) for value in obj.get("class_id", ())))
     return {
         "entity_uid": str(entity_uid),
         "member_observation_uids": list(members),
@@ -49,6 +58,11 @@ def _object_summary(obj: Mapping[str, Any], entity_uid: str) -> dict[str, Any]:
         "aabb_min": minimum.tolist(),
         "aabb_max": maximum.tolist(),
         "class_name": str(obj.get("class_name", "")),
+        "class_histogram": class_histogram,
+        "clip_feature_digest": hashlib.sha256(
+            np.ascontiguousarray(clip).tobytes()
+        ).hexdigest(),
+        "clip_feature_norm": float(np.linalg.norm(clip)),
         "point_digest": point_digest,
     }
 
@@ -61,6 +75,8 @@ def _serialized_object_summary(obj: Mapping[str, Any], entity_uid: str) -> dict[
     bbox_min = bbox_points.min(axis=0) if len(bbox_points) else minimum
     bbox_max = bbox_points.max(axis=0) if len(bbox_points) else maximum
     members = tuple(sorted(dict.fromkeys(str(item) for item in obj.get("obs_uids", ()))))
+    clip = np.asarray(obj.get("clip_ft", ()), dtype=np.float32).reshape(-1)
+    class_histogram = dict(Counter(str(int(value)) for value in obj.get("class_id", ())))
     return {
         "entity_uid": str(entity_uid),
         "member_observation_uids": list(members),
@@ -71,6 +87,11 @@ def _serialized_object_summary(obj: Mapping[str, Any], entity_uid: str) -> dict[
         "aabb_min": minimum.tolist(),
         "aabb_max": maximum.tolist(),
         "class_name": str(obj.get("class_name", "")),
+        "class_histogram": class_histogram,
+        "clip_feature_digest": hashlib.sha256(
+            np.ascontiguousarray(clip).tobytes()
+        ).hexdigest(),
+        "clip_feature_norm": float(np.linalg.norm(clip)),
         "point_digest": hashlib.sha256(
             np.ascontiguousarray(points, dtype=np.float32).tobytes()
         ).hexdigest(),

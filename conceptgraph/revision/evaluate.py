@@ -10,16 +10,18 @@ import numpy as np
 def _cluster_index(
     membership: Mapping[str, Iterable[str]],
 ) -> tuple[dict[str, set[str]], dict[str, str], dict[str, int]]:
-    clusters = {
-        str(entity): set(str(obs) for obs in members)
-        for entity, members in membership.items()
-        if list(members)
-    }
+    clusters: dict[str, set[str]] = {}
     owner: dict[str, str] = {}
     counts: Counter[str] = Counter()
-    for entity, members in clusters.items():
+    for entity_value, member_values in membership.items():
+        ordered_members = [str(obs) for obs in member_values]
+        if not ordered_members:
+            continue
+        entity = str(entity_value)
+        members = set(ordered_members)
+        clusters[entity] = members
+        counts.update(ordered_members)
         for obs in members:
-            counts[obs] += 1
             owner.setdefault(obs, entity)
     return clusters, owner, dict(counts)
 
@@ -79,6 +81,77 @@ def membership_metrics(
     }
 
 
+def symmetric_membership_metrics(
+    first_membership: Mapping[str, Iterable[str]],
+    second_membership: Mapping[str, Iterable[str]],
+) -> dict[str, Any]:
+    """Compare two peer partitions over the union of their observation IDs.
+
+    Unlike :func:`membership_metrics`, neither side is assumed to define the full
+    reference universe. This is required for independently generated live/global
+    parity artifacts, where an extra observation on either side is itself a failure.
+    Entity identifiers remain irrelevant.
+    """
+
+    first, first_owner, first_counts = _cluster_index(first_membership)
+    second, second_owner, second_counts = _cluster_index(second_membership)
+    scope = set(first_owner) | set(second_owner)
+    missing_from_first = sorted(scope - set(first_owner))
+    missing_from_second = sorted(scope - set(second_owner))
+    precisions: list[float] = []
+    recalls: list[float] = []
+    f1s: list[float] = []
+    partition_mismatches: list[str] = []
+    for obs_uid in sorted(scope):
+        if obs_uid not in first_owner or obs_uid not in second_owner:
+            precisions.append(0.0)
+            recalls.append(0.0)
+            f1s.append(0.0)
+            partition_mismatches.append(obs_uid)
+            continue
+        first_cluster = first[first_owner[obs_uid]] & scope
+        second_cluster = second[second_owner[obs_uid]] & scope
+        overlap = len(first_cluster & second_cluster)
+        precision = overlap / len(second_cluster) if second_cluster else 0.0
+        recall = overlap / len(first_cluster) if first_cluster else 0.0
+        f1 = 2.0 * precision * recall / (precision + recall) if precision + recall else 0.0
+        precisions.append(precision)
+        recalls.append(recall)
+        f1s.append(f1)
+        if first_cluster != second_cluster:
+            partition_mismatches.append(obs_uid)
+    first_duplicates = sorted(
+        obs for obs, count in first_counts.items() if count > 1
+    )
+    second_duplicates = sorted(
+        obs for obs, count in second_counts.items() if count > 1
+    )
+    denominator = len(scope)
+    partition_exact = bool(
+        not missing_from_first
+        and not missing_from_second
+        and not first_duplicates
+        and not second_duplicates
+        and not partition_mismatches
+    )
+    return {
+        "member_precision": float(np.mean(precisions)) if precisions else 1.0,
+        "member_recall": float(np.mean(recalls)) if recalls else 1.0,
+        "member_f1": float(np.mean(f1s)) if f1s else 1.0,
+        "partition_exact": partition_exact,
+        "partition_mismatch_observation_count": len(set(partition_mismatches)),
+        "first_partition_mismatch_observations": sorted(set(partition_mismatches))[:20],
+        "missing_from_first": missing_from_first,
+        "missing_from_second": missing_from_second,
+        "first_duplicate_observations": first_duplicates,
+        "second_duplicate_observations": second_duplicates,
+        "first_observation_count": len(first_owner),
+        "second_observation_count": len(second_owner),
+        "observation_count": denominator,
+        "comparison_scope": "UNION_OF_BOTH_PARTITIONS",
+    }
+
+
 def _aabb_iou(first: Mapping[str, Any], second: Mapping[str, Any]) -> float:
     a_min = np.asarray(first["aabb_min"], dtype=float)
     a_max = np.asarray(first["aabb_max"], dtype=float)
@@ -131,16 +204,19 @@ def geometry_metrics(
             continue
         overlap, candidate = ranked[0]
         iou = _aabb_iou(clean, candidate)
+        clean_min = np.asarray(clean["aabb_min"], dtype=float)
+        clean_max = np.asarray(clean["aabb_max"], dtype=float)
+        candidate_min = np.asarray(candidate["aabb_min"], dtype=float)
+        candidate_max = np.asarray(candidate["aabb_max"], dtype=float)
         center_error = float(
             np.linalg.norm(
-                np.asarray(clean["bbox_center"], dtype=float)
-                - np.asarray(candidate["bbox_center"], dtype=float)
+                (clean_min + clean_max) / 2.0
+                - (candidate_min + candidate_max) / 2.0
             )
         )
         extent_error = float(
             np.linalg.norm(
-                np.asarray(clean["bbox_extent"], dtype=float)
-                - np.asarray(candidate["bbox_extent"], dtype=float)
+                (clean_max - clean_min) - (candidate_max - candidate_min)
             )
         )
         support = float(candidate["n_points"]) / max(1, int(clean["n_points"]))
@@ -172,18 +248,23 @@ def geometry_metrics(
 
 
 def edge_metrics(clean_state: Mapping[str, Any], candidate_state: Mapping[str, Any]) -> dict[str, Any]:
-    def edge_map(state: Mapping[str, Any]) -> dict[tuple[str, str, str], int]:
-        return {
-            (
+    def edge_map(
+        state: Mapping[str, Any],
+    ) -> tuple[dict[tuple[str, str, str], int], list[tuple[str, str, str]]]:
+        result: dict[tuple[str, str, str], int] = {}
+        counts: Counter[tuple[str, str, str]] = Counter()
+        for edge in state.get("edges") or ():
+            key = (
                 str(edge["source_entity_uid"]),
                 str(edge["relation"]),
                 str(edge["target_entity_uid"]),
-            ): int(edge.get("num_detections", 1))
-            for edge in state.get("edges") or ()
-        }
+            )
+            counts[key] += 1
+            result[key] = int(edge.get("num_detections", 1))
+        return result, sorted(key for key, count in counts.items() if count > 1)
 
-    clean_map = edge_map(clean_state)
-    candidate_map = edge_map(candidate_state)
+    clean_map, clean_duplicates = edge_map(clean_state)
+    candidate_map, candidate_duplicates = edge_map(candidate_state)
     clean = set(clean_map)
     candidate = set(candidate_map)
     overlap = len(clean & candidate)
@@ -196,7 +277,12 @@ def edge_metrics(clean_state: Mapping[str, Any], candidate_state: Mapping[str, A
         abs(clean_map[key] - candidate_map[key]) for key in clean & candidate
     ]
     support_mismatches = sum(error != 0 for error in support_errors)
-    relation_set_match = precision == 1.0 and recall == 1.0
+    relation_set_match = (
+        precision == 1.0
+        and recall == 1.0
+        and not clean_duplicates
+        and not candidate_duplicates
+    )
     support_match = support_mismatches == 0
     relation_state_match = relation_set_match and support_match
     active = set(str(item) for item in candidate_state.get("membership") or {})
@@ -209,6 +295,12 @@ def edge_metrics(clean_state: Mapping[str, Any], candidate_state: Mapping[str, A
         "edge_support_match": support_match,
         "edge_state_match": relation_state_match,
         "support_mismatch_edge_count": support_mismatches,
+        "clean_duplicate_edge_count": len(clean_duplicates),
+        "candidate_duplicate_edge_count": len(candidate_duplicates),
+        "clean_duplicate_edges": [list(item) for item in clean_duplicates[:20]],
+        "candidate_duplicate_edges": [
+            list(item) for item in candidate_duplicates[:20]
+        ],
         "support_absolute_error": sum(support_errors),
         "max_support_absolute_error": max(support_errors, default=0),
         "clean_total_support": sum(clean_map.values()),
@@ -230,13 +322,15 @@ def evaluate_state(
     affected_observations: Iterable[str],
 ) -> dict[str, Any]:
     affected = set(str(item) for item in affected_observations)
+    suffix_runtime_ms = float(candidate_state.get("runtime_ms", 0.0))
+    snapshot_runtime_ms = float(candidate_state.get("snapshot_runtime_ms", 0.0))
     return {
         "membership": membership_metrics(
             clean_state["membership"],
             candidate_state["membership"],
             observation_scope=affected,
         ),
-        "membership_global": membership_metrics(
+        "membership_global": symmetric_membership_metrics(
             clean_state["membership"], candidate_state["membership"]
         ),
         "geometry": geometry_metrics(
@@ -244,7 +338,17 @@ def evaluate_state(
         ),
         "relation": edge_metrics(clean_state, candidate_state),
         "cost": {
-            "runtime_ms": float(candidate_state.get("runtime_ms", 0.0)),
+            # Kept for artifact compatibility; this is suffix replay only.
+            "runtime_ms": suffix_runtime_ms,
+            "suffix_runtime_ms": suffix_runtime_ms,
+            "snapshot_runtime_ms": snapshot_runtime_ms,
+            "cold_snapshot_plus_suffix_runtime_ms": suffix_runtime_ms
+            + snapshot_runtime_ms,
+            "runtime_basis": {
+                "runtime_ms": "SUFFIX_REPLAY_ONLY_LEGACY_FIELD",
+                "snapshot_runtime_ms": "CUMULATIVE_PREFIX_RECONSTRUCTION_FOR_CASE",
+                "cold_snapshot_plus_suffix_runtime_ms": "NON_AMORTIZED_COLD_UPPER_BOUND",
+            },
             "num_replayed_observations": int(candidate_state.get("replayed_observations", 0)),
             "num_replayed_events": int(candidate_state.get("replayed_events", 0)),
             "total_events": int(candidate_state.get("total_events", 0)),

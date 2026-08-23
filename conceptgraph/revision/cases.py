@@ -55,10 +55,10 @@ def invert_membership(
     return result
 
 
-def apply_controlled_membership_corruption(
+def apply_static_final_membership_corruption(
     clean_membership: Mapping[str, Iterable[str]], case: Mapping[str, Any]
 ) -> dict[str, tuple[str, ...]]:
-    """Apply the named intervention to memberships, never to final geometry."""
+    """Legacy final-partition edit for unit/smoke use, never a primary benchmark."""
     groups = {key: list(values) for key, values in canonical_membership(clean_membership).items()}
     failure_type = str(case["failure_type"]).upper()
     obs_uid = str(case["obs_uid"])
@@ -84,6 +84,14 @@ def apply_controlled_membership_corruption(
     else:
         raise ValueError(f"unsupported failure type: {failure_type}")
     return canonical_membership(groups)
+
+
+def apply_controlled_membership_corruption(
+    clean_membership: Mapping[str, Iterable[str]], case: Mapping[str, Any]
+) -> dict[str, tuple[str, ...]]:
+    """Backward-compatible V0 alias for ``apply_static_final_membership_corruption``."""
+
+    return apply_static_final_membership_corruption(clean_membership, case)
 
 
 class ControlledCaseBuilder:
