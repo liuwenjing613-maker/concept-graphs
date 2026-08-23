@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-08-20T07:59:29.632763Z",
+  "status": "PASS",
+  "tolerances": {
+    "absolute": 1e-06,
+    "relative": 1e-05
+  },
+  "inputs": {
+    "evidence_off": {
+      "directory": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_parity_off_120f_20260820",
+      "pcd_sha256": "e182f7ce0c4353716c14aa8a87f3065bb342b6eea8c2259f9fbf123e6f5547e5",
+      "object_json_sha256": "9d648adc2ed4e04af405dc6c70fb1caeb8df2d550f7aed1c98de81db51abb267",
+      "edge_json_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "evidence_on": {
+      "directory": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_parity_on_120f_20260820",
+      "pcd_sha256": "53c8d346875211025857a585c3b37183c15249ce1787fd3d86bd7b6ea4f75c6a",
+      "object_json_sha256": "9d648adc2ed4e04af405dc6c70fb1caeb8df2d550f7aed1c98de81db51abb267",
+      "edge_json_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    }
+  },
+  "checks": {
+    "object_count_equal": true,
+    "canonical_membership_equal": true,
+    "object_fields_within_tolerance": true,
+    "object_json_equal": true,
+    "edge_topology_equal": true,
+    "parity_trace_present": true,
+    "per_frame_counts_equal": true
+  },
+  "counts": {
+    "evidence_off_objects": 68,
+    "evidence_on_objects": 68,
+    "common_memberships": 68,
+    "evidence_off_edges": 0,
+    "evidence_on_edges": 0,
+    "evidence_off_trace_frames": 119,
+    "evidence_on_trace_frames": 119
+  },
+  "max_abs_differences": {
+    "bbox_np": 0.0,
+    "pcd_np": 0.0,
+    "pcd_color_np": 0.0,
+    "clip_ft": 0.0
+  },
+  "missing_from_evidence_on": [],
+  "missing_from_evidence_off": [],
+  "object_mismatches": []
+}

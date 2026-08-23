@@ -1,0 +1,301 @@
+{
+  "format_version": 1,
+  "scope": "single_scene",
+  "scene": "office_2",
+  "protocol": {
+    "reference": "FROSS Merging/evaluate.py (ReplicaSSG mode)",
+    "geometry_threshold_m": 0.1,
+    "predicted_segment_min_best_overlap_fraction": 0.5,
+    "predicted_segment_max_second_to_best_ratio": 0.75,
+    "mean_recall": "unweighted mean over GT classes present in this evaluation scope",
+    "object_k": [
+      1,
+      5
+    ],
+    "predicate_k": [
+      1
+    ],
+    "predicate_ignores_object_class": true
+  },
+  "inputs": {
+    "dataset_root": "/data/chenkejun/ReplicaSSG/Replica",
+    "annotations_dir": "/data/chenkejun/ReplicaSSG/files",
+    "map_pickle": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office2/exps/ali_my_paper_main_aligned_office2_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_office2_400f_stride5_bff233f_20260821.pkl.gz",
+    "scene_graph": "/home/chenkejun/beauty/conceptgraphs/scripts/empty_replicassg_list.json",
+    "relations": "/home/chenkejun/beauty/conceptgraphs/scripts/empty_replicassg_list.json",
+    "stage7_audit": "/home/chenkejun/beauty/conceptgraphs/scripts/empty_replicassg_inputs.json"
+  },
+  "integrity": {
+    "gt_objects": 29,
+    "gt_object_classes_present": 9,
+    "gt_relations": 17,
+    "gt_predicate_classes_present": 3,
+    "predicted_objects": 45,
+    "scene_graph_nodes_after_pruning": 0,
+    "geometry_matched_gt_objects": 15,
+    "positive_predicted_directed_edges": 0,
+    "raw_stage7_relation_counts": {}
+  },
+  "object_score_metadata": {
+    "clip_model": "ViT-H-14",
+    "clip_pretrained": "laion2b_s32b_b79k",
+    "class_prompt": "a photo of a {class}",
+    "tag_prompt": "a photo of a {tag}",
+    "scene_graph_nodes": 0,
+    "unique_scene_graph_tags": 0
+  },
+  "object": {
+    "main_native_clip_ft": {
+      "count": 29,
+      "matched_geometry": 15,
+      "hits_at_1": 6,
+      "hits_at_5": 14,
+      "recall_at_1": 0.20689655172413793,
+      "recall_at_5": 0.4827586206896552,
+      "mean_recall_at_1": 0.3111111111111111,
+      "mean_recall_at_5": 0.48395061728395056,
+      "classes_present": 9,
+      "per_class": {
+        "bottle": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "chair": {
+          "count": 9,
+          "hits_at_1": 0,
+          "hits_at_5": 5,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.5555555555555556
+        },
+        "clock": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "door": {
+          "count": 1,
+          "hits_at_1": 1,
+          "hits_at_5": 1,
+          "recall_at_1": 1.0,
+          "recall_at_5": 1.0
+        },
+        "lamp": {
+          "count": 6,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "pillow": {
+          "count": 5,
+          "hits_at_1": 4,
+          "hits_at_5": 4,
+          "recall_at_1": 0.8,
+          "recall_at_5": 0.8
+        },
+        "screen": {
+          "count": 1,
+          "hits_at_1": 1,
+          "hits_at_5": 1,
+          "recall_at_1": 1.0,
+          "recall_at_5": 1.0
+        },
+        "table": {
+          "count": 3,
+          "hits_at_1": 0,
+          "hits_at_5": 3,
+          "recall_at_1": 0.0,
+          "recall_at_5": 1.0
+        },
+        "window": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        }
+      }
+    },
+    "scene_graph_object_tag": {
+      "count": 29,
+      "matched_geometry": 15,
+      "hits_at_1": 0,
+      "hits_at_5": 0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "mean_recall_at_1": 0.0,
+      "mean_recall_at_5": 0.0,
+      "classes_present": 9,
+      "per_class": {
+        "bottle": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "chair": {
+          "count": 9,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "clock": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "door": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "lamp": {
+          "count": 6,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "pillow": {
+          "count": 5,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "screen": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "table": {
+          "count": 3,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "window": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        }
+      }
+    },
+    "llava_llm_possible_tags_max": {
+      "count": 29,
+      "matched_geometry": 15,
+      "hits_at_1": 0,
+      "hits_at_5": 0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "mean_recall_at_1": 0.0,
+      "mean_recall_at_5": 0.0,
+      "classes_present": 9,
+      "per_class": {
+        "bottle": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "chair": {
+          "count": 9,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "clock": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "door": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "lamp": {
+          "count": 6,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "pillow": {
+          "count": 5,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "screen": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "table": {
+          "count": 3,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "window": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        }
+      }
+    }
+  },
+  "predicate": {
+    "count": 17,
+    "hits_at_1": 0,
+    "recall_at_1": 0.0,
+    "mean_recall_at_1": 0.0,
+    "classes_present": 3,
+    "per_class": {
+      "near": {
+        "count": 8,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "on": {
+        "count": 5,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "with": {
+        "count": 4,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      }
+    }
+  }
+}

@@ -1,0 +1,316 @@
+{
+  "format_version": 1,
+  "scope": "single_scene",
+  "scene": "office_0",
+  "protocol": {
+    "reference": "FROSS Merging/evaluate.py (ReplicaSSG mode)",
+    "geometry_threshold_m": 0.1,
+    "predicted_segment_min_best_overlap_fraction": 0.5,
+    "predicted_segment_max_second_to_best_ratio": 0.75,
+    "mean_recall": "unweighted mean over GT classes present in this evaluation scope",
+    "object_k": [
+      1,
+      5
+    ],
+    "predicate_k": [
+      1
+    ],
+    "predicate_ignores_object_class": true
+  },
+  "inputs": {
+    "dataset_root": "/data/chenkejun/ReplicaSSG/Replica",
+    "annotations_dir": "/data/chenkejun/ReplicaSSG/files",
+    "map_pickle": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/pcd_ali_my_validity_office0_full_200f_20260820.pkl.gz",
+    "scene_graph": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/edge_json_ali_my_validity_office0_full_200f_20260820.json",
+    "relations": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/edge_json_ali_my_validity_office0_full_200f_20260820.json",
+    "stage7_audit": "/home/chenkejun/beauty/conceptgraphs/results/main/replica_stride5/Replica/room0/sg_cache_main_none_stride5/stage7_audit.json"
+  },
+  "integrity": {
+    "gt_objects": 15,
+    "gt_object_classes_present": 9,
+    "gt_relations": 16,
+    "gt_predicate_classes_present": 6,
+    "predicted_objects": 29,
+    "scene_graph_nodes_after_pruning": 0,
+    "geometry_matched_gt_objects": 10,
+    "positive_predicted_directed_edges": 0,
+    "raw_stage7_relation_counts": {}
+  },
+  "object_score_metadata": {
+    "clip_model": "ViT-H-14",
+    "clip_pretrained": "laion2b_s32b_b79k",
+    "class_prompt": "a photo of a {class}",
+    "tag_prompt": "a photo of a {tag}",
+    "scene_graph_nodes": 0,
+    "unique_scene_graph_tags": 0
+  },
+  "object": {
+    "main_native_clip_ft": {
+      "count": 15,
+      "matched_geometry": 10,
+      "hits_at_1": 2,
+      "hits_at_5": 8,
+      "recall_at_1": 0.13333333333333333,
+      "recall_at_5": 0.5333333333333333,
+      "mean_recall_at_1": 0.2222222222222222,
+      "mean_recall_at_5": 0.5,
+      "classes_present": 9,
+      "per_class": {
+        "chair": {
+          "count": 4,
+          "hits_at_1": 0,
+          "hits_at_5": 4,
+          "recall_at_1": 0.0,
+          "recall_at_5": 1.0
+        },
+        "clock": {
+          "count": 1,
+          "hits_at_1": 1,
+          "hits_at_5": 1,
+          "recall_at_1": 1.0,
+          "recall_at_5": 1.0
+        },
+        "curtain": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "door": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "lamp": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "plant": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 1,
+          "recall_at_1": 0.0,
+          "recall_at_5": 1.0
+        },
+        "screen": {
+          "count": 1,
+          "hits_at_1": 1,
+          "hits_at_5": 1,
+          "recall_at_1": 1.0,
+          "recall_at_5": 1.0
+        },
+        "stand": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "table": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 1,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.5
+        }
+      }
+    },
+    "scene_graph_object_tag": {
+      "count": 15,
+      "matched_geometry": 10,
+      "hits_at_1": 0,
+      "hits_at_5": 0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "mean_recall_at_1": 0.0,
+      "mean_recall_at_5": 0.0,
+      "classes_present": 9,
+      "per_class": {
+        "chair": {
+          "count": 4,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "clock": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "curtain": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "door": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "lamp": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "plant": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "screen": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "stand": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "table": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        }
+      }
+    },
+    "llava_llm_possible_tags_max": {
+      "count": 15,
+      "matched_geometry": 10,
+      "hits_at_1": 0,
+      "hits_at_5": 0,
+      "recall_at_1": 0.0,
+      "recall_at_5": 0.0,
+      "mean_recall_at_1": 0.0,
+      "mean_recall_at_5": 0.0,
+      "classes_present": 9,
+      "per_class": {
+        "chair": {
+          "count": 4,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "clock": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "curtain": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "door": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "lamp": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "plant": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "screen": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "stand": {
+          "count": 1,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        },
+        "table": {
+          "count": 2,
+          "hits_at_1": 0,
+          "hits_at_5": 0,
+          "recall_at_1": 0.0,
+          "recall_at_5": 0.0
+        }
+      }
+    }
+  },
+  "predicate": {
+    "count": 16,
+    "hits_at_1": 0,
+    "recall_at_1": 0.0,
+    "mean_recall_at_1": 0.0,
+    "classes_present": 6,
+    "per_class": {
+      "above": {
+        "count": 2,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "attached to": {
+        "count": 1,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "in": {
+        "count": 1,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "near": {
+        "count": 8,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "under": {
+        "count": 2,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      },
+      "with": {
+        "count": 2,
+        "hits_at_1": 0,
+        "recall_at_1": 0.0
+      }
+    }
+  }
+}

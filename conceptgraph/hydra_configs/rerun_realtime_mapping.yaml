@@ -23,6 +23,14 @@ evidence_save_observation_pcd: !!bool True
 evidence_observation_pcd_max_points: 0  # 0 stores the complete fused observation PCD
 audit_environment_mode: static
 
+# Counterfactual revision is opt-in and remains inert by default.  A live
+# corruption requires an explicit manifest and controlled_validation mode.
+revision:
+  enabled: !!bool False
+  mode: controlled_validation
+  corruption_plan: null
+  log_dir_name: revision
+
 
 stride: 10
 exp_suffix: r_mapping_stride10 # helpful label to identify your mapping experiment

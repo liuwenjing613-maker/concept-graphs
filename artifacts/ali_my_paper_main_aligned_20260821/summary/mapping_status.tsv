@@ -1,0 +1,21 @@
+timestamp	scene	status	detail
+2026-08-21T17:47:51+08:00	META	HEAD	bff233ff004939d2ecf4ac5546f87cb7b7b16e60
+2026-08-21T17:47:51+08:00	office1	START	gpu=1 evidence=false stride=5
+2026-08-21T17:56:35+08:00	office1	COMPLETE	sha256=4147081de28173ff0727af0f264e534781eed1c0adae2a83f20b1600f32cc771 path=/home/chenkejun/beauty/conceptgraphs/data/Replica/office1/exps/ali_my_paper_main_aligned_office1_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_office1_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T17:56:35+08:00	office4	START	gpu=1 evidence=false stride=5
+2026-08-21T18:11:08+08:00	office4	COMPLETE	sha256=6e9e281eaa4609fe3a67a90a4f648666e3dbb6e8f6094c2168797177f8c7cb55 path=/home/chenkejun/beauty/conceptgraphs/data/Replica/office4/exps/ali_my_paper_main_aligned_office4_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_office4_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T18:11:08+08:00	room1	START	gpu=1 evidence=false stride=5
+2026-08-21T18:24:45+08:00	room1	COMPLETE	sha256=d11d531e379da88f1ab3b5e762f06c67e664e48b2e3c612ee29db8025e782e2c path=/home/chenkejun/beauty/conceptgraphs/data/Replica/room1/exps/ali_my_paper_main_aligned_room1_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_room1_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T18:24:45+08:00	room2	START	gpu=1 evidence=false stride=5
+2026-08-21T18:38:26+08:00	room2	COMPLETE	sha256=1dfd9ddc1010d659f7d1453044c2035122094ab10e41148e3727ea8ae9a7dd81 path=/home/chenkejun/beauty/conceptgraphs/data/Replica/room2/exps/ali_my_paper_main_aligned_room2_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_room2_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T18:38:26+08:00	office2	START	gpu=1 evidence=false stride=5
+2026-08-21T18:52:17+08:00	office2	COMPLETE	sha256=3dca1a9a223f92fdb71bb3dfe56fff2bcd47122fa66f554df91d8bbf34a99d50 path=/home/chenkejun/beauty/conceptgraphs/data/Replica/office2/exps/ali_my_paper_main_aligned_office2_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_office2_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T18:52:17+08:00	office3	START	gpu=1 evidence=false stride=5
+2026-08-21T19:08:39+08:00	office3	COMPLETE	sha256=8112ad48bb55ca2341695cbc0736e6e65cc7b6730b99adb5571d79ed923fa2bf path=/home/chenkejun/beauty/conceptgraphs/data/Replica/office3/exps/ali_my_paper_main_aligned_office3_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_office3_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T19:08:39+08:00	room0	WAIT_GPU	memory=26029MiB util=70%
+2026-08-21T19:09:09+08:00	room0	START	gpu=1 evidence=false stride=5
+2026-08-21T19:29:54+08:00	room0	COMPLETE	sha256=64ccdb3b6e77f93fe776b0c62673ac41fe86c831a8937f3284d54decf8004dcb path=/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_paper_main_aligned_room0_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_room0_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T19:29:54+08:00	office0	WAIT_GPU	memory=26029MiB util=100%
+2026-08-21T19:30:24+08:00	office0	START	gpu=1 evidence=false stride=5
+2026-08-21T19:40:30+08:00	office0	COMPLETE	sha256=6ff2c625b9f58ba733b4d7af7bafd0098502a93a60a5c63c9f8437fc2fbcf30a path=/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_paper_main_aligned_office0_400f_stride5_bff233f_20260821/pcd_ali_my_paper_main_aligned_office0_400f_stride5_bff233f_20260821.pkl.gz
+2026-08-21T19:40:30+08:00	ALL	COMPLETE	8 scenes

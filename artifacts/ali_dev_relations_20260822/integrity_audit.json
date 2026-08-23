@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0.0",
+  "created_at": "2026-08-22T11:28:19.207349Z",
+  "status": "PASS",
+  "candidates": 4013,
+  "valid_predictions": 4013,
+  "candidates_by_scene": {
+    "office0": 296,
+    "office1": 209,
+    "office2": 395,
+    "office3": 669,
+    "office4": 356,
+    "room0": 896,
+    "room1": 632,
+    "room2": 560
+  },
+  "valid_predictions_by_scene": {
+    "office0": 296,
+    "office1": 209,
+    "office2": 395,
+    "office3": 669,
+    "office4": 356,
+    "room0": 896,
+    "room1": 632,
+    "room2": 560
+  },
+  "unique_case_ids": 4013,
+  "unique_unordered_pairs": 4013,
+  "self_candidate_pairs": 0,
+  "issues": [],
+  "model_returned_counts": {
+    "gpt-5.6-sol": 4013
+  },
+  "key_slot_counts": {
+    "1": 803,
+    "2": 803,
+    "3": 803,
+    "4": 802,
+    "5": 802
+  },
+  "evidence_quality_counts": {
+    "good": 2018,
+    "partial": 1946,
+    "poor": 49
+  },
+  "same_physical_object_count": 83,
+  "usage": {
+    "prompt_tokens": 30563536,
+    "completion_tokens": 1596018,
+    "total_tokens": 32159554
+  },
+  "latency_seconds": {
+    "mean": 12.391,
+    "median": 11.605,
+    "p95": 18.678,
+    "max": 38.048
+  }
+}

@@ -1,0 +1,12 @@
+gt_index,gt_object_id,gt_class,pred_original_id,matched_points,main_native_clip_ft_rank_1based,scene_graph_object_tag_rank_1based,llava_llm_possible_tags_max_rank_1based
+0,3,pillow,31,2257,2,,
+1,5,desk,17,3559,10,,
+2,9,lamp,-1,0,,,
+3,11,lamp,-1,0,,,
+4,18,bottle,-1,0,,,
+5,29,screen,21,891,1,,
+6,34,door,10,4489,1,,
+7,39,curtain,25,6474,7,,
+8,40,chair,16,1920,2,,
+9,42,table,42,804,6,,
+10,45,pillow,33,3372,1,,

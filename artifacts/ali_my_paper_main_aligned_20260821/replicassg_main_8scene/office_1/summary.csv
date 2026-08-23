@@ -1,0 +1,4 @@
+method,object_recall_at_1,object_recall_at_5,object_mean_recall_at_1,object_mean_recall_at_5,predicate_recall_at_1,predicate_mean_recall_at_1
+main_native_clip_ft,0.2727272727272727,0.45454545454545453,0.2777777777777778,0.4444444444444444,0.0,0.0
+scene_graph_object_tag,0.0,0.0,0.0,0.0,0.0,0.0
+llava_llm_possible_tags_max,0.0,0.0,0.0,0.0,0.0,0.0

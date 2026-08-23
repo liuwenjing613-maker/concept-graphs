@@ -100,6 +100,10 @@ from conceptgraph.utils.model_utils import compute_clip_features_batched
 from conceptgraph.utils.general_utils import get_vis_out_path, cfg_to_dict, check_run_detections
 from conceptgraph.utils.evidence import EvidenceRecorder
 
+from conceptgraph.revision.corruption import (
+    ControlledCorruptionController,
+    load_corruption_plan,
+)
 
 # Disable torch gradient computation
 torch.set_grad_enabled(False)
@@ -223,6 +227,24 @@ def main(cfg : DictConfig):
     )
     openai_client = evidence.wrap_openai_client(openai_client)
     parity_trace = []
+    revision_cfg = cfg.get("revision") or {}
+    corruption_controller = None
+    if bool(revision_cfg.get("enabled", False)):
+        if str(revision_cfg.get("mode")) != "controlled_validation":
+            raise ValueError("v0 live revision only supports controlled_validation mode")
+        corruption_plan_path = revision_cfg.get("corruption_plan")
+        if not corruption_plan_path:
+            raise ValueError("revision.enabled requires revision.corruption_plan")
+        corruption_plan = load_corruption_plan(corruption_plan_path)
+        corruption_controller = ControlledCorruptionController(
+            corruption_plan,
+            output_dir=(
+                exp_out_path
+                / str(revision_cfg.get("log_dir_name", "revision"))
+                / corruption_plan.case_uid
+            ),
+            require_exactly_once=True,
+        )
 
     if cfg.save_objects_all_frames:
         obj_all_frames_out_path = exp_out_path / "saved_obj_all_frames" / f"det_{cfg.detections_exp_suffix}"
@@ -556,6 +578,13 @@ def main(cfg : DictConfig):
             agg_sim=agg_sim, 
             detection_threshold=cfg['sim_threshold']  # Use the sim_threshold from the configuration
         )
+        if corruption_controller is not None:
+            match_indices = corruption_controller.apply(
+                frame_idx=frame_idx,
+                detection_list=detection_list,
+                objects=objects,
+                original_match_indices=match_indices,
+            )
         evidence.record_associations(
             frame_idx, detection_list, objects,
             spatial_sim, visual_sim, agg_sim, match_indices,
@@ -890,6 +919,8 @@ def main(cfg : DictConfig):
         if cfg.save_video:
             save_video_detections(det_exp_path)
 
+    if corruption_controller is not None:
+        corruption_controller.finalize()
     evidence.close(
         status="early_exit" if exit_early_flag else "completed",
         objects=objects,

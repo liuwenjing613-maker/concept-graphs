@@ -1,0 +1,17 @@
+gt_relation_index,subject_object_id,object_object_id,predicate,subject_pred_original_id,object_pred_original_id,hit_at_1
+0,45,32,near,39,47,0
+1,32,45,near,47,39,0
+2,52,32,near,48,47,0
+3,32,52,near,47,48,0
+4,39,32,on,38,47,0
+5,18,32,on,44,47,0
+6,48,32,on,-1,47,0
+7,13,32,on,36,47,0
+8,3,32,on,37,47,0
+9,9,32,on,-1,47,0
+10,7,32,on,45,47,0
+11,4,36,near,21,16,0
+12,36,4,near,16,21,0
+13,51,36,on,-1,16,0
+14,54,51,in,11,-1,0
+15,42,36,on,-1,16,0
