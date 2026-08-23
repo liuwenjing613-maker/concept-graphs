@@ -196,7 +196,10 @@ class ControlledCaseBuilder:
             )
         return case
 
-    def select(self, failure_type: str) -> dict[str, Any]:
+    def ranked_candidates(
+        self, failure_type: str, *, limit: int | None = None
+    ) -> list[dict[str, Any]]:
+        """Return deterministic eligible cases in the same order used by ``select``."""
         failure_type = failure_type.upper()
         ranked: list[tuple[tuple[float, ...], dict[str, Any]]] = []
         for association in self.provenance.association_rows:
@@ -325,7 +328,15 @@ class ControlledCaseBuilder:
         if not ranked:
             raise RuntimeError(f"no eligible {failure_type} case in evidence ledger")
         ranked.sort(key=lambda item: (item[0], item[1]["case_uid"]), reverse=True)
-        return ranked[0][1]
+        cases = [case for _, case in ranked]
+        if limit is not None:
+            if limit < 1:
+                raise ValueError("candidate limit must be at least one")
+            cases = cases[:limit]
+        return cases
+
+    def select(self, failure_type: str) -> dict[str, Any]:
+        return self.ranked_candidates(failure_type, limit=1)[0]
 
     def select_smoke_matrix(self) -> list[dict[str, Any]]:
         return [

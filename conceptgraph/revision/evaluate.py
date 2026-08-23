@@ -172,30 +172,53 @@ def geometry_metrics(
 
 
 def edge_metrics(clean_state: Mapping[str, Any], candidate_state: Mapping[str, Any]) -> dict[str, Any]:
-    def tuples(state: Mapping[str, Any]) -> set[tuple[str, str, str]]:
+    def edge_map(state: Mapping[str, Any]) -> dict[tuple[str, str, str], int]:
         return {
             (
                 str(edge["source_entity_uid"]),
                 str(edge["relation"]),
                 str(edge["target_entity_uid"]),
-            )
+            ): int(edge.get("num_detections", 1))
             for edge in state.get("edges") or ()
         }
 
-    clean = tuples(clean_state)
-    candidate = tuples(candidate_state)
+    clean_map = edge_map(clean_state)
+    candidate_map = edge_map(candidate_state)
+    clean = set(clean_map)
+    candidate = set(candidate_map)
     overlap = len(clean & candidate)
+    false_positives = len(candidate - clean)
+    false_negatives = len(clean - candidate)
     precision = overlap / len(candidate) if candidate else (1.0 if not clean else 0.0)
     recall = overlap / len(clean) if clean else (1.0 if not candidate else 0.0)
+    f1 = 2 * precision * recall / (precision + recall) if precision + recall else 0.0
+    support_errors = [
+        abs(clean_map[key] - candidate_map[key]) for key in clean & candidate
+    ]
+    support_mismatches = sum(error != 0 for error in support_errors)
+    relation_set_match = precision == 1.0 and recall == 1.0
+    support_match = support_mismatches == 0
+    relation_state_match = relation_set_match and support_match
     active = set(str(item) for item in candidate_state.get("membership") or {})
     dangling = sum(source not in active or target not in active for source, _, target in candidate)
     return {
         "edge_set_precision_to_clean": precision,
         "edge_set_recall_to_clean": recall,
-        "edge_relation_match": precision == 1.0 and recall == 1.0,
+        "edge_set_f1_to_clean": f1,
+        "edge_relation_match": relation_set_match,
+        "edge_support_match": support_match,
+        "edge_state_match": relation_state_match,
+        "support_mismatch_edge_count": support_mismatches,
+        "support_absolute_error": sum(support_errors),
+        "max_support_absolute_error": max(support_errors, default=0),
+        "clean_total_support": sum(clean_map.values()),
+        "candidate_total_support": sum(candidate_map.values()),
         "dangling_edge_count": dangling,
         "clean_edge_count": len(clean),
         "candidate_edge_count": len(candidate),
+        "true_positive_edge_count": overlap,
+        "false_positive_edge_count": false_positives,
+        "false_negative_edge_count": false_negatives,
         "informative": bool(clean or candidate),
     }
 
@@ -264,10 +287,20 @@ def evaluate_case(
     corrupted = methods["corrupted"]
     local = methods["counterfactual_local_replay"]
     global_reference = methods["global_replay_reference"]
+    global_reference_executed = str(global_state.get("scope", "")) != "not_executed"
     local_f1 = local["membership"]["member_f1"]
     corrupt_f1 = corrupted["membership"]["member_f1"]
-    runtime_ratio = local["cost"]["runtime_ms"] / max(
-        1e-9, global_reference["cost"]["runtime_ms"]
+    runtime_ratio = (
+        local["cost"]["runtime_ms"]
+        / max(1e-9, global_reference["cost"]["runtime_ms"])
+        if global_reference_executed
+        else None
+    )
+    event_fraction_ratio = (
+        local["cost"]["replay_fraction"]
+        / max(1e-9, global_reference["cost"]["replay_fraction"])
+        if global_reference_executed
+        else None
     )
     acceptance = {
         "corruption_degrades_membership": corrupt_f1 < 1.0,
@@ -282,6 +315,7 @@ def evaluate_case(
         ),
         "hard_invariant_failures_zero": not verification.get("hard_invariant_failures"),
         "dangling_edges_zero": local["relation"]["dangling_edge_count"] == 0,
+        "relation_recovery_matches_clean": local["relation"]["edge_state_match"],
     }
     return {
         "case_uid": case["case_uid"],
@@ -289,13 +323,19 @@ def evaluate_case(
         "affected_observation_count": len(affected),
         "methods": methods,
         "local_vs_global": {
-            "member_f1_difference": local_f1
-            - global_reference["membership"]["member_f1"],
-            "bbox_iou_difference": local["geometry"]["bbox_iou_to_clean"]
-            - global_reference["geometry"]["bbox_iou_to_clean"],
+            "member_f1_difference": (
+                local_f1 - global_reference["membership"]["member_f1"]
+                if global_reference_executed
+                else None
+            ),
+            "bbox_iou_difference": (
+                local["geometry"]["bbox_iou_to_clean"]
+                - global_reference["geometry"]["bbox_iou_to_clean"]
+                if global_reference_executed
+                else None
+            ),
             "runtime_ratio": runtime_ratio,
-            "event_fraction_ratio": local["cost"]["replay_fraction"]
-            / max(1e-9, global_reference["cost"]["replay_fraction"]),
+            "event_fraction_ratio": event_fraction_ratio,
         },
         "safety": {
             "outside_closure_changed_entities": verification.get(
@@ -305,6 +345,21 @@ def evaluate_case(
                 verification.get("outside_closure_changed_entities", [])
             ),
             "hard_invariant_failures": verification.get("hard_invariant_failures", []),
+        },
+        "relation_diagnostics": {
+            "informative": local["relation"]["informative"],
+            "corruption_changes_relation": not corrupted["relation"]["edge_state_match"],
+            "corruption_changes_edge_set": not corrupted["relation"][
+                "edge_relation_match"
+            ],
+            "corruption_changes_support": not corrupted["relation"]["edge_support_match"],
+            "local_matches_clean": local["relation"]["edge_state_match"],
+            "global_reference_executed": global_reference_executed,
+            "global_matches_clean": (
+                global_reference["relation"]["edge_state_match"]
+                if global_reference_executed
+                else None
+            ),
         },
         "acceptance": acceptance,
         "pass": all(acceptance.values()),

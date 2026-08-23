@@ -21,6 +21,21 @@ def main() -> None:
     parser.add_argument("--output-root", required=True)
     parser.add_argument("--case-config")
     parser.add_argument(
+        "--edge-stream",
+        help="Frozen make_edges-compatible stream directory or manifest.json",
+    )
+    parser.add_argument(
+        "--require-relation-change",
+        action="store_true",
+        help="Select cases whose corrupted branch changes edge topology or support",
+    )
+    parser.add_argument(
+        "--edge-candidate-limit",
+        type=int,
+        default=100,
+        help="Maximum candidates screened per failure type for relation impact",
+    )
+    parser.add_argument(
         "--failure-type",
         choices=["FALSE_SPLIT", "WRONG_MEMBERSHIP", "FALSE_MERGE", "ALL"],
         default="ALL",
@@ -36,7 +51,13 @@ def main() -> None:
             if args.failure_type == "ALL"
             else [args.failure_type]
         )
-        cases = select_cases(args.base_run, failures)
+        cases = select_cases(
+            args.base_run,
+            failures,
+            edge_stream_root=args.edge_stream,
+            require_relation_change=args.require_relation_change,
+            candidate_limit=args.edge_candidate_limit,
+        )
     results = []
     for case in cases:
         result = run_controlled_case(
@@ -44,6 +65,7 @@ def main() -> None:
             output_root=args.output_root,
             case=case,
             run_global=not args.skip_global,
+            edge_stream_root=args.edge_stream,
         )
         results.append(
             {"case_uid": case["case_uid"], "pass": result["pass"]}

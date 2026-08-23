@@ -17,13 +17,13 @@ def test_nonempty_relation_rebuild_uses_unchanged_ali_dev_semantics():
         {
             "frame_idx": 0,
             "detection_class_labels": ["chair 0", "table 1"],
-            "edges": [("0", "on", "1")],
+            "edges": [("0", "on top of", "1")],
             "match_indices": [0, 1],
         },
         {
             "frame_idx": 1,
             "detection_class_labels": ["chair 0", "table 1"],
-            "edges": [("0", "on", "1")],
+            "edges": [("0", "on top of", "1")],
             "match_indices": [0, 1],
         },
     ]
@@ -31,11 +31,11 @@ def test_nonempty_relation_rebuild_uses_unchanged_ali_dev_semantics():
     result = backend.rebuild(objects=objects, frame_records=frames)
     assert result["used_process_edges"] is True
     assert result["validation"]["pass"] is True
-    assert result["input_relation_types"] == ["on"]
+    assert result["input_relation_types"] == ["on top of"]
     assert result["output_edges"] == [
         {
             "source_entity_uid": "A",
-            "relation": "on",
+            "relation": "on top of",
             "target_entity_uid": "B",
             "num_detections": 2,
         }

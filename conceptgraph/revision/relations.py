@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import gzip
+import hashlib
+import io
 import json
 import pickle
 import uuid
@@ -9,6 +12,73 @@ from typing import Any, Iterable, Mapping
 
 from .cases import invert_membership
 from .index import ProvenanceIndex
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def load_edge_stream(edge_stream_root: str | Path) -> tuple[dict[str, Any], dict[str, dict[str, Any]]]:
+    """Load and strictly validate a frozen frame-level relation stream."""
+    root = Path(edge_stream_root)
+    manifest_path = root / "manifest.json" if root.is_dir() else root
+    if manifest_path.name != "manifest.json":
+        raise ValueError("edge stream must be a directory or manifest.json")
+    with manifest_path.open(encoding="utf-8") as handle:
+        manifest = json.load(handle)
+    if manifest.get("status") != "PASS":
+        raise ValueError(f"edge stream manifest is not PASS: {manifest_path}")
+    frames_path = manifest_path.parent / "frames.jsonl"
+    if not frames_path.is_file():
+        raise FileNotFoundError(f"edge stream frames not found: {frames_path}")
+    expected_hash = manifest.get("frames_sha256")
+    actual_hash = _sha256_file(frames_path)
+    if expected_hash and expected_hash != actual_hash:
+        raise ValueError("edge stream frames hash does not match manifest")
+
+    frames: dict[str, dict[str, Any]] = {}
+    input_edges = 0
+    with frames_path.open(encoding="utf-8") as handle:
+        for line_number, line in enumerate(handle, 1):
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            frame_id = str(row.get("source_frame_id", ""))
+            if not frame_id or frame_id in frames:
+                raise ValueError(
+                    f"missing or duplicate edge-stream frame at line {line_number}"
+                )
+            labels = {
+                str(item).split(":", 1)[0].strip()
+                for item in row.get("input_labels") or ()
+            }
+            edges = []
+            for edge in row.get("edges") or ():
+                if not isinstance(edge, (list, tuple)) or len(edge) != 3:
+                    raise ValueError(f"malformed edge in {frame_id}: {edge!r}")
+                source, relation, target = (str(item) for item in edge)
+                if source not in labels or target not in labels:
+                    raise ValueError(
+                        f"edge endpoint is not bound to frame labels in {frame_id}"
+                    )
+                if source == target:
+                    raise ValueError(f"self-loop relation observation in {frame_id}")
+                if not relation:
+                    raise ValueError(f"empty relation type in {frame_id}")
+                edges.append([source, relation, target])
+            row = dict(row)
+            row["edges"] = edges
+            frames[frame_id] = row
+            input_edges += len(edges)
+    if int(manifest.get("frame_count", len(frames))) != len(frames):
+        raise ValueError("edge stream frame count does not match manifest")
+    if int(manifest.get("input_edge_observations", input_edges)) != input_edges:
+        raise ValueError("edge stream observation count does not match manifest")
+    return manifest, frames
 
 
 class AliDevBaselineRelationBackend:
@@ -38,9 +108,12 @@ class AliDevBaselineRelationBackend:
         from conceptgraph.slam.slam_classes import MapEdgeMapping
         from conceptgraph.slam.utils import process_edges
 
+        self.input_relation_types.clear()
+        self.used_process_edges = False
         map_edges = MapEdgeMapping(objects)
         frames = 0
         input_edges = 0
+        nonempty_frames = 0
         for record in sorted(frame_records, key=lambda row: int(row["frame_idx"])):
             frames += 1
             gobs = {
@@ -49,23 +122,26 @@ class AliDevBaselineRelationBackend:
             }
             matches = list(record.get("match_indices") or ())
             input_edges += len(gobs["edges"])
+            nonempty_frames += bool(gobs["edges"])
             self.input_relation_types.update(str(edge[1]) for edge in gobs["edges"])
             if gobs["edges"]:
-                map_edges = process_edges(
-                    matches,
-                    gobs,
-                    len(objects),
-                    objects,
-                    map_edges,
-                    int(record["frame_idx"]),
-                )
+                with contextlib.redirect_stdout(io.StringIO()):
+                    map_edges = process_edges(
+                        matches,
+                        gobs,
+                        len(objects),
+                        objects,
+                        map_edges,
+                        int(record["frame_idx"]),
+                    )
                 self.used_process_edges = True
             stale = []
             for edge in map_edges.edges_by_index.values():
                 if int(record["frame_idx"]) - int(edge.first_detected) > 5 and edge.num_detections < 2:
                     stale.append((edge.obj1_idx, edge.obj2_idx))
             for source, target in stale:
-                map_edges.delete_edge(source, target)
+                with contextlib.redirect_stdout(io.StringIO()):
+                    map_edges.delete_edge(source, target)
 
         edges = []
         for (source, target), edge in sorted(map_edges.edges_by_index.items()):
@@ -83,6 +159,7 @@ class AliDevBaselineRelationBackend:
             "backend": "ali-dev process_edges (unchanged)",
             "frames_replayed": frames,
             "input_edge_observations": input_edges,
+            "nonempty_input_frames": nonempty_frames,
             "output_edges": edges,
             "input_relation_types": sorted(self.input_relation_types),
             "used_process_edges": self.used_process_edges,
@@ -122,9 +199,48 @@ class AliDevBaselineRelationBackend:
         }
 
 
+def remap_frame_records(
+    frame_records: Iterable[Mapping[str, Any]],
+    membership: Mapping[str, Iterable[str]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Remap immutable frame observations to a branch membership without rereading caches."""
+    canonical = {}
+    for entity, members in membership.items():
+        values = tuple(str(obs) for obs in members)
+        if values:
+            canonical[str(entity)] = values
+    entity_order = sorted(canonical)
+    entity_index = {entity: index for index, entity in enumerate(entity_order)}
+    obs_owner = invert_membership(canonical)
+    objects = [
+        {
+            "entity_uid": entity,
+            "id": AliDevBaselineRelationBackend._object_id(entity),
+            "curr_obj_num": index,
+        }
+        for index, entity in enumerate(entity_order)
+    ]
+    remapped = []
+    for source in frame_records:
+        record = dict(source)
+        observation_uids = [str(item) for item in record.get("observation_uids") or ()]
+        if len(observation_uids) != len(record.get("detection_class_labels") or ()):
+            raise ValueError("frame observation/label cardinality mismatch")
+        missing = [obs_uid for obs_uid in observation_uids if obs_uid not in obs_owner]
+        if missing:
+            raise ValueError(f"branch membership is missing observations: {missing[:5]}")
+        record["match_indices"] = [
+            entity_index[obs_owner[obs_uid]] for obs_uid in observation_uids
+        ]
+        remapped.append(record)
+    return objects, remapped
+
+
 def load_baseline_frame_records(
     provenance: ProvenanceIndex,
     membership: Mapping[str, Iterable[str]],
+    *,
+    edge_stream_root: str | Path | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Reconstruct the filtered gobs interface from immutable cached detections."""
     with (provenance.experiment_root / "config_params.json").open(encoding="utf-8") as handle:
@@ -134,11 +250,11 @@ def load_baseline_frame_records(
     if not detection_root.is_dir():
         raise FileNotFoundError(f"cached detection directory not found: {detection_root}")
 
-    canonical_membership = {
-        str(entity): tuple(str(obs) for obs in members)
-        for entity, members in membership.items()
-        if tuple(members)
-    }
+    canonical_membership = {}
+    for entity, members in membership.items():
+        materialized = tuple(str(obs) for obs in members)
+        if materialized:
+            canonical_membership[str(entity)] = materialized
     entity_order = sorted(canonical_membership)
     entity_index = {entity: index for index, entity in enumerate(entity_order)}
     obs_owner = invert_membership(canonical_membership)
@@ -160,7 +276,13 @@ def load_baseline_frame_records(
 
     frames_path = provenance.evidence_root / "frames.jsonl"
     frames = [json.loads(line) for line in frames_path.open(encoding="utf-8") if line.strip()]
+    edge_manifest = None
+    edge_frames = None
+    if edge_stream_root is not None:
+        edge_manifest, edge_frames = load_edge_stream(edge_stream_root)
+
     records = []
+    consumed_edge_frames = set()
     for frame in frames:
         frame_uid = str(frame["frame_uid"])
         observations = sorted(
@@ -179,18 +301,46 @@ def load_baseline_frame_records(
             raw_labels = pickle.load(handle)
         labels = []
         matches = []
+        observation_uids = []
         for row in observations:
             raw_index = int(row["raw_det_idx"])
             if raw_index >= len(raw_labels):
                 raise ValueError(f"raw detection index out of range in {frame_uid}")
             labels.append(raw_labels[raw_index])
             matches.append(entity_index[obs_owner[str(row["obs_uid"])]])
+            observation_uids.append(str(row["obs_uid"]))
+        if edge_frames is not None:
+            if source_frame_id not in edge_frames:
+                raise ValueError(f"edge stream is missing source frame {source_frame_id}")
+            edge_row = edge_frames[source_frame_id]
+            edges = edge_row["edges"]
+            consumed_edge_frames.add(source_frame_id)
+            raw_label_ids = {str(item).split(" ")[-1] for item in raw_labels}
+            for edge in edges:
+                if edge[0] not in raw_label_ids or edge[2] not in raw_label_ids:
+                    raise ValueError(
+                        f"edge stream labels disagree with cached detections in {source_frame_id}"
+                    )
         records.append(
             {
                 "frame_idx": int(frame_uid.rsplit("_f", 1)[-1]),
+                "source_frame_id": source_frame_id,
                 "detection_class_labels": labels,
                 "edges": edges,
                 "match_indices": matches,
+                "observation_uids": observation_uids,
+                "edge_stream_manifest": (
+                    str(Path(edge_stream_root) / "manifest.json")
+                    if edge_stream_root is not None and Path(edge_stream_root).is_dir()
+                    else str(edge_stream_root)
+                    if edge_stream_root is not None
+                    else None
+                ),
             }
         )
+    if edge_frames is not None and consumed_edge_frames != set(edge_frames):
+        extra = sorted(set(edge_frames) - consumed_edge_frames)
+        raise ValueError(f"edge stream contains unconsumed frames: {extra[:10]}")
+    if edge_manifest is not None and not records:
+        raise ValueError("edge stream was supplied but no replay records were built")
     return objects, records
