@@ -154,6 +154,41 @@ class InvariantVerifier:
                                 "constraint_uid": uid,
                             }
                         )
+                    if (
+                        primitive.constraint_type.value == "CREATE_INSTANCE"
+                        and action != "FORCE_CREATE"
+                    ):
+                        semantic_errors.append(
+                            {
+                                "obs_uid": decision.get("obs_uid"),
+                                "reason": "create_instance_not_forced",
+                                "constraint_uid": uid,
+                            }
+                        )
+                    if primitive.constraint_type.value == "CREATE_INSTANCE":
+                        owners = [
+                            row
+                            for row in state.get("objects") or ()
+                            if primitive.obs_uid
+                            in (row.get("member_observation_uids") or ())
+                        ]
+                        expected_lineage = (
+                            primitive.created_lineage_uid
+                            or "revision-lineage:" + str(primitive.obs_uid)
+                        )
+                        if len(owners) != 1 or expected_lineage not in set(
+                            owners[0].get("revision_lineage_uids") or ()
+                            if owners
+                            else ()
+                        ):
+                            semantic_errors.append(
+                                {
+                                    "obs_uid": decision.get("obs_uid"),
+                                    "reason": "created_instance_lineage_not_preserved",
+                                    "constraint_uid": uid,
+                                    "expected_lineage_uid": expected_lineage,
+                                }
+                            )
                     if primitive.constraint_type.value in {
                         "PARTITION_ENTITY",
                         "RELABEL",

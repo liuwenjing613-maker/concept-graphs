@@ -22,6 +22,18 @@ owandb = OptionalWandB()
 
 tracker = MappingTracker()
 
+SIMILARITY_THRESHOLD_COMPARATOR = "STRICT_GREATER_THAN"
+
+
+def similarity_exceeds_threshold(score: float, threshold: float) -> bool:
+    """Return the canonical association predicate.
+
+    Equality is deliberately not a match: a detection is associated only when its
+    best aggregate similarity is strictly greater than the configured threshold.
+    """
+
+    return float(score) > float(threshold)
+
 
 def compute_spatial_similarities(spatial_sim_type: str, detection_list: DetectionList, objects: MapObjectList, downsample_voxel_size) -> torch.Tensor:
     det_bboxes = detection_list.get_stacked_values_torch('bbox')
@@ -96,7 +108,7 @@ def match_detections_to_objects(
     match_indices = []
     for detected_obj_idx in range(agg_sim.shape[0]):
         max_sim_value = agg_sim[detected_obj_idx].max()
-        if max_sim_value <= detection_threshold:
+        if not similarity_exceeds_threshold(max_sim_value.item(), detection_threshold):
             match_indices.append(None)
         else:
             match_indices.append(agg_sim[detected_obj_idx].argmax().item())

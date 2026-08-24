@@ -45,7 +45,8 @@ from conceptgraph.slam.mapping import (
     compute_spatial_similarities,
     compute_visual_similarities,
     aggregate_similarities,
-    merge_detections_to_objects
+    merge_detections_to_objects,
+    similarity_exceeds_threshold,
 )
 
 BG_CLASSES = ["wall", "floor", "ceiling"]
@@ -70,7 +71,7 @@ def compute_match_batch(cfg, spatial_sim: torch.Tensor, visual_sim: torch.Tensor
         sims = (1 + cfg.phys_bias) * spatial_sim + (1 - cfg.phys_bias) * visual_sim # (M, N)
         row_max, row_argmax = torch.max(sims, dim=1) # (M,), (M,)
         for i in row_max.argsort(descending=True):
-            if row_max[i] > cfg.sim_threshold:
+            if similarity_exceeds_threshold(row_max[i].item(), cfg.sim_threshold):
                 assign_mat[i, row_argmax[i]] = 1
             else:
                 break
@@ -284,8 +285,8 @@ def main(cfg : DictConfig):
             xor = detection_contained ^ object_contained
             agg_sim[xor] = agg_sim[xor] - cfg.contain_mismatch_penalty
         
-        # Threshold sims according to cfg. Set to negative infinity if below threshold
-        agg_sim[agg_sim < cfg.sim_threshold] = float('-inf')
+        # Equality is CREATE_OBJECT under the canonical strict-greater-than rule.
+        agg_sim[agg_sim <= cfg.sim_threshold] = float('-inf')
         
         objects = merge_detections_to_objects(cfg, fg_detection_list, objects, agg_sim)
         

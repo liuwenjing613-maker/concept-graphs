@@ -67,15 +67,10 @@ def compile_sparse_constraints(
         created = _version_target(
             provenance, str(anchor.get("target_object_version_after") or "")
         )
-        wrong_version_uid = case.get("target_object_version_uid")
-        wrong = _version_target(provenance, str(wrong_version_uid or ""))
         constraints.append(
             SparseRepairConstraint(
-                constraint_type="CANNOT_LINK",
+                constraint_type="CREATE_INSTANCE",
                 obs_uid=obs_uid,
-                target_lineage_uid=wrong["lineage_uid"],
-                target_origin_obs_uid=wrong["origin_obs_uid"],
-                target_entity_uid=wrong["entity_uid"],
                 created_lineage_uid=created["lineage_uid"],
                 created_entity_uid=created["entity_uid"],
                 applies_at_event_uid=anchor_uid,
@@ -126,15 +121,19 @@ def _margin_bin(value: Any) -> str:
     return "high"
 
 
-def _score_bin(value: Any) -> str:
-    if value is None:
+def _score_bin(value: Any, threshold: Any, *, near_slack: float = 0.25) -> str:
+    if value is None or threshold is None:
         return "missing"
     score = float(value)
-    if score < 1.2:
+    boundary = float(threshold)
+    slack = score - boundary
+    if slack < 0.0:
         return "below_threshold"
-    if score < 1.6:
-        return "near_threshold"
-    return "high"
+    if slack == 0.0:
+        return "equal_threshold_create"
+    if slack <= float(near_slack):
+        return "near_above_threshold"
+    return "high_above_threshold"
 
 
 def _quartile(frame_idx: int, frame_count: int) -> str:
@@ -183,8 +182,14 @@ class BatchCaseSampler:
             "association_margin_bin": _margin_bin(case.get("clean_margin")),
             "target_candidate_score_bin": _score_bin(
                 (case.get("selection_metadata") or {}).get("target_score")
-                or case.get("clean_top1_score")
+                if (case.get("selection_metadata") or {}).get("target_score")
+                is not None
+                else case.get("clean_top1_score"),
+                case.get("clean_sim_threshold"),
             ),
+            "association_threshold": case.get("clean_sim_threshold"),
+            "association_threshold_slack": case.get("clean_threshold_slack"),
+            "association_threshold_comparator": "STRICT_GREATER_THAN",
             "descendant_event_count_bin": _count_bin(descendants),
             "crosses_denoise": frame_idx < self.frame_count - 1,
             "crosses_filter": frame_idx < self.frame_count - 1,

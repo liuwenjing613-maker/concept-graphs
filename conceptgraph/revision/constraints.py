@@ -22,6 +22,7 @@ class ConstraintType(str, Enum):
     MUST_LINK = "MUST_LINK"
     CANNOT_LINK = "CANNOT_LINK"
     ASSIGN_OBSERVATION = "ASSIGN_OBSERVATION"
+    CREATE_INSTANCE = "CREATE_INSTANCE"
     PARTITION_ENTITY = "PARTITION_ENTITY"
     RELABEL = "RELABEL"
     DEFER = "DEFER"
@@ -98,6 +99,11 @@ class SparseRepairConstraint:
                 raise ValueError(f"{kind.value} requires obs_uid")
             if not target_available:
                 raise ValueError(f"{kind.value} requires a target reference")
+        if kind == ConstraintType.CREATE_INSTANCE:
+            if not self.obs_uid:
+                raise ValueError("CREATE_INSTANCE requires obs_uid")
+            if target_available:
+                raise ValueError("CREATE_INSTANCE must not specify a target reference")
         if kind == ConstraintType.PARTITION_ENTITY:
             if not self.entity_uid or len(self.groups) < 2:
                 raise ValueError("PARTITION_ENTITY requires an entity and at least two groups")
@@ -276,6 +282,23 @@ class ConstraintEngine:
                     "multiple positive targets for scope "
                     f"{scope}: {sorted(positive, key=lambda item: tuple(value or '' for value in item))}"
                 )
+            create = [
+                item
+                for item in values
+                if item.constraint_type == ConstraintType.CREATE_INSTANCE
+            ]
+            if create and positive:
+                raise ConstraintConflictError(
+                    f"scope {scope} requires both an existing target and a new instance"
+                )
+            create_identities = {
+                (item.created_lineage_uid, item.created_entity_uid) for item in create
+            }
+            if len(create_identities) > 1:
+                raise ConstraintConflictError(
+                    f"multiple created identities for scope {scope}: "
+                    f"{sorted(create_identities, key=lambda item: tuple(value or '' for value in item))}"
+                )
             negative = {
                 item.target_key()
                 for item in values
@@ -334,6 +357,22 @@ class ConstraintEngine:
             for candidate in natural_candidates
             if _target_matches(candidate, item)
         }
+
+        create = [
+            item
+            for item in active
+            if item.constraint_type == ConstraintType.CREATE_INSTANCE
+        ]
+        if create:
+            exemplar = create[0]
+            return ConstraintDecision(
+                ConstraintAction.FORCE_CREATE,
+                constraint_uids=uids,
+                forbidden_indices=tuple(sorted(forbidden)),
+                reason="explicit_create_instance_constraint",
+                created_lineage_uid=exemplar.created_lineage_uid,
+                created_entity_uid=exemplar.created_entity_uid,
+            )
 
         if positive:
             matching = {

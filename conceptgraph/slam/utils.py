@@ -346,7 +346,10 @@ def merge_obj2_into_obj1(obj1, obj2, downsample_voxel_size, dbscan_remove_noise,
     extend_attributes = ['image_idx', 'mask_idx', 'color_path', 'class_id', 'mask', 'xyxy', 'conf', 'contain_number', 'captions', 'obs_uids']
     add_attributes = ['num_detections', 'num_obj_in_class']
     skip_attributes = ['id', 'class_name', 'is_background', 'new_counter', 'curr_obj_num', 'inst_color']  # 'inst_color' just keeps obj1's
-    custom_handled = ['pcd', 'bbox', 'clip_ft', 'text_ft', 'n_points']
+    custom_handled = [
+        'pcd', 'bbox', 'clip_ft', 'text_ft', 'n_points',
+        'revision_lineage_uids',
+    ]
 
     # Check for unhandled keys and throw an error if there are
     all_handled_keys = set(extend_attributes + add_attributes + skip_attributes + custom_handled)
@@ -366,6 +369,14 @@ def merge_obj2_into_obj1(obj1, obj2, downsample_voxel_size, dbscan_remove_noise,
     for attr in add_attributes:
         if attr in obj1 and attr in obj2:
             obj1[attr] += obj2[attr]
+
+    revision_lineages = {
+        str(value)
+        for obj in (obj1, obj2)
+        for value in obj.get('revision_lineage_uids', ())
+    }
+    if revision_lineages:
+        obj1['revision_lineage_uids'] = sorted(revision_lineages)
 
     # Handling 'caption'
     if 'caption' in obj1 and 'caption' in obj2:
@@ -638,6 +649,7 @@ def merge_overlap_objects(
     map_edges = None,
     merge_event_callback = None,
     merge_decision_callback = None,
+    merge_guard = None,
 ):
     x, y = overlap_matrix.nonzero()
     overlap_ratio = overlap_matrix[x, y]
@@ -677,6 +689,10 @@ def merge_overlap_objects(
                 reject_reasons.append("source_inactive")
             if not kept_objects[j]:
                 reject_reasons.append("target_inactive")
+            if merge_guard is not None and kept_objects[i] and kept_objects[j]:
+                guard_reason = merge_guard(objects[i], objects[j])
+                if guard_reason:
+                    reject_reasons.append(str(guard_reason))
             if merge_decision_callback is not None:
                 merge_decision_callback(
                     objects[i], objects[j], ratio, visual_sim, text_sim,
@@ -684,7 +700,7 @@ def merge_overlap_objects(
                     reject_reasons, bool(kept_objects[i]), bool(kept_objects[j]),
                     candidate_rank,
                 )
-            if (visual_sim > merge_visual_sim_thresh) and (text_sim > merge_text_sim_thresh):
+            if not reject_reasons:
                 if kept_objects[i] and kept_objects[j]:
                     # Merge object i into object j
                     source_object = objects[i]
@@ -826,6 +842,7 @@ def merge_objects(
     map_edges = None,
     merge_event_callback = None,
     merge_decision_callback = None,
+    merge_guard = None,
 ):
     if len(objects) == 0:
         return objects
@@ -856,6 +873,7 @@ def merge_objects(
         map_edges=map_edges,
         merge_event_callback=merge_event_callback,
         merge_decision_callback=merge_decision_callback,
+        merge_guard=merge_guard,
     )
     
     # print(f"MERGE OPERATIONS: \n{merge_operations}")

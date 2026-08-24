@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import time
 from collections import Counter, defaultdict
 from typing import Any, Iterable, Mapping
 
@@ -321,10 +322,24 @@ def evaluate_state(
     *,
     affected_observations: Iterable[str],
 ) -> dict[str, Any]:
+    evaluation_started = time.perf_counter()
     affected = set(str(item) for item in affected_observations)
-    suffix_runtime_ms = float(candidate_state.get("runtime_ms", 0.0))
+    timing = candidate_state.get("timing") or {}
+    snapshot_timing = timing.get("snapshot") or {}
+    suffix_runtime_ms = float(
+        timing.get("suffix_total_wall_ms", candidate_state.get("runtime_ms", 0.0))
+    )
     snapshot_runtime_ms = float(candidate_state.get("snapshot_runtime_ms", 0.0))
-    return {
+    snapshot_amortized_ms = float(
+        snapshot_timing.get("snapshot_amortized_wall_ms", snapshot_runtime_ms)
+    )
+    snapshot_cold_ms = float(
+        snapshot_timing.get(
+            "snapshot_cold_upper_bound_wall_ms", snapshot_runtime_ms
+        )
+    )
+    relation_runtime_ms = float(timing.get("relation_rebuild_wall_ms", 0.0))
+    result = {
         "membership": membership_metrics(
             clean_state["membership"],
             candidate_state["membership"],
@@ -344,10 +359,20 @@ def evaluate_state(
             "snapshot_runtime_ms": snapshot_runtime_ms,
             "cold_snapshot_plus_suffix_runtime_ms": suffix_runtime_ms
             + snapshot_runtime_ms,
+            "snapshot_amortized_wall_ms": snapshot_amortized_ms,
+            "snapshot_cold_upper_bound_wall_ms": snapshot_cold_ms,
+            "relation_rebuild_wall_ms": relation_runtime_ms,
             "runtime_basis": {
                 "runtime_ms": "SUFFIX_REPLAY_ONLY_LEGACY_FIELD",
                 "snapshot_runtime_ms": "CUMULATIVE_PREFIX_RECONSTRUCTION_FOR_CASE",
                 "cold_snapshot_plus_suffix_runtime_ms": "NON_AMORTIZED_COLD_UPPER_BOUND",
+                "snapshot_amortized_wall_ms": (
+                    "CURRENT_PREFIX_CACHE_REQUEST_PLUS_SNAPSHOT_BUILDER"
+                ),
+                "snapshot_cold_upper_bound_wall_ms": (
+                    "CUMULATIVE_PREFIX_REPLAY_PLUS_SNAPSHOT_BUILDER"
+                ),
+                "relation_rebuild_wall_ms": "THIS_BRANCH_RELATION_REBUILD",
             },
             "num_replayed_observations": int(candidate_state.get("replayed_observations", 0)),
             "num_replayed_events": int(candidate_state.get("replayed_events", 0)),
@@ -358,6 +383,32 @@ def evaluate_state(
             ),
         },
     }
+    evaluation_runtime_ms = (time.perf_counter() - evaluation_started) * 1000.0
+    result["cost"]["evaluation_wall_ms"] = evaluation_runtime_ms
+    result["cost"]["amortized_compute_wall_ms"] = (
+        snapshot_amortized_ms
+        + suffix_runtime_ms
+        + relation_runtime_ms
+        + evaluation_runtime_ms
+    )
+    result["cost"]["cold_compute_upper_bound_wall_ms"] = (
+        snapshot_cold_ms
+        + suffix_runtime_ms
+        + relation_runtime_ms
+        + evaluation_runtime_ms
+    )
+    result["cost"]["runtime_basis"].update(
+        {
+            "evaluation_wall_ms": "EVALUATE_STATE_CALL",
+            "amortized_compute_wall_ms": (
+                "SNAPSHOT_AMORTIZED_PLUS_SUFFIX_PLUS_RELATION_PLUS_EVALUATION"
+            ),
+            "cold_compute_upper_bound_wall_ms": (
+                "SNAPSHOT_COLD_UPPER_BOUND_PLUS_SUFFIX_PLUS_RELATION_PLUS_EVALUATION"
+            ),
+        }
+    )
+    return result
 
 
 def evaluate_case(

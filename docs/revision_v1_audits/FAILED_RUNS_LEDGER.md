@@ -512,6 +512,51 @@ with the final implementation semantics.
   list passes when origins match and fails when they differ. The final 60-case
   same-frame audit is regenerated from stored traces without rerunning maps.
 
+## F35 — A positive anchor repair did not persist across a duplicate lineage
+
+- Case: `human6_office0_false_split_51aaf9ba`.
+- Symptom: the first human-error pilot forced the frame-32 anchor into the
+  existing sofa, but frame 35 naturally scored that sofa only `0.803134 < 1.2`,
+  created a new entity, and rebuilt the false split. Native, Natural and Sparse
+  were therefore all endpoint-wrong even though the anchor trace said
+  `FORCE_TARGET`.
+- Cause: `ASSIGN_OBSERVATION` was implemented as an anchor action only. The
+  persistent mode did not carry the created duplicate lineage into later
+  association decisions.
+- Decision: when a positive anchor's recorded action is `CREATE_OBJECT`, derive
+  one immutable source-lineage to target-lineage redirect. Later observations
+  carrying that source lineage resolve to the unique active target regardless
+  of score. This is lineage-level causal closure, not an enumerated final-member
+  list. `ANCHOR_ONLY_REPAIR` remains unchanged.
+- Pre-run audit finding: the frozen primitive's active interval ends at the
+  anchor event. That interval scopes the direct action; it is not the lifetime
+  of a persistent derived redirect. This distinction was corrected before the
+  V2 execution.
+- Verification: the retained V1 root fails. V2 records 130 lineage matches but
+  only one changed default decision, precisely the frame-35 create; the two
+  reviewed groups become one atomic owner with zero outside-observation changes.
+
+## F36 — `CREATE_INSTANCE` guarded postprocess merges but not associations
+
+- Case: `human6_room0_false_merge_06525b4b`.
+- Symptom: V1 rejected the first cross-instance postprocess merge at frame 139.
+  Subsequent observations from the protected lineage naturally associated into
+  the other outlet, contaminating its inferred lineage. A later merge then
+  appeared same-side and was accepted, so the endpoint remained falsely merged.
+- Cause: instance persistence was enforced only in object-object postprocessing,
+  not at the detection-object association boundary.
+- Decision: classify each future observation and active candidate by immutable
+  provenance lineage. A candidate is forbidden exactly when one side, but not
+  the other, contains a protected `CREATE_INSTANCE` lineage. If the default is
+  forbidden, choose the highest-scoring strictly-threshold-eligible same-side
+  candidate; if none exists, create a deterministic same-lineage object.
+  Unknown observation provenance is not treated as negative evidence.
+- Verification: V2 records six association overrides and 24 postprocess vetoes
+  for the outlet case. The independent table-part case needs no association
+  override and retains six postprocess vetoes. Both are endpoint-correct,
+  collateral-safe and runtime-invariant-clean; no similarity threshold was
+  relaxed.
+
 ## Methodological finding retained, not "fixed" away
 
 In the controlled external-override benchmark, natural recomputation from the

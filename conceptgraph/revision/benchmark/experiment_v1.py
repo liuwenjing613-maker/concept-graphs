@@ -221,7 +221,9 @@ def _attach_relations(
     edge_stream_root: str | Path | None,
 ) -> dict[str, Any]:
     result: dict[str, Any] = {}
+    all_started = time.perf_counter()
     for name, state in states.items():
+        branch_started = time.perf_counter()
         objects, records = load_baseline_frame_records(
             provenance,
             state["membership"],
@@ -232,6 +234,11 @@ def _attach_relations(
             frame_records=records,
         )
         state["edges"] = rebuilt["output_edges"]
+        branch_runtime_ms = (time.perf_counter() - branch_started) * 1000.0
+        state_timing = dict(state.get("timing") or {})
+        state_timing["relation_rebuild_wall_ms"] = branch_runtime_ms
+        state["timing"] = state_timing
+        rebuilt["runtime_ms"] = branch_runtime_ms
         result[name] = rebuilt
     return {
         "schema_version": "1.0.0",
@@ -240,6 +247,7 @@ def _attach_relations(
         "all_structural_validations_pass": all(
             value["validation"]["pass"] for value in result.values()
         ),
+        "total_wall_ms": (time.perf_counter() - all_started) * 1000.0,
         "branches": result,
     }
 
@@ -304,6 +312,7 @@ def run_case(
     run_global_corruption: bool = False,
     context: SceneExperimentContext | None = None,
 ) -> dict[str, Any]:
+    case_started = time.perf_counter()
     context = context or SceneExperimentContext.build(base_run)
     provenance = context.provenance
     source_hashes_before = provenance.source_hashes()
@@ -360,6 +369,7 @@ def run_case(
         mode=ReplayMode.TEMPORAL_CORRUPTION,
         snapshot_objects=snapshot.objects,
         snapshot_runtime_ms=snapshot.state["runtime_ms"],
+        snapshot_timing=snapshot.state.get("timing"),
         anchor_frame=snapshot.anchor_frame,
         snapshot_watermark_event_sequence=snapshot.watermark_event_sequence,
         closure=closure,
@@ -370,6 +380,7 @@ def run_case(
         mode=ReplayMode.NATURAL_REPLAY,
         snapshot_objects=snapshot.objects,
         snapshot_runtime_ms=snapshot.state["runtime_ms"],
+        snapshot_timing=snapshot.state.get("timing"),
         anchor_frame=snapshot.anchor_frame,
         snapshot_watermark_event_sequence=snapshot.watermark_event_sequence,
         closure=closure,
@@ -387,6 +398,7 @@ def run_case(
         closure=closure,
         constraints=constraints,
         current_state=corrupted_state,
+        snapshot_timing=snapshot.state.get("timing"),
         historical_anchor_plan=case["corruption_plan"],
     )
     persistent_state = engine.replay_local_from_snapshot(
@@ -398,6 +410,7 @@ def run_case(
         closure=closure,
         constraints=constraints,
         current_state=corrupted_state,
+        snapshot_timing=snapshot.state.get("timing"),
         historical_anchor_plan=case["corruption_plan"],
     )
 
@@ -446,6 +459,7 @@ def run_case(
             reference_state, state
         )
     verifier = InvariantVerifier()
+    anchor_verification_started = time.perf_counter()
     anchor_verification = verifier.verify(
         state=anchor_state,
         constraints=constraints,
@@ -453,6 +467,14 @@ def run_case(
         source_hashes_after=provenance.source_hashes(),
         known_observation_uids=provenance.observations,
     )
+    anchor_verification_ms = (
+        time.perf_counter() - anchor_verification_started
+    ) * 1000.0
+    anchor_verification["runtime_ms"] = anchor_verification_ms
+    anchor_state.setdefault("timing", {})[
+        "runtime_invariant_verification_wall_ms"
+    ] = anchor_verification_ms
+    persistent_verification_started = time.perf_counter()
     persistent_verification = verifier.verify(
         state=persistent_state,
         constraints=constraints,
@@ -460,6 +482,13 @@ def run_case(
         source_hashes_after=provenance.source_hashes(),
         known_observation_uids=provenance.observations,
     )
+    persistent_verification_ms = (
+        time.perf_counter() - persistent_verification_started
+    ) * 1000.0
+    persistent_verification["runtime_ms"] = persistent_verification_ms
+    persistent_state.setdefault("timing", {})[
+        "runtime_invariant_verification_wall_ms"
+    ] = persistent_verification_ms
     verification = {
         "anchor_only": anchor_verification,
         "persistent_sparse": persistent_verification,
@@ -580,6 +609,21 @@ def run_case(
         "global_sparse_executed": global_sparse_state is not None,
         "global_corruption_executed": global_corrupted_state is not None,
         "source_hashes_unchanged": source_hashes_before == provenance.source_hashes(),
+        "timing": {
+            "snapshot": dict(snapshot.state.get("timing") or {}),
+            "relation_rebuild_total_wall_ms": float(
+                relation.get("total_wall_ms", 0.0)
+            ),
+            "runtime_invariant_verification_wall_ms": {
+                "anchor_only": anchor_verification_ms,
+                "persistent_sparse": persistent_verification_ms,
+            },
+            "basis": {
+                "case_total_wall_ms_excluding_final_metrics_write": (
+                    "CASE_ENTRY_THROUGH_BRANCH_ARTIFACT_WRITES"
+                )
+            },
+        },
         "pass": outcome["pass"],
     }
     write_json(
@@ -615,6 +659,9 @@ def run_case(
     )
     for name, state in states.items():
         write_json(case_root / "branches" / f"{name}.json", state)
+    metrics["timing"]["case_total_wall_ms_excluding_final_metrics_write"] = (
+        time.perf_counter() - case_started
+    ) * 1000.0
     write_json(case_root / "benchmark_metrics.json", metrics)
     return metrics
 

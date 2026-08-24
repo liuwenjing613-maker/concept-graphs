@@ -1,0 +1,325 @@
+{
+  "schema_version": "1.0.0",
+  "pilot_uid": "human_confirmed_3fm_3fs_causal_pilot_20260824",
+  "frozen_at": "2026-08-24T00:00:00+08:00",
+  "frozen_before_replay_outcomes": true,
+  "confirmed_error_population_count": 40,
+  "selection_policy": {
+    "purpose": "mechanism-seeking causal pilot, not prevalence estimation",
+    "false_merge_count": 3,
+    "false_split_count": 3,
+    "scene_budget_max": 2,
+    "scene_ids": [
+      "office0",
+      "room0"
+    ],
+    "replayable_case_count": 3,
+    "deferred_non_association_root_count": 3,
+    "no_outcome_based_case_replacement": true,
+    "population_inference_to_all_40_is_forbidden": true
+  },
+  "source_artifacts": {
+    "expert_queue": {
+      "logical_path": "docs/validation_gate_endpoint_v2_1_results/expert/confirmed_endpoint_error_queue.jsonl",
+      "sha256": "a8445b5acb8b7f1cac72aedde1948ea7c7edd9a72eae375608ba089a57666feb"
+    },
+    "r1_labels": {
+      "logical_path": "docs/validation_gate_endpoint_v2_1_results/labels/labels_r1_frozen_20260821.jsonl",
+      "sha256": "f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a"
+    },
+    "r2_labels": {
+      "logical_path": "docs/validation_gate_endpoint_v2_1_results/labels/labels_r2_frozen_20260821.jsonl",
+      "sha256": "83de2b09a8d3022a555465e81dbb61e6d1ed4360915bfe745af43f020de9671b"
+    }
+  },
+  "cases": [
+    {
+      "case_uid": "human6_office0_false_split_51aaf9ba",
+      "scene_id": "office0",
+      "incident_uid": "incident_51aaf9ba5343e0c2e1da",
+      "representative_finding_uid": "finding_000237",
+      "endpoint_error_type": "FALSE_SPLIT",
+      "human_label": {
+        "reviewer_id": "R1",
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_SPLIT",
+        "notes": "是一个大沙发过分割了"
+      },
+      "causal_disposition": "REPLAYABLE_ASSOCIATION_CAUSE",
+      "earliest_causal_stage": "ASSOCIATION_THRESHOLD_CREATE",
+      "root_observation_uids": [
+        "office0_20260820T090828Z_fbd2d994_f000032_r0001"
+      ],
+      "root_event_uids": [
+        "office0_20260820T090828Z_fbd2d994_e00000520",
+        "office0_20260820T090828Z_fbd2d994_e00000521"
+      ],
+      "anchor_obs_uid": "office0_20260820T090828Z_fbd2d994_f000032_r0001",
+      "anchor_association_event_uid": "office0_20260820T090828Z_fbd2d994_e00000520",
+      "frame_idx": 32,
+      "snapshot_seed_version_uids": [
+        "201ac6ed-133e-47d1-97df-dae4fe13fdf7@v000025"
+      ],
+      "constraints": [
+        {
+          "type": "ASSIGN_OBSERVATION",
+          "obs_uid": "office0_20260820T090828Z_fbd2d994_f000032_r0001",
+          "target_lineage_uid": "origin_office0_20260820T090828Z_fbd2d994_f000000_r0002",
+          "target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000000_r0002",
+          "target_entity_uid": "201ac6ed-133e-47d1-97df-dae4fe13fdf7",
+          "applies_at_event_uid": "office0_20260820T090828Z_fbd2d994_e00000520",
+          "active_from_sequence": 520,
+          "active_until_sequence": 520,
+          "source": "human_confirmed_causal_trace",
+          "evidence_refs": [
+            "incident_51aaf9ba5343e0c2e1da",
+            "finding_000237",
+            "office0_20260820T090828Z_fbd2d994_e00000520"
+          ]
+        }
+      ],
+      "evaluation": {
+        "desired_owner_relation": "SAME_OWNER",
+        "groups": [
+          {
+            "name": "duplicate_sofa_fragment",
+            "source": "FINAL_ENTITY_MEMBERS",
+            "object_uid": "af72396d-bcf6-48f7-85c6-e960e8e622c8"
+          },
+          {
+            "name": "existing_sofa_body",
+            "source": "FINAL_ENTITY_MEMBERS",
+            "object_uid": "201ac6ed-133e-47d1-97df-dae4fe13fdf7"
+          }
+        ],
+        "affected_native_entity_uids": [
+          "af72396d-bcf6-48f7-85c6-e960e8e622c8",
+          "201ac6ed-133e-47d1-97df-dae4fe13fdf7"
+        ],
+        "probe_obs_uids": [
+          "office0_20260820T090828Z_fbd2d994_f000032_r0001",
+          "office0_20260820T090828Z_fbd2d994_f000000_r0002"
+        ],
+        "oracle_boundary": "human-selected entity pair only; no corrected final trajectory"
+      }
+    },
+    {
+      "case_uid": "human6_room0_false_merge_06525b4b",
+      "scene_id": "room0",
+      "incident_uid": "incident_06525b4b5a2ea0bc2649",
+      "representative_finding_uid": "finding_000424",
+      "endpoint_error_type": "FALSE_MERGE",
+      "human_label": {
+        "reviewer_id": "R1",
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_MERGE",
+        "notes": "两个融为一个了"
+      },
+      "causal_disposition": "REPLAYABLE_ASSOCIATION_CAUSE",
+      "earliest_causal_stage": "POSTPROCESS_OBJECT_MERGE",
+      "root_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000122_r0015"
+      ],
+      "root_event_uids": [
+        "room0_20260820T093325Z_581b7c84_e00005804",
+        "room0_20260820T093325Z_581b7c84_e00005805",
+        "room0_20260820T093325Z_581b7c84_e00006648"
+      ],
+      "anchor_obs_uid": "room0_20260820T093325Z_581b7c84_f000122_r0015",
+      "anchor_association_event_uid": "room0_20260820T093325Z_581b7c84_e00005804",
+      "frame_idx": 122,
+      "snapshot_seed_version_uids": [
+        "c8ad4228-4801-4d54-a2dd-507d941c72f4@v000007"
+      ],
+      "constraints": [
+        {
+          "type": "CREATE_INSTANCE",
+          "obs_uid": "room0_20260820T093325Z_581b7c84_f000122_r0015",
+          "created_lineage_uid": "origin_room0_20260820T093325Z_581b7c84_f000122_r0015",
+          "created_entity_uid": "fecb8f1f-a014-40a2-96a9-a820440efef2",
+          "applies_at_event_uid": "room0_20260820T093325Z_581b7c84_e00005804",
+          "active_from_sequence": 5804,
+          "active_until_sequence": 5804,
+          "source": "human_confirmed_causal_trace",
+          "evidence_refs": [
+            "incident_06525b4b5a2ea0bc2649",
+            "finding_000424",
+            "room0_20260820T093325Z_581b7c84_e00006648"
+          ]
+        }
+      ],
+      "evaluation": {
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "groups": [
+          {
+            "name": "premerge_existing_outlet",
+            "source": "MAPPING_EVENT_FIELD",
+            "event_uid": "room0_20260820T093325Z_581b7c84_e00006648",
+            "field": "source_member_set_before"
+          },
+          {
+            "name": "premerge_created_outlet",
+            "source": "MAPPING_EVENT_FIELD",
+            "event_uid": "room0_20260820T093325Z_581b7c84_e00006648",
+            "field": "target_member_set_before"
+          }
+        ],
+        "affected_native_entity_uids": [
+          "fecb8f1f-a014-40a2-96a9-a820440efef2"
+        ],
+        "probe_obs_uids": [
+          "room0_20260820T093325Z_581b7c84_f000122_r0015",
+          "room0_20260820T093325Z_581b7c84_f000108_r0024"
+        ],
+        "oracle_boundary": "human false-merge label plus immutable pre-merge ledger groups"
+      }
+    },
+    {
+      "case_uid": "human6_room0_false_merge_9727f850",
+      "scene_id": "room0",
+      "incident_uid": "incident_9727f850ddf3d077771a",
+      "representative_finding_uid": "finding_000364",
+      "endpoint_error_type": "FALSE_MERGE",
+      "human_label": {
+        "reviewer_id": "R1",
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_MERGE",
+        "notes": "把桌子的一部分融进去了"
+      },
+      "causal_disposition": "REPLAYABLE_ASSOCIATION_CAUSE",
+      "earliest_causal_stage": "POSTPROCESS_OBJECT_MERGE",
+      "root_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000144_r0019"
+      ],
+      "root_event_uids": [
+        "room0_20260820T093325Z_581b7c84_e00006847",
+        "room0_20260820T093325Z_581b7c84_e00006848",
+        "room0_20260820T093325Z_581b7c84_e00008726"
+      ],
+      "anchor_obs_uid": "room0_20260820T093325Z_581b7c84_f000144_r0019",
+      "anchor_association_event_uid": "room0_20260820T093325Z_581b7c84_e00006847",
+      "frame_idx": 144,
+      "snapshot_seed_version_uids": [
+        "208ff42b-1854-4587-81d2-547e731a3949@v000052"
+      ],
+      "constraints": [
+        {
+          "type": "CREATE_INSTANCE",
+          "obs_uid": "room0_20260820T093325Z_581b7c84_f000144_r0019",
+          "created_lineage_uid": "origin_room0_20260820T093325Z_581b7c84_f000144_r0019",
+          "created_entity_uid": "0c23aa26-75ce-45b0-847f-7bc89bd236cd",
+          "applies_at_event_uid": "room0_20260820T093325Z_581b7c84_e00006847",
+          "active_from_sequence": 6847,
+          "active_until_sequence": 6847,
+          "source": "human_confirmed_causal_trace",
+          "evidence_refs": [
+            "incident_9727f850ddf3d077771a",
+            "finding_000364",
+            "room0_20260820T093325Z_581b7c84_e00008726"
+          ]
+        }
+      ],
+      "evaluation": {
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "groups": [
+          {
+            "name": "premerge_created_table_part",
+            "source": "MAPPING_EVENT_FIELD",
+            "event_uid": "room0_20260820T093325Z_581b7c84_e00008726",
+            "field": "source_member_set_before"
+          },
+          {
+            "name": "premerge_existing_object",
+            "source": "MAPPING_EVENT_FIELD",
+            "event_uid": "room0_20260820T093325Z_581b7c84_e00008726",
+            "field": "target_member_set_before"
+          }
+        ],
+        "affected_native_entity_uids": [
+          "208ff42b-1854-4587-81d2-547e731a3949"
+        ],
+        "probe_obs_uids": [
+          "room0_20260820T093325Z_581b7c84_f000144_r0019",
+          "room0_20260820T093325Z_581b7c84_f000078_r0024"
+        ],
+        "oracle_boundary": "human false-merge label plus immutable pre-merge ledger groups"
+      }
+    },
+    {
+      "case_uid": "human6_room0_false_merge_f74cb76c",
+      "scene_id": "room0",
+      "incident_uid": "incident_f74cb76c27100eb1b7b3",
+      "representative_finding_uid": "finding_002330",
+      "endpoint_error_type": "FALSE_MERGE",
+      "human_label": {
+        "reviewer_id": "R1",
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_MERGE",
+        "notes": "把地板也融进去了"
+      },
+      "causal_disposition": "DEFER_NON_ASSOCIATION_ROOT",
+      "earliest_causal_stage": "SEGMENTATION_UNDERSEGMENTATION",
+      "root_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000165_r0020"
+      ],
+      "root_event_uids": [
+        "room0_20260820T093325Z_581b7c84_e00008077"
+      ],
+      "defer_reason": "The only observation already contains table/floor geometry in one mask and is natively CREATE_OBJECT at 0.790880 < 1.2; no association reassignment or instance-boundary action can split pixels or points inside that observation."
+    },
+    {
+      "case_uid": "human6_room0_false_split_05c2ca82",
+      "scene_id": "room0",
+      "incident_uid": "incident_05c2ca82e74170f33cb1",
+      "representative_finding_uid": "finding_000145",
+      "endpoint_error_type": "FALSE_SPLIT",
+      "human_label": {
+        "reviewer_id": "R1",
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_SPLIT",
+        "notes": "一个cabinet错误分成了几部分"
+      },
+      "causal_disposition": "DEFER_NON_ASSOCIATION_ROOT",
+      "earliest_causal_stage": "SEGMENTATION_OR_GEOMETRY_FRAGMENTATION",
+      "root_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000040_r0016",
+        "room0_20260820T093325Z_581b7c84_f000040_r0019"
+      ],
+      "root_event_uids": [
+        "room0_20260820T093325Z_581b7c84_e00001683",
+        "room0_20260820T093325Z_581b7c84_e00001689"
+      ],
+      "defer_reason": "Both reviewed proposals already MERGE_TO_OBJECT into the same final cabinet lineage with score 1.897626 > 1.2, and the frozen map has no second active cabinet node that can serve as an auditable association target; the visible split is geometric/segmentation fragmentation."
+    },
+    {
+      "case_uid": "human6_room0_false_split_4adafe73",
+      "scene_id": "room0",
+      "incident_uid": "incident_4adafe7394a96b750da1",
+      "representative_finding_uid": "finding_000091",
+      "endpoint_error_type": "FALSE_SPLIT",
+      "human_label": {
+        "reviewer_id": "R1",
+        "evidence_sufficient": "YES",
+        "final_state": "WRONG",
+        "final_error_type": "FALSE_SPLIT",
+        "notes": null
+      },
+      "causal_disposition": "DEFER_NON_ASSOCIATION_ROOT",
+      "earliest_causal_stage": "SEGMENTATION_CONTAINMENT_FRAGMENTATION",
+      "root_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000021_r0000",
+        "room0_20260820T093325Z_581b7c84_f000021_r0002"
+      ],
+      "root_event_uids": [
+        "room0_20260820T093325Z_581b7c84_e00000915",
+        "room0_20260820T093325Z_581b7c84_e00000919"
+      ],
+      "defer_reason": "The two reviewed sofa proposals already MERGE_TO_OBJECT into the same sofa owner at 1.575825/1.577569 > 1.2. Raw/processed-mask review shows proposal fragmentation after containment processing, while the nearby alternative node is not a semantically valid sibling target; forcing association would create a category error."
+    }
+  ]
+}

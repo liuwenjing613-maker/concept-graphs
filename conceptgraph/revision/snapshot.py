@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import dataclass
 from typing import Any, Iterable, Mapping
 
@@ -56,6 +57,7 @@ class LocalSnapshot:
             "config_hash": self.config_hash,
             "source_hashes": self.source_hashes,
             "snapshot_runtime_ms": float(self.state.get("runtime_ms", 0.0)),
+            "timing": dict(self.state.get("timing") or {}),
         }
 
 
@@ -261,6 +263,7 @@ class AnchorStateBuilder:
         prefix_state: Mapping[str, Any] | None = None,
         prefix_objects: Any | None = None,
     ) -> LocalSnapshot:
+        builder_started = time.perf_counter()
         anchor = self.provenance.get_event(str(anchor_event_uid))
         frame_uid = str(anchor["frame_uid"])
         anchor_frame = int(frame_uid.rsplit("_f", 1)[-1])
@@ -268,15 +271,37 @@ class AnchorStateBuilder:
         if (prefix_state is None) != (prefix_objects is None):
             raise ValueError("prefix_state and prefix_objects must be supplied together")
         if prefix_state is None:
+            prefix_started = time.perf_counter()
             state, objects = self.engine.replay_prefix(anchor_frame=anchor_frame)
+            prefix_wall_ms = (time.perf_counter() - prefix_started) * 1000.0
+            state["timing"] = {
+                "prefix_cache_hit": False,
+                "prefix_cache_request_wall_ms": prefix_wall_ms,
+                "prefix_cache_incremental_replay_ms": float(
+                    state.get("runtime_ms", prefix_wall_ms)
+                ),
+                "prefix_cache_cumulative_replay_ms": float(
+                    state.get("runtime_ms", prefix_wall_ms)
+                ),
+                "prefix_cache_frames_advanced": max(0, anchor_frame),
+                "prefix_cache_observations_advanced": int(
+                    state.get("replayed_observations", 0)
+                ),
+                "prefix_cache_mode": "COLD_REPLAY",
+            }
         else:
             state, objects = dict(prefix_state), prefix_objects
+        prefix_replayed_inside_builder = prefix_state is None
+        snapshot_assembly_started = time.perf_counter()
+        same_frame_started = time.perf_counter()
         state, objects = self.engine.advance_recorded_frame_prefix(
             objects=objects,
             prefix_state=state,
             anchor_obs_uid=str(anchor["obs_uid"]),
         )
+        same_frame_wall_ms = (time.perf_counter() - same_frame_started) * 1000.0
         seeds = tuple(sorted(set(str(item) for item in dependency_seed if item)))
+        validation_started = time.perf_counter()
         eligible, resolution, skipped = self._resolve_pre_anchor_versions(
             seeds,
             anchor_sequence=anchor_sequence,
@@ -292,6 +317,7 @@ class AnchorStateBuilder:
             )
             for version_uid in eligible
         ]
+        validation_wall_ms = (time.perf_counter() - validation_started) * 1000.0
         validation = {
             "pass": _snapshot_validation_pass(
                 requested_count=len(seeds),
@@ -333,6 +359,56 @@ class AnchorStateBuilder:
             ),
             default=-1,
         )
+        timing = dict(state.get("timing") or {})
+        snapshot_assembly_wall_ms = (
+            time.perf_counter() - snapshot_assembly_started
+        ) * 1000.0
+        snapshot_builder_total_wall_ms = (
+            time.perf_counter() - builder_started
+        ) * 1000.0
+        prefix_request_wall_ms = float(
+            timing.get("prefix_cache_request_wall_ms", 0.0)
+        )
+        prefix_cumulative_replay_ms = float(
+            timing.get(
+                "prefix_cache_cumulative_replay_ms",
+                state.get("runtime_ms", 0.0),
+            )
+        )
+        timing.update(
+            {
+                "same_frame_prefix_wall_ms": same_frame_wall_ms,
+                "snapshot_validation_wall_ms": validation_wall_ms,
+                "snapshot_assembly_wall_ms": snapshot_assembly_wall_ms,
+                "snapshot_builder_total_wall_ms": snapshot_builder_total_wall_ms,
+                "snapshot_amortized_wall_ms": (
+                    snapshot_builder_total_wall_ms
+                    if prefix_replayed_inside_builder
+                    else prefix_request_wall_ms + snapshot_builder_total_wall_ms
+                ),
+                "snapshot_cold_upper_bound_wall_ms": (
+                    snapshot_builder_total_wall_ms
+                    if prefix_replayed_inside_builder
+                    else prefix_cumulative_replay_ms + snapshot_builder_total_wall_ms
+                ),
+                "snapshot_runtime_legacy_replay_only_ms": float(
+                    state.get("runtime_ms", 0.0)
+                ),
+                "snapshot_timing_basis": {
+                    "snapshot_amortized_wall_ms": (
+                        "CURRENT_PREFIX_CACHE_REQUEST_PLUS_SNAPSHOT_ASSEMBLY"
+                    ),
+                    "snapshot_cold_upper_bound_wall_ms": (
+                        "CUMULATIVE_PREFIX_REPLAY_PLUS_SNAPSHOT_ASSEMBLY"
+                    ),
+                    "snapshot_assembly_wall_ms": (
+                        "EXCLUDES_PREFIX_REPLAY_AND_INCLUDES_SAME_FRAME_PREFIX_"
+                        "VALIDATION_AND_HASHING"
+                    ),
+                },
+            }
+        )
+        state["timing"] = timing
         return LocalSnapshot(
             anchor_event_uid=str(anchor_event_uid),
             anchor_frame=anchor_frame,
@@ -372,12 +448,16 @@ class IncrementalPrefixCache:
         )
 
     def prefix_before(self, anchor_frame: int) -> tuple[dict[str, Any], Any]:
+        request_started = time.perf_counter()
         target_frame = int(anchor_frame) - 1
+        previous_completed_frame = self.completed_frame
         if target_frame < self.completed_frame:
             raise ValueError(
                 f"incremental prefix requested out of order: {target_frame} < "
                 f"{self.completed_frame}"
             )
+        incremental_replay_ms = 0.0
+        observations_advanced = 0
         if target_frame > self.completed_frame:
             start = self.completed_frame + 1
             rows = [
@@ -396,7 +476,9 @@ class IncrementalPrefixCache:
             )
             self.objects = objects
             self.completed_frame = target_frame
-            self.runtime_ms += float(segment["runtime_ms"])
+            incremental_replay_ms = float(segment["runtime_ms"])
+            observations_advanced = len(rows)
+            self.runtime_ms += incremental_replay_ms
             self.replayed_observations += len(rows)
             self.decisions.extend(segment.get("decision_trace") or ())
             for key in self.postprocess_counts:
@@ -414,4 +496,17 @@ class IncrementalPrefixCache:
                 constraint_count=0,
                 intervention_count=0,
             )
+        request_wall_ms = (time.perf_counter() - request_started) * 1000.0
+        self.state["timing"] = {
+            "prefix_cache_hit": target_frame == previous_completed_frame,
+            "prefix_cache_request_wall_ms": request_wall_ms,
+            "prefix_cache_incremental_replay_ms": incremental_replay_ms,
+            "prefix_cache_cumulative_replay_ms": self.runtime_ms,
+            "prefix_cache_frames_advanced": max(
+                0, self.completed_frame - previous_completed_frame
+            ),
+            "prefix_cache_observations_advanced": observations_advanced,
+            "prefix_cache_completed_frame": self.completed_frame,
+            "prefix_cache_mode": "INCREMENTAL_AMORTIZED",
+        }
         return self.state, self.objects

@@ -193,6 +193,14 @@ class ControlledCaseBuilder:
             "target_object_version_uid": target.get("version_uid") if target else None,
             "target_origin_obs_uid": target.get("origin_obs_uid") if target else None,
             "clean_top1_score": association.get("top1_score"),
+            "clean_sim_threshold": association.get("sim_threshold"),
+            "clean_threshold_slack": (
+                float(association["top1_score"])
+                - float(association["sim_threshold"])
+                if association.get("top1_score") is not None
+                and association.get("sim_threshold") is not None
+                else None
+            ),
             "clean_margin": association.get("margin"),
             "affected_clean_groups": {
                 source_identity: list(self.clean_membership[source_identity]),
