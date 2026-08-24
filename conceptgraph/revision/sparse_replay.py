@@ -6,6 +6,7 @@ import json
 import time
 import uuid
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -22,6 +23,17 @@ from .constraints import (
 )
 from .corruption import ControlledCorruptionController
 from .index import ProvenanceIndex
+from .identity import (
+    BoundaryAssessment,
+    BoundaryDisposition,
+    IdentityBoundary,
+    IdentityRecord,
+    assess_identity_boundaries,
+    assess_protected_boundary,
+    attach_observation_identity,
+    record_for_object,
+    write_identity_record,
+)
 from .materialize import ObservationMaterializer
 from .models import CorruptionPlan, DependencyClosure
 
@@ -35,6 +47,42 @@ class SparseReplayDeferred(SparseReplayError):
         super().__init__(f"constraint deferred at {obs_uid}: {reason}")
         self.obs_uid = obs_uid
         self.reason = reason
+
+
+@dataclass(frozen=True)
+class ReplayComponentPolicy:
+    positive_lineage_redirect: bool = True
+    create_association_boundary: bool = True
+    create_postprocess_boundary: bool = True
+
+    @classmethod
+    def from_value(
+        cls, value: "ReplayComponentPolicy | Mapping[str, Any] | None"
+    ) -> "ReplayComponentPolicy":
+        if value is None:
+            return cls()
+        if isinstance(value, cls):
+            return value
+        if not isinstance(value, Mapping):
+            raise TypeError(
+                "component_policy must be a mapping or ReplayComponentPolicy"
+            )
+        known = {
+            "positive_lineage_redirect",
+            "create_association_boundary",
+            "create_postprocess_boundary",
+        }
+        unknown = set(value) - known
+        if unknown:
+            raise ValueError(f"unknown replay component policy keys: {sorted(unknown)}")
+        return cls(**{key: bool(item) for key, item in value.items()})
+
+    def as_dict(self) -> dict[str, bool]:
+        return {
+            "positive_lineage_redirect": self.positive_lineage_redirect,
+            "create_association_boundary": self.create_association_boundary,
+            "create_postprocess_boundary": self.create_postprocess_boundary,
+        }
 
 
 def _frame_index(frame_uid: str) -> int:
@@ -57,7 +105,9 @@ def _uuid(value: str | uuid.UUID | None, fallback: str) -> uuid.UUID:
     return uuid.uuid5(uuid.NAMESPACE_URL, fallback)
 
 
-def _object_summary(obj: Mapping[str, Any], entity_uid: str | None = None) -> dict[str, Any]:
+def _object_summary(
+    obj: Mapping[str, Any], entity_uid: str | None = None
+) -> dict[str, Any]:
     points = np.asarray(obj["pcd"].points, dtype=np.float64)
     minimum = points.min(axis=0) if len(points) else np.full(3, np.nan)
     maximum = points.max(axis=0) if len(points) else np.full(3, np.nan)
@@ -98,6 +148,12 @@ def _object_summary(obj: Mapping[str, Any], entity_uid: str | None = None) -> di
         "revision_lineage_uids": sorted(
             set(str(item) for item in obj.get("revision_lineage_uids", ()))
         ),
+        "revision_provenance_lineage_uids": sorted(
+            set(str(item) for item in obj.get("revision_provenance_lineage_uids", ()))
+        ),
+        "revision_identity_complete": bool(
+            obj.get("revision_identity_complete", False)
+        ),
     }
 
 
@@ -124,7 +180,9 @@ def _expand_observation_scope(
     return added, expanded_entities
 
 
-def _target_origin_observation(objects: Sequence[Mapping[str, Any]], index: int | None) -> str | None:
+def _target_origin_observation(
+    objects: Sequence[Mapping[str, Any]], index: int | None
+) -> str | None:
     if index is None or index < 0 or index >= len(objects):
         return None
     members = [str(item) for item in objects[index].get("obs_uids", ())]
@@ -163,21 +221,110 @@ def persistent_instance_boundary_reason(
     target_lineages: Iterable[str],
     protected_lineages: Iterable[str],
 ) -> str | None:
-    """Reject a postprocess merge that crosses an explicit instance boundary.
+    """Compatibility wrapper for callers with complete effective identities."""
 
-    ``CREATE_INSTANCE`` is stronger than a one-frame ``CREATE_OBJECT`` decision:
-    the created lineage must remain distinct during the suffix replay.  A merge is
-    therefore rejected exactly when one side, but not the other, contains a
-    protected lineage.  Merges wholly outside the boundary and idempotent merges
-    between two representations of the same protected lineage remain admissible.
-    """
-
-    source = set(str(item) for item in source_lineages)
-    target = set(str(item) for item in target_lineages)
-    for lineage_uid in sorted(set(str(item) for item in protected_lineages)):
-        if (lineage_uid in source) != (lineage_uid in target):
-            return "persistent_create_instance_boundary"
+    source = tuple(sorted(set(str(item) for item in source_lineages)))
+    target = tuple(sorted(set(str(item) for item in target_lineages)))
+    assessment = assess_protected_boundary(
+        IdentityRecord.build(
+            provenance_lineage_uids=source,
+            effective_identity_uids=source,
+            complete=bool(source),
+            source="compatibility_source",
+        ),
+        IdentityRecord.build(
+            provenance_lineage_uids=target,
+            effective_identity_uids=target,
+            complete=bool(target),
+            source="compatibility_target",
+        ),
+        protected_lineages,
+    )
+    if assessment.disposition == BoundaryDisposition.VETO:
+        return "persistent_create_instance_boundary"
     return None
+
+
+@dataclass(frozen=True)
+class BoundaryMatchResolution:
+    resolved_match: int | None
+    forbidden_indices: tuple[int, ...]
+    unknown_indices: tuple[int, ...]
+    overrode_match: bool
+    candidate_assessments: tuple[tuple[int, BoundaryAssessment], ...] = ()
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "resolved_match": self.resolved_match,
+            "forbidden_indices": list(self.forbidden_indices),
+            "unknown_indices": list(self.unknown_indices),
+            "overrode_match": self.overrode_match,
+            "candidate_assessments": [
+                {"index": index, **assessment.as_dict()}
+                for index, assessment in self.candidate_assessments
+            ],
+        }
+
+
+def resolve_persistent_instance_boundary_match_detailed(
+    default_match: int | None,
+    candidates: Sequence[CandidateTarget],
+    observation_identity: IdentityRecord,
+    identity_boundaries: Iterable[IdentityBoundary],
+) -> BoundaryMatchResolution:
+    """Resolve only known DIFFERENT crossings; UNKNOWN never becomes a veto."""
+
+    boundaries = tuple(identity_boundaries)
+    if not boundaries:
+        return BoundaryMatchResolution(default_match, (), (), False)
+    assessments: list[tuple[int, BoundaryAssessment]] = []
+    forbidden: list[int] = []
+    unknown: list[int] = []
+    for candidate in candidates:
+        candidate_identity = IdentityRecord.build(
+            provenance_lineage_uids=(
+                candidate.provenance_lineage_uids or candidate.lineage_uids
+            ),
+            effective_identity_uids=candidate.lineage_uids,
+            evidence_observation_uids=candidate.member_obs_uids,
+            complete=candidate.identity_complete,
+            source="active_candidate",
+        )
+        assessment = assess_identity_boundaries(
+            observation_identity, candidate_identity, boundaries
+        )
+        assessments.append((candidate.index, assessment))
+        if assessment.disposition == BoundaryDisposition.VETO:
+            forbidden.append(candidate.index)
+        elif assessment.disposition == BoundaryDisposition.UNKNOWN:
+            unknown.append(candidate.index)
+    forbidden_tuple = tuple(sorted(set(forbidden)))
+    unknown_tuple = tuple(sorted(set(unknown)))
+    if default_match not in set(forbidden_tuple):
+        return BoundaryMatchResolution(
+            default_match,
+            forbidden_tuple,
+            unknown_tuple,
+            False,
+            tuple(assessments),
+        )
+    dispositions = {index: assessment.disposition for index, assessment in assessments}
+    alternative = next(
+        (
+            candidate.index
+            for candidate in candidates
+            if candidate.eligible
+            and dispositions.get(candidate.index) == BoundaryDisposition.ALLOW
+        ),
+        None,
+    )
+    return BoundaryMatchResolution(
+        alternative,
+        forbidden_tuple,
+        unknown_tuple,
+        True,
+        tuple(assessments),
+    )
 
 
 def resolve_persistent_instance_boundary_match(
@@ -186,16 +333,6 @@ def resolve_persistent_instance_boundary_match(
     observation_lineages: Iterable[str],
     protected_lineages: Iterable[str],
 ) -> tuple[int | None, tuple[int, ...], bool]:
-    """Apply a persistent ``CREATE_INSTANCE`` boundary at association time.
-
-    Provenance lineages classify both the incoming observation and each active
-    candidate. A candidate on the opposite side of any protected boundary is
-    forbidden. If the default crosses a boundary, the highest-scoring eligible
-    candidate on the same side is used; otherwise the observation creates a new
-    object. Unknown observation provenance is never interpreted as negative
-    evidence for crossing a boundary.
-    """
-
     observation = tuple(sorted(set(str(item) for item in observation_lineages)))
     protected = tuple(sorted(set(str(item) for item in protected_lineages)))
     if not observation or not protected:
@@ -289,7 +426,10 @@ class SparseCounterfactualReplayEngine:
         lineages: set[str] = set()
         association = self.provenance.association_for_obs.get(obs_uid)
         if association:
-            for field in ("target_object_version_before", "target_object_version_after"):
+            for field in (
+                "target_object_version_before",
+                "target_object_version_after",
+            ):
                 version_uid = association.get(field)
                 if version_uid in self.provenance.object_versions:
                     version = self.provenance.get_object_version(str(version_uid))
@@ -300,13 +440,25 @@ class SparseCounterfactualReplayEngine:
         self._obs_lineages[obs_uid] = result
         return result
 
+    def _identity_for_observation(self, obs_uid: str) -> IdentityRecord:
+        lineages = self._lineages_for_observation(obs_uid)
+        return IdentityRecord.build(
+            provenance_lineage_uids=lineages,
+            effective_identity_uids=lineages,
+            evidence_observation_uids=(obs_uid,),
+            complete=bool(lineages),
+            source="immutable_observation_provenance",
+        )
+
+    def _identity_for_object(self, obj: Mapping[str, Any]) -> IdentityRecord:
+        return record_for_object(obj, self._lineages_for_observation)
+
     def _lineages_for_object(self, obj: Mapping[str, Any]) -> tuple[str, ...]:
-        explicit = set(str(item) for item in obj.get("revision_lineage_uids", ()))
-        if explicit:
-            return tuple(sorted(explicit))
-        for obs_uid in obj.get("obs_uids", ()):
-            explicit.update(self._lineages_for_observation(str(obs_uid)))
-        return tuple(sorted(explicit))
+        return self._identity_for_object(obj).effective_identity_uids
+
+    def _initialize_identity_metadata(self, objects: Any) -> None:
+        for obj in objects:
+            write_identity_record(obj, self._identity_for_object(obj))
 
     def _preferred_entity(self, obs_uid: str) -> str | None:
         association = self.provenance.get_association_for_obs(obs_uid)
@@ -341,7 +493,9 @@ class SparseCounterfactualReplayEngine:
 
         target_uid = str(association.get("target_object_uid") or "")
         exact = [
-            index for index, obj in enumerate(objects) if str(obj.get("id")) == target_uid
+            index
+            for index, obj in enumerate(objects)
+            if str(obj.get("id")) == target_uid
         ]
         if len(exact) == 1:
             return exact[0]
@@ -454,9 +608,7 @@ class SparseCounterfactualReplayEngine:
             )
             detection_index = int(row.get("filtered_det_idx", -1))
             object_uids = list(association.get("object_uids_before") or ())
-            version_uids = list(
-                association.get("candidate_object_version_uids") or ()
-            )
+            version_uids = list(association.get("candidate_object_version_uids") or ())
             if not (0 <= detection_index < frozen.shape[0]):
                 raise SparseReplayError(
                     f"frozen similarity row is out of range for {obs_uid}: "
@@ -493,9 +645,18 @@ class SparseCounterfactualReplayEngine:
 
     def _materialize(self, obs_uid: str) -> dict[str, Any]:
         preferred = self._preferred_entity(obs_uid)
-        return self.materializer.materialize(obs_uid, preferred_uid=preferred)
+        detection = self.materializer.materialize(obs_uid, preferred_uid=preferred)
+        observation_identity = self._identity_for_observation(obs_uid)
+        attach_observation_identity(
+            detection,
+            obs_uid=obs_uid,
+            provenance_lineage_uids=observation_identity.provenance_lineage_uids,
+        )
+        return detection
 
-    def _natural_details(self, detections: Any, objects: Any) -> tuple[list[int | None], Any]:
+    def _natural_details(
+        self, detections: Any, objects: Any
+    ) -> tuple[list[int | None], Any]:
         if not objects:
             return [None] * len(detections), np.empty((len(detections), 0), dtype=float)
         from conceptgraph.slam.mapping import (
@@ -530,11 +691,14 @@ class SparseCounterfactualReplayEngine:
         from conceptgraph.slam.mapping import similarity_exceeds_threshold
 
         threshold = float(self.cfg["sim_threshold"])
+        identities = [self._identity_for_object(obj) for obj in objects]
         candidates = [
             CandidateTarget.build(
                 index=index,
                 entity_uid=str(obj.get("id", index)),
-                lineage_uids=self._lineages_for_object(obj),
+                lineage_uids=identities[index].effective_identity_uids,
+                provenance_lineage_uids=(identities[index].provenance_lineage_uids),
+                identity_complete=identities[index].complete,
                 member_obs_uids=(str(item) for item in obj.get("obs_uids", ())),
                 score=float(score_row[index]),
                 eligible=similarity_exceeds_threshold(score_row[index], threshold),
@@ -615,6 +779,7 @@ class SparseCounterfactualReplayEngine:
             frame,
             is_final,
         ):
+
             def record_merge_decision(
                 source: Mapping[str, Any],
                 target: Mapping[str, Any],
@@ -635,12 +800,10 @@ class SparseCounterfactualReplayEngine:
                         "operation": "OBJECT_MERGE_CANDIDATE",
                         "source_entity_uid": str(source.get("id")),
                         "target_entity_uid": str(target.get("id")),
-                        "source_lineage_uids": list(
-                            self._lineages_for_object(source)
-                        ),
-                        "target_lineage_uids": list(
-                            self._lineages_for_object(target)
-                        ),
+                        "source_lineage_uids": list(self._lineages_for_object(source)),
+                        "source_identity": self._identity_for_object(source).as_dict(),
+                        "target_lineage_uids": list(self._lineages_for_object(target)),
+                        "target_identity": self._identity_for_object(target).as_dict(),
                         "overlap_ratio": float(overlap_ratio),
                         "visual_similarity": float(visual_similarity),
                         "text_similarity": float(text_similarity),
@@ -687,11 +850,11 @@ class SparseCounterfactualReplayEngine:
         historical_anchor_count: int = 0,
         snapshot_runtime_ms: float = 0.0,
         postprocess_decisions: Sequence[Mapping[str, Any]] = (),
+        component_policy: ReplayComponentPolicy | None = None,
+        identity_boundaries: Sequence[IdentityBoundary] = (),
     ) -> dict[str, Any]:
         rows = [_object_summary(obj) for obj in objects]
-        membership = {
-            row["entity_uid"]: row["member_observation_uids"] for row in rows
-        }
+        membership = {row["entity_uid"]: row["member_observation_uids"] for row in rows}
         hits = sum(bool(item.get("constraint_hit")) for item in decisions)
         overrides = sum(
             bool(item.get("constraint_changed_default_decision")) for item in decisions
@@ -704,6 +867,10 @@ class SparseCounterfactualReplayEngine:
         )
         state = {
             "schema_version": "1.0.0",
+            "identity_semantics_version": "2.0.0",
+            "component_policy": (
+                component_policy.as_dict() if component_policy is not None else None
+            ),
             "mode": mode.value,
             "branch": mode.value.lower(),
             "scope": scope,
@@ -717,20 +884,28 @@ class SparseCounterfactualReplayEngine:
             "replayed_events": 2 * int(replayed_observations),
             "total_events": len(self.provenance.events),
             "decision_trace": decisions,
+            "identity_boundaries": [item.as_dict() for item in identity_boundaries],
             "postprocess_counts": dict(postprocess_counts),
             "postprocess_decision_trace": [
                 dict(item) for item in postprocess_decisions
             ],
             "persistent_create_instance_merge_veto_count": sum(
-                "persistent_create_instance_boundary" in (
-                    item.get("reject_reasons") or ()
-                )
+                "persistent_create_instance_boundary"
+                in (item.get("reject_reasons") or ())
                 for item in postprocess_decisions
             ),
             "persistent_create_instance_association_veto_count": sum(
                 bool(
                     (item.get("persistent_create_instance_boundary") or {}).get(
                         "overrode_match"
+                    )
+                )
+                for item in decisions
+            ),
+            "persistent_create_instance_association_unknown_count": sum(
+                len(
+                    (item.get("persistent_create_instance_boundary") or {}).get(
+                        "unknown_indices", ()
                     )
                 )
                 for item in decisions
@@ -773,10 +948,16 @@ class SparseCounterfactualReplayEngine:
         frozen_recorded_frame: int | None = None,
         scope: str,
         snapshot_runtime_ms: float = 0.0,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
     ) -> tuple[dict[str, Any], Any]:
-        from conceptgraph.slam.slam_classes import DetectionList, MapEdgeMapping, MapObjectList
+        from conceptgraph.slam.slam_classes import (
+            DetectionList,
+            MapEdgeMapping,
+            MapObjectList,
+        )
 
         mode = ReplayMode(mode)
+        policy = ReplayComponentPolicy.from_value(component_policy)
         primitives = tuple(
             item
             if isinstance(item, SparseRepairConstraint)
@@ -784,27 +965,22 @@ class SparseCounterfactualReplayEngine:
             for item in constraints
         )
         engine = ConstraintEngine(primitives)
-        protected_lineages = {
-            item.created_lineage_uid or "revision-lineage:" + str(item.obs_uid)
-            for item in primitives
-            if item.constraint_type == ConstraintType.CREATE_INSTANCE
-        }
+        identity_boundaries: list[IdentityBoundary] = []
         persistent_redirects: list[dict[str, Any]] = []
-        if mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY:
+        if (
+            mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
+            and policy.positive_lineage_redirect
+        ):
             for item in primitives:
                 if item.constraint_type not in {
                     ConstraintType.ASSIGN_OBSERVATION,
                     ConstraintType.MUST_LINK,
                 }:
                     continue
-                association = self.provenance.get_association_for_obs(
-                    str(item.obs_uid)
-                )
+                association = self.provenance.get_association_for_obs(str(item.obs_uid))
                 if str(association.get("decision")) != "CREATE_OBJECT":
                     continue
-                source_lineages = self._lineages_for_observation(
-                    str(item.obs_uid)
-                )
+                source_lineages = self._lineages_for_observation(str(item.obs_uid))
                 if not source_lineages:
                     continue
                 persistent_redirects.append(
@@ -837,11 +1013,15 @@ class SparseCounterfactualReplayEngine:
         def persistent_merge_guard(
             source: Mapping[str, Any], target: Mapping[str, Any]
         ) -> str | None:
-            return persistent_instance_boundary_reason(
-                self._lineages_for_object(source),
-                self._lineages_for_object(target),
-                protected_lineages,
+            assessment = assess_identity_boundaries(
+                self._identity_for_object(source),
+                self._identity_for_object(target),
+                identity_boundaries,
             )
+            if assessment.disposition == BoundaryDisposition.VETO:
+                return "persistent_create_instance_boundary"
+            return None
+
         controller = None
         historical_controller = None
         if mode == ReplayMode.TEMPORAL_CORRUPTION:
@@ -854,13 +1034,17 @@ class SparseCounterfactualReplayEngine:
             )
             controller = ControlledCorruptionController(plan)
         elif corruption_plan is not None:
-            raise ValueError("corruption plan is only valid in TEMPORAL_CORRUPTION mode")
+            raise ValueError(
+                "corruption plan is only valid in TEMPORAL_CORRUPTION mode"
+            )
         if historical_anchor_plan is not None:
             if mode not in {
                 ReplayMode.ANCHOR_ONLY_REPAIR,
                 ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY,
             }:
-                raise ValueError("historical anchor plan is only valid in proposed modes")
+                raise ValueError(
+                    "historical anchor plan is only valid in proposed modes"
+                )
             plan = (
                 historical_anchor_plan
                 if isinstance(historical_anchor_plan, CorruptionPlan)
@@ -872,13 +1056,17 @@ class SparseCounterfactualReplayEngine:
             objects = MapObjectList()
         else:
             objects = copy.deepcopy(initial_objects)
+        self._initialize_identity_metadata(objects)
         map_edges = MapEdgeMapping(objects)
         by_frame: dict[int, list[Mapping[str, Any]]] = defaultdict(list)
         for row in rows:
             by_frame[_frame_index(str(row["frame_uid"]))].append(row)
         for values in by_frame.values():
             values.sort(
-                key=lambda row: (int(row.get("filtered_det_idx", 0)), str(row["obs_uid"]))
+                key=lambda row: (
+                    int(row.get("filtered_det_idx", 0)),
+                    str(row["obs_uid"]),
+                )
             )
 
         decisions: list[dict[str, Any]] = []
@@ -910,13 +1098,15 @@ class SparseCounterfactualReplayEngine:
                 redirect_source_lineages: list[tuple[str, ...]] = [
                     () for _ in frame_rows
                 ]
-                boundary_observation_lineages: list[tuple[str, ...]] = [
-                    () for _ in frame_rows
+                boundary_observation_identities: list[IdentityRecord | None] = [
+                    None for _ in frame_rows
                 ]
-                boundary_forbidden_indices: list[tuple[int, ...]] = [
-                    () for _ in frame_rows
+                boundary_resolutions: list[BoundaryMatchResolution | None] = [
+                    None for _ in frame_rows
                 ]
-                boundary_overrode_match = [False for _ in frame_rows]
+                created_boundaries: list[dict[str, Any] | None] = [
+                    None for _ in frame_rows
+                ]
                 if controller is not None:
                     applied = controller.apply(
                         frame_idx=frame,
@@ -940,7 +1130,9 @@ class SparseCounterfactualReplayEngine:
                     for index, row in enumerate(frame_rows):
                         obs_uid = str(row["obs_uid"])
                         association = self.provenance.get_association_for_obs(obs_uid)
-                        candidates = self._candidate_targets(objects, score_matrix[index])
+                        candidates = self._candidate_targets(
+                            objects, score_matrix[index]
+                        )
                         event_sequence = self.provenance.sequence(association)
                         decision = engine.resolve_for_observation(
                             obs_uid=obs_uid,
@@ -952,8 +1144,7 @@ class SparseCounterfactualReplayEngine:
                         )
                         if (
                             decision.action == ConstraintAction.NO_CONSTRAINT
-                            and mode
-                            == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
+                            and mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
                             and persistent_redirects
                         ):
                             observation_lineages = set(
@@ -965,9 +1156,7 @@ class SparseCounterfactualReplayEngine:
                             redirect_error = ""
                             for specification in persistent_redirects:
                                 primitive = specification["primitive"]
-                                anchor_sequence = int(
-                                    specification["anchor_sequence"]
-                                )
+                                anchor_sequence = int(specification["anchor_sequence"])
                                 if event_sequence <= anchor_sequence:
                                     continue
                                 sources = set(specification["source_lineages"])
@@ -1010,7 +1199,9 @@ class SparseCounterfactualReplayEngine:
                                 )
                         constraint_decisions[index] = decision
                         if decision.action == ConstraintAction.DEFER:
-                            raise SparseReplayDeferred(obs_uid=obs_uid, reason=decision.reason)
+                            raise SparseReplayDeferred(
+                                obs_uid=obs_uid, reason=decision.reason
+                            )
                         applied[index] = _resolved_constraint_match(
                             decision,
                             native_match=natural[index],
@@ -1020,14 +1211,101 @@ class SparseCounterfactualReplayEngine:
                             applied[index] is None
                             and decision.action == ConstraintAction.FORCE_CREATE
                         ):
+                            source_identity = self._identity_for_observation(obs_uid)
+                            created_identity_uid = (
+                                decision.created_identity_uid
+                                or decision.created_lineage_uid
+                                or "revision-lineage:" + obs_uid
+                            )
                             detections[index]["id"] = _uuid(
                                 decision.created_entity_uid,
                                 "revision-created:" + obs_uid,
                             )
-                            detections[index]["revision_lineage_uids"] = [
-                                decision.created_lineage_uid
-                                or "revision-lineage:" + obs_uid
-                            ]
+                            write_identity_record(
+                                detections[index],
+                                IdentityRecord.build(
+                                    provenance_lineage_uids=(
+                                        source_identity.provenance_lineage_uids
+                                    ),
+                                    effective_identity_uids=(created_identity_uid,),
+                                    evidence_observation_uids=(obs_uid,),
+                                    complete=source_identity.complete,
+                                    source="explicit_create_instance",
+                                ),
+                            )
+                            boundary_target_index = historical_default[index]
+                            if boundary_target_index is None:
+                                boundary_target_index = natural[index]
+                            boundary_audit: dict[str, Any] = {
+                                "boundary_created": False,
+                                "created_identity_uid": created_identity_uid,
+                                "target_index": boundary_target_index,
+                            }
+                            if (
+                                mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
+                                and decision.separate_from_identity_uids
+                            ):
+                                boundary = IdentityBoundary.build(
+                                    left_identity_uids=(created_identity_uid,),
+                                    right_identity_uids=(
+                                        decision.separate_from_identity_uids
+                                    ),
+                                    evidence_refs=decision.constraint_uids
+                                    + (
+                                        str(association["event_uid"]),
+                                        obs_uid,
+                                    ),
+                                    source="CREATE_INSTANCE_EXPLICIT_DIFFERENT",
+                                )
+                                if all(
+                                    item.boundary_uid != boundary.boundary_uid
+                                    for item in identity_boundaries
+                                ):
+                                    identity_boundaries.append(boundary)
+                                boundary_audit = {
+                                    "boundary_created": True,
+                                    "boundary_source": "EXPLICIT_PAIR_EVIDENCE",
+                                    **boundary.as_dict(),
+                                }
+                            elif (
+                                mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
+                                and boundary_target_index is not None
+                            ):
+                                target_identity = self._identity_for_object(
+                                    objects[boundary_target_index]
+                                )
+                                if (
+                                    target_identity.effective_identity_uids
+                                    and created_identity_uid
+                                    not in target_identity.effective_identity_uids
+                                ):
+                                    boundary = IdentityBoundary.build(
+                                        left_identity_uids=(created_identity_uid,),
+                                        right_identity_uids=(
+                                            target_identity.effective_identity_uids
+                                        ),
+                                        evidence_refs=decision.constraint_uids
+                                        + (
+                                            str(association["event_uid"]),
+                                            obs_uid,
+                                        ),
+                                    )
+                                    if all(
+                                        item.boundary_uid != boundary.boundary_uid
+                                        for item in identity_boundaries
+                                    ):
+                                        identity_boundaries.append(boundary)
+                                    boundary_audit = {
+                                        "boundary_created": True,
+                                        **boundary.as_dict(),
+                                    }
+                                else:
+                                    boundary_audit[
+                                        "reason"
+                                    ] = "TARGET_IDENTITY_UNKNOWN_OR_ALREADY_SAME"
+                            else:
+                                boundary_audit["reason"] = "NO_OVERRIDDEN_TARGET"
+                            created_boundaries[index] = boundary_audit
                         elif (
                             applied[index] is not None
                             and decision.action == ConstraintAction.FORCE_TARGET
@@ -1037,70 +1315,106 @@ class SparseCounterfactualReplayEngine:
                                 "persistent_lineage_redirect",
                             }
                         ):
-                            target_lineages = self._lineages_for_object(
+                            source_identity = self._identity_for_observation(obs_uid)
+                            target_identity = self._identity_for_object(
                                 objects[applied[index]]
                             )
-                            if target_lineages:
-                                detections[index]["revision_lineage_uids"] = list(
-                                    target_lineages
+                            if target_identity.effective_identity_uids:
+                                write_identity_record(
+                                    detections[index],
+                                    IdentityRecord.build(
+                                        provenance_lineage_uids=(
+                                            source_identity.provenance_lineage_uids
+                                        ),
+                                        effective_identity_uids=(
+                                            target_identity.effective_identity_uids
+                                        ),
+                                        evidence_observation_uids=(obs_uid,),
+                                        complete=source_identity.complete,
+                                        source="explicit_identity_redirect",
+                                    ),
                                 )
                         if (
-                            mode
-                            == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
-                            and protected_lineages
-                            and decision.action
-                            == ConstraintAction.NO_CONSTRAINT
+                            mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
+                            and identity_boundaries
+                            and policy.create_association_boundary
+                            and decision.action == ConstraintAction.NO_CONSTRAINT
                         ):
-                            observation_lineages = (
-                                self._lineages_for_observation(obs_uid)
+                            observation_identity = self._identity_for_object(
+                                detections[index]
                             )
                             boundary_candidates = list(candidates)
-                            if (
-                                applied[index] is not None
-                                and all(
-                                    item.index != applied[index]
-                                    for item in boundary_candidates
-                                )
+                            if applied[index] is not None and all(
+                                item.index != applied[index]
+                                for item in boundary_candidates
                             ):
                                 obj = objects[applied[index]]
+                                obj_identity = self._identity_for_object(obj)
                                 boundary_candidates.append(
                                     CandidateTarget.build(
                                         index=applied[index],
                                         entity_uid=str(obj.get("id")),
-                                        lineage_uids=self._lineages_for_object(obj),
+                                        lineage_uids=(
+                                            obj_identity.effective_identity_uids
+                                        ),
+                                        provenance_lineage_uids=(
+                                            obj_identity.provenance_lineage_uids
+                                        ),
+                                        identity_complete=obj_identity.complete,
                                         member_obs_uids=obj.get("obs_uids", ()),
                                         score=float("-inf"),
                                         eligible=False,
                                     )
                                 )
-                            (
-                                resolved_match,
-                                forbidden_indices,
-                                overrode_match,
-                            ) = resolve_persistent_instance_boundary_match(
-                                applied[index],
-                                boundary_candidates,
-                                observation_lineages,
-                                protected_lineages,
-                            )
-                            boundary_observation_lineages[index] = tuple(
-                                observation_lineages
-                            )
-                            boundary_forbidden_indices[index] = forbidden_indices
-                            boundary_overrode_match[index] = overrode_match
-                            applied[index] = resolved_match
-                            if overrode_match and resolved_match is None:
-                                detections[index]["id"] = _uuid(
-                                    None, "revision-boundary-created:" + obs_uid
+                            resolution = (
+                                resolve_persistent_instance_boundary_match_detailed(
+                                    applied[index],
+                                    boundary_candidates,
+                                    observation_identity,
+                                    identity_boundaries,
                                 )
-                                detections[index][
-                                    "revision_lineage_uids"
-                                ] = list(observation_lineages)
+                            )
+                            boundary_observation_identities[
+                                index
+                            ] = observation_identity
+                            boundary_resolutions[index] = resolution
+                            applied[index] = resolution.resolved_match
+                            if (
+                                resolution.overrode_match
+                                and resolution.resolved_match is None
+                            ):
+                                detections[index]["id"] = _uuid(
+                                    None,
+                                    "revision-boundary-created:" + obs_uid,
+                                )
+                            elif (
+                                resolution.overrode_match
+                                and resolution.resolved_match is not None
+                            ):
+                                alternative_identity = self._identity_for_object(
+                                    objects[resolution.resolved_match]
+                                )
+                                write_identity_record(
+                                    detections[index],
+                                    IdentityRecord.build(
+                                        provenance_lineage_uids=(
+                                            observation_identity.provenance_lineage_uids
+                                        ),
+                                        effective_identity_uids=(
+                                            alternative_identity.effective_identity_uids
+                                        ),
+                                        evidence_observation_uids=(obs_uid,),
+                                        complete=observation_identity.complete,
+                                        source="pair_boundary_alternative",
+                                    ),
+                                )
                 for index, row in enumerate(frame_rows):
                     obs_uid = str(row["obs_uid"])
                     association = self.provenance.get_association_for_obs(obs_uid)
                     detail = constraint_decisions[index]
-                    candidate_rows = self._candidate_targets(objects, score_matrix[index])
+                    candidate_rows = self._candidate_targets(
+                        objects, score_matrix[index]
+                    )
                     decisions.append(
                         {
                             "frame_idx": frame,
@@ -1131,6 +1445,10 @@ class SparseCounterfactualReplayEngine:
                                     "index": item.index,
                                     "entity_uid": item.entity_uid,
                                     "lineage_uids": list(item.lineage_uids),
+                                    "provenance_lineage_uids": list(
+                                        item.provenance_lineage_uids
+                                    ),
+                                    "identity_complete": item.identity_complete,
                                     "score": item.score,
                                     "score_minus_threshold": item.score
                                     - float(self.cfg["sim_threshold"]),
@@ -1141,28 +1459,44 @@ class SparseCounterfactualReplayEngine:
                             "persistent_lineage_redirect_source_lineages": list(
                                 redirect_source_lineages[index]
                             ),
+                            "created_identity_boundary": created_boundaries[index],
                             "persistent_create_instance_boundary": {
-                                "observation_lineages": list(
-                                    boundary_observation_lineages[index]
-                                ),
-                                "forbidden_indices": list(
-                                    boundary_forbidden_indices[index]
+                                "observation_identity": (
+                                    boundary_observation_identities[index].as_dict()
+                                    if boundary_observation_identities[index]
+                                    is not None
+                                    else None
                                 ),
                                 "default_match": historical_default[index],
-                                "resolved_match": applied[index],
-                                "overrode_match": boundary_overrode_match[index],
+                                **(
+                                    boundary_resolutions[index].as_dict()
+                                    if boundary_resolutions[index] is not None
+                                    else {
+                                        "resolved_match": applied[index],
+                                        "forbidden_indices": [],
+                                        "unknown_indices": [],
+                                        "overrode_match": False,
+                                        "candidate_assessments": [],
+                                    }
+                                ),
                             },
                             "constraint": detail.as_dict(),
                             "constraint_hit": detail.constrained,
-                            "constraint_overrode_natural": natural[index] != applied[index],
+                            "constraint_overrode_natural": natural[index]
+                            != applied[index],
                             "constraint_overrode_native_natural": natural[index]
                             != applied[index],
                             "constraint_overrode_historical": historical_default[index]
                             != applied[index],
-                            "constraint_changed_default_decision": historical_default[index]
+                            "constraint_changed_default_decision": historical_default[
+                                index
+                            ]
                             != applied[index],
                             "intervention_overrode_natural": (
-                                (controller is not None or historical_controller is not None)
+                                (
+                                    controller is not None
+                                    or historical_controller is not None
+                                )
                                 and natural[index] != historical_default[index]
                             ),
                         }
@@ -1171,7 +1505,9 @@ class SparseCounterfactualReplayEngine:
                 map_edges.update_objects_list(objects)
 
             is_final = frame == (
-                self.final_frame if final_scene_frame is None else int(final_scene_frame)
+                self.final_frame
+                if final_scene_frame is None
+                else int(final_scene_frame)
             )
             objects, map_edges = self._postprocess(
                 objects=objects,
@@ -1182,7 +1518,8 @@ class SparseCounterfactualReplayEngine:
                 merge_guard=(
                     persistent_merge_guard
                     if mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
-                    and protected_lineages
+                    and identity_boundaries
+                    and policy.create_postprocess_boundary
                     else None
                 ),
                 postprocess_trace=postprocess_decisions,
@@ -1201,7 +1538,9 @@ class SparseCounterfactualReplayEngine:
             decisions=decisions,
             postprocess_counts=counts,
             constraint_count=len(primitives),
-            intervention_count=(controller.applied_count if controller is not None else 0),
+            intervention_count=(
+                controller.applied_count if controller is not None else 0
+            ),
             historical_anchor_count=(
                 historical_controller.applied_count
                 if historical_controller is not None
@@ -1209,6 +1548,8 @@ class SparseCounterfactualReplayEngine:
             ),
             snapshot_runtime_ms=snapshot_runtime_ms,
             postprocess_decisions=postprocess_decisions,
+            component_policy=policy,
+            identity_boundaries=identity_boundaries,
         )
         return state, objects
 
@@ -1219,12 +1560,14 @@ class SparseCounterfactualReplayEngine:
         constraints: Iterable[SparseRepairConstraint | Mapping[str, Any]] = (),
         corruption_plan: CorruptionPlan | Mapping[str, Any] | None = None,
         historical_anchor_plan: CorruptionPlan | Mapping[str, Any] | None = None,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
     ) -> dict[str, Any]:
         state, _ = self.replay_global_with_objects(
             mode=mode,
             constraints=constraints,
             corruption_plan=corruption_plan,
             historical_anchor_plan=historical_anchor_plan,
+            component_policy=component_policy,
         )
         return state
 
@@ -1235,6 +1578,7 @@ class SparseCounterfactualReplayEngine:
         constraints: Iterable[SparseRepairConstraint | Mapping[str, Any]] = (),
         corruption_plan: CorruptionPlan | Mapping[str, Any] | None = None,
         historical_anchor_plan: CorruptionPlan | Mapping[str, Any] | None = None,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
     ) -> tuple[dict[str, Any], Any]:
         """Return the state plus raw objects for strict payload-fidelity gates."""
 
@@ -1246,6 +1590,7 @@ class SparseCounterfactualReplayEngine:
             constraints=constraints,
             corruption_plan=corruption_plan,
             historical_anchor_plan=historical_anchor_plan,
+            component_policy=component_policy,
             scope="full_temporal_same_constraint",
         )
 
@@ -1304,7 +1649,9 @@ class SparseCounterfactualReplayEngine:
             if _frame_index(str(row["frame_uid"])) == frame
         ]
         positions = [
-            index for index, row in enumerate(frame_rows) if str(row["obs_uid"]) == anchor_obs_uid
+            index
+            for index, row in enumerate(frame_rows)
+            if str(row["obs_uid"]) == anchor_obs_uid
         ]
         if len(positions) != 1:
             raise SparseReplayError("anchor observation is not unique in its frame")
@@ -1320,9 +1667,7 @@ class SparseCounterfactualReplayEngine:
             association = self.provenance.get_association_for_obs(obs_uid)
             detection = DetectionList([self._materialize(obs_uid)])
             natural, score_matrix = self._natural_details(detection, objects)
-            applied = self._recorded_match_index(
-                association, objects, obs_uid=obs_uid
-            )
+            applied = self._recorded_match_index(association, objects, obs_uid=obs_uid)
             candidates = self._candidate_targets(objects, score_matrix[0])
             decisions.append(
                 {
@@ -1400,7 +1745,9 @@ class SparseCounterfactualReplayEngine:
         for source in current_state.get("objects") or ():
             row = dict(source)
             uid = str(row["entity_uid"])
-            members = set(str(item) for item in row.get("member_observation_uids") or ())
+            members = set(
+                str(item) for item in row.get("member_observation_uids") or ()
+            )
             overlap = members & claimed
             if uid in affected_uids or overlap == members:
                 continue
@@ -1442,6 +1789,7 @@ class SparseCounterfactualReplayEngine:
         current_state: Mapping[str, Any],
         snapshot_timing: Mapping[str, Any] | None = None,
         historical_anchor_plan: CorruptionPlan | Mapping[str, Any] | None = None,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
     ) -> dict[str, Any]:
         if mode not in {
             ReplayMode.ANCHOR_ONLY_REPAIR,
@@ -1459,6 +1807,7 @@ class SparseCounterfactualReplayEngine:
             current_state=current_state,
             snapshot_timing=snapshot_timing,
             historical_anchor_plan=historical_anchor_plan,
+            component_policy=component_policy,
         )
 
     def replay_suffix_from_snapshot(
@@ -1475,6 +1824,7 @@ class SparseCounterfactualReplayEngine:
         corruption_plan: CorruptionPlan | Mapping[str, Any] | None = None,
         historical_anchor_plan: CorruptionPlan | Mapping[str, Any] | None = None,
         snapshot_timing: Mapping[str, Any] | None = None,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
     ) -> dict[str, Any]:
         suffix_started = time.perf_counter()
         mode = ReplayMode(mode)
@@ -1532,6 +1882,7 @@ class SparseCounterfactualReplayEngine:
                 frozen_recorded_frame=int(anchor_frame),
                 scope="dependency_bounded_suffix",
                 snapshot_runtime_ms=snapshot_runtime_ms,
+                component_policy=component_policy,
             )
             execute_wall_ms = (time.perf_counter() - execute_started) * 1000.0
             execute_reported_ms = float(replay_state.get("runtime_ms", 0.0))
@@ -1583,9 +1934,7 @@ class SparseCounterfactualReplayEngine:
             "suffix_overlay_wall_total_ms": overlay_wall_total_ms,
             "suffix_orchestration_wall_ms": max(
                 0.0,
-                suffix_total_wall_ms
-                - execute_wall_total_ms
-                - overlay_wall_total_ms,
+                suffix_total_wall_ms - execute_wall_total_ms - overlay_wall_total_ms,
             ),
             "suffix_replay_attempt_count": len(attempts),
             "suffix_replay_attempts": attempts,

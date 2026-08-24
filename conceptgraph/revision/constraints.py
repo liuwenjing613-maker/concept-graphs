@@ -5,6 +5,7 @@ import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
+from .partition import ObservationPartitionContract
 
 
 class ReplayMode(str, Enum):
@@ -23,6 +24,7 @@ class ConstraintType(str, Enum):
     CANNOT_LINK = "CANNOT_LINK"
     ASSIGN_OBSERVATION = "ASSIGN_OBSERVATION"
     CREATE_INSTANCE = "CREATE_INSTANCE"
+    PARTITION_OBSERVATION = "PARTITION_OBSERVATION"
     PARTITION_ENTITY = "PARTITION_ENTITY"
     RELABEL = "RELABEL"
     DEFER = "DEFER"
@@ -70,6 +72,9 @@ class SparseRepairConstraint:
     target_entity_uid: str | None = None
     created_lineage_uid: str | None = None
     created_entity_uid: str | None = None
+    created_identity_uid: str | None = None
+    separate_from_identity_uids: tuple[str, ...] = ()
+    partition_contract: dict[str, Any] | None = None
     entity_uid: str | None = None
     groups: dict[str, tuple[str, ...]] = field(default_factory=dict)
     label: str | None = None
@@ -84,11 +89,18 @@ class SparseRepairConstraint:
     def __post_init__(self) -> None:
         kind = ConstraintType(self.constraint_type)
         object.__setattr__(self, "constraint_type", kind)
-        if self.active_from_sequence is not None and self.active_until_sequence is not None:
+        if (
+            self.active_from_sequence is not None
+            and self.active_until_sequence is not None
+        ):
             if self.active_from_sequence > self.active_until_sequence:
                 raise ValueError("constraint sequence interval is reversed")
         target_available = any(
-            (self.target_lineage_uid, self.target_origin_obs_uid, self.target_entity_uid)
+            (
+                self.target_lineage_uid,
+                self.target_origin_obs_uid,
+                self.target_entity_uid,
+            )
         )
         if kind in {
             ConstraintType.MUST_LINK,
@@ -104,9 +116,41 @@ class SparseRepairConstraint:
                 raise ValueError("CREATE_INSTANCE requires obs_uid")
             if target_available:
                 raise ValueError("CREATE_INSTANCE must not specify a target reference")
+            if (
+                self.created_identity_uid
+                and self.created_lineage_uid
+                and self.created_identity_uid != self.created_lineage_uid
+            ):
+                raise ValueError(
+                    "created_identity_uid conflicts with legacy created_lineage_uid"
+                )
+            created_identity = self.effective_created_identity_uid
+            if created_identity in set(self.separate_from_identity_uids):
+                raise ValueError(
+                    "CREATE_INSTANCE identity cannot be separate from itself"
+                )
+        elif self.separate_from_identity_uids:
+            raise ValueError("separate_from_identity_uids requires CREATE_INSTANCE")
+        if kind == ConstraintType.PARTITION_OBSERVATION:
+            if not self.obs_uid:
+                raise ValueError("PARTITION_OBSERVATION requires obs_uid")
+            if self.partition_contract is None:
+                raise ValueError("PARTITION_OBSERVATION requires partition_contract")
+            parsed_partition = ObservationPartitionContract.from_mapping(
+                self.partition_contract
+            )
+            if parsed_partition.obs_uid != self.obs_uid:
+                raise ValueError(
+                    "PARTITION_OBSERVATION obs_uid does not match its contract"
+                )
+            object.__setattr__(self, "partition_contract", parsed_partition.as_dict())
+        elif self.partition_contract is not None:
+            raise ValueError("partition_contract requires PARTITION_OBSERVATION")
         if kind == ConstraintType.PARTITION_ENTITY:
             if not self.entity_uid or len(self.groups) < 2:
-                raise ValueError("PARTITION_ENTITY requires an entity and at least two groups")
+                raise ValueError(
+                    "PARTITION_ENTITY requires an entity and at least two groups"
+                )
             if any(not members for members in self.groups.values()):
                 raise ValueError("PARTITION_ENTITY groups must be non-empty")
         if kind == ConstraintType.RELABEL and (not self.entity_uid or not self.label):
@@ -141,6 +185,11 @@ class SparseRepairConstraint:
             target_entity_uid=value.get("target_entity_uid"),
             created_lineage_uid=value.get("created_lineage_uid"),
             created_entity_uid=value.get("created_entity_uid"),
+            created_identity_uid=value.get("created_identity_uid"),
+            separate_from_identity_uids=_text_tuple(
+                value.get("separate_from_identity_uids"), "separate_from_identity_uids"
+            ),
+            partition_contract=value.get("partition_contract"),
             entity_uid=value.get("entity_uid"),
             groups=groups,
             label=value.get("label"),
@@ -168,18 +217,38 @@ class SparseRepairConstraint:
         value["refs"] = list(self.refs)
         value["groups"] = {name: list(members) for name, members in self.groups.items()}
         value["evidence_refs"] = list(self.evidence_refs)
+        value["separate_from_identity_uids"] = list(self.separate_from_identity_uids)
+        if self.created_identity_uid is None:
+            value.pop("created_identity_uid", None)
+        if not self.separate_from_identity_uids:
+            value.pop("separate_from_identity_uids", None)
+        if self.partition_contract is None:
+            value.pop("partition_contract", None)
         if not include_uid:
             value.pop("constraint_uid", None)
         return value
 
+    @property
+    def effective_created_identity_uid(self) -> str | None:
+        return self.created_identity_uid or self.created_lineage_uid
+
     def is_active(self, *, obs_uid: str, event_uid: str, event_sequence: int) -> bool:
         if self.obs_uid is not None and self.obs_uid != obs_uid:
             return False
-        if self.applies_at_event_uid is not None and self.applies_at_event_uid != event_uid:
+        if (
+            self.applies_at_event_uid is not None
+            and self.applies_at_event_uid != event_uid
+        ):
             return False
-        if self.active_from_sequence is not None and event_sequence < self.active_from_sequence:
+        if (
+            self.active_from_sequence is not None
+            and event_sequence < self.active_from_sequence
+        ):
             return False
-        if self.active_until_sequence is not None and event_sequence > self.active_until_sequence:
+        if (
+            self.active_until_sequence is not None
+            and event_sequence > self.active_until_sequence
+        ):
             return False
         return True
 
@@ -199,6 +268,8 @@ class CandidateTarget:
     member_obs_uids: tuple[str, ...]
     score: float
     eligible: bool = True
+    provenance_lineage_uids: tuple[str, ...] = ()
+    identity_complete: bool = True
 
     @classmethod
     def build(
@@ -210,6 +281,8 @@ class CandidateTarget:
         member_obs_uids: Iterable[str] = (),
         score: float,
         eligible: bool = True,
+        provenance_lineage_uids: Iterable[str] = (),
+        identity_complete: bool = True,
     ) -> "CandidateTarget":
         return cls(
             index=int(index),
@@ -218,6 +291,10 @@ class CandidateTarget:
             member_obs_uids=tuple(sorted(set(str(item) for item in member_obs_uids))),
             score=float(score),
             eligible=bool(eligible),
+            provenance_lineage_uids=tuple(
+                sorted(set(str(item) for item in provenance_lineage_uids))
+            ),
+            identity_complete=bool(identity_complete),
         )
 
 
@@ -230,6 +307,8 @@ class ConstraintDecision:
     reason: str = ""
     created_lineage_uid: str | None = None
     created_entity_uid: str | None = None
+    created_identity_uid: str | None = None
+    separate_from_identity_uids: tuple[str, ...] = ()
 
     @property
     def constrained(self) -> bool:
@@ -240,10 +319,13 @@ class ConstraintDecision:
         value["action"] = self.action.value
         value["constraint_uids"] = list(self.constraint_uids)
         value["forbidden_indices"] = list(self.forbidden_indices)
+        value["separate_from_identity_uids"] = list(self.separate_from_identity_uids)
         return value
 
 
-def _target_matches(candidate: CandidateTarget, constraint: SparseRepairConstraint) -> bool:
+def _target_matches(
+    candidate: CandidateTarget, constraint: SparseRepairConstraint
+) -> bool:
     if constraint.target_lineage_uid in candidate.lineage_uids:
         return True
     if constraint.target_origin_obs_uid in candidate.member_obs_uids:
@@ -257,7 +339,9 @@ def _target_matches(candidate: CandidateTarget, constraint: SparseRepairConstrai
 class ConstraintEngine:
     """Resolve sparse primitives against only the current replay state."""
 
-    def __init__(self, constraints: Iterable[SparseRepairConstraint | Mapping[str, Any]]) -> None:
+    def __init__(
+        self, constraints: Iterable[SparseRepairConstraint | Mapping[str, Any]]
+    ) -> None:
         self.constraints = tuple(
             item
             if isinstance(item, SparseRepairConstraint)
@@ -269,7 +353,9 @@ class ConstraintEngine:
     def _validate_static_conflicts(self) -> None:
         by_scope: dict[tuple[str | None, str | None], list[SparseRepairConstraint]] = {}
         for item in self.constraints:
-            by_scope.setdefault((item.obs_uid, item.applies_at_event_uid), []).append(item)
+            by_scope.setdefault((item.obs_uid, item.applies_at_event_uid), []).append(
+                item
+            )
         for scope, values in by_scope.items():
             positive = {
                 item.target_key()
@@ -287,12 +373,29 @@ class ConstraintEngine:
                 for item in values
                 if item.constraint_type == ConstraintType.CREATE_INSTANCE
             ]
+            partitions = [
+                item
+                for item in values
+                if item.constraint_type == ConstraintType.PARTITION_OBSERVATION
+            ]
+            if len(partitions) > 1:
+                raise ConstraintConflictError(
+                    f"multiple observation partitions for scope {scope}"
+                )
+            if partitions and len(values) > 1:
+                raise ConstraintConflictError(
+                    f"observation partition cannot share association scope {scope}"
+                )
             if create and positive:
                 raise ConstraintConflictError(
                     f"scope {scope} requires both an existing target and a new instance"
                 )
             create_identities = {
-                (item.created_lineage_uid, item.created_entity_uid) for item in create
+                (
+                    item.effective_created_identity_uid,
+                    item.created_entity_uid,
+                )
+                for item in create
             }
             if len(create_identities) > 1:
                 raise ConstraintConflictError(
@@ -334,12 +437,26 @@ class ConstraintEngine:
         if not active:
             return ConstraintDecision(ConstraintAction.NO_CONSTRAINT)
         uids = tuple(sorted(item.constraint_uid for item in active))
-        deferred = [item for item in active if item.constraint_type == ConstraintType.DEFER]
+        deferred = [
+            item for item in active if item.constraint_type == ConstraintType.DEFER
+        ]
         if deferred:
             return ConstraintDecision(
                 ConstraintAction.DEFER,
                 constraint_uids=uids,
                 reason="; ".join(item.reason or "deferred" for item in deferred),
+            )
+
+        partition = [
+            item
+            for item in active
+            if item.constraint_type == ConstraintType.PARTITION_OBSERVATION
+        ]
+        if partition:
+            return ConstraintDecision(
+                ConstraintAction.DEFER,
+                constraint_uids=uids,
+                reason="partition_observation_requires_pre_association_payload_stage",
             )
 
         positive = [
@@ -349,7 +466,9 @@ class ConstraintEngine:
             in {ConstraintType.MUST_LINK, ConstraintType.ASSIGN_OBSERVATION}
         ]
         negative = [
-            item for item in active if item.constraint_type == ConstraintType.CANNOT_LINK
+            item
+            for item in active
+            if item.constraint_type == ConstraintType.CANNOT_LINK
         ]
         forbidden = {
             candidate.index
@@ -372,6 +491,10 @@ class ConstraintEngine:
                 reason="explicit_create_instance_constraint",
                 created_lineage_uid=exemplar.created_lineage_uid,
                 created_entity_uid=exemplar.created_entity_uid,
+                created_identity_uid=exemplar.effective_created_identity_uid,
+                separate_from_identity_uids=tuple(
+                    sorted(set(exemplar.separate_from_identity_uids))
+                ),
             )
 
         if positive:

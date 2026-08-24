@@ -26,6 +26,9 @@ ALLOWED_ACTIONS = {
     "SAME_INSTANCE",
     "SEPARATE_MEMBER_GROUPS",
     "MOVE_OBSERVATION",
+    "RELABEL",
+    "RESTORE_OBSERVATION_GEOMETRY",
+    "PARTITION_OBSERVATION",
     "DEFER",
 }
 
@@ -97,6 +100,11 @@ class VLMIncidentEvidence:
     prompt: str
     image_paths: tuple[Path, ...]
     image_manifest: tuple[dict[str, Any], ...]
+    system_prompt: str = (
+        "You generate conservative, machine-executable repair constraints for "
+        "a 3D scene graph. Never use semantic class alone as proof of physical "
+        "identity. Prefer DEFER over an unsupported mutation."
+    )
 
 
 class VLMIncidentBuilder:
@@ -115,9 +123,13 @@ class VLMIncidentBuilder:
     ) -> VLMIncidentEvidence:
         output = Path(output_dir)
         output.mkdir(parents=True, exist_ok=True)
-        association = self.provenance.get_event(str(case["anchor_association_event_uid"]))
+        association = self.provenance.get_event(
+            str(case["anchor_association_event_uid"])
+        )
         anchor_obs = str(association["obs_uid"])
-        candidate_versions = list(association.get("candidate_object_version_uids") or ())
+        candidate_versions = list(
+            association.get("candidate_object_version_uids") or ()
+        )
         objects_before = list(association.get("object_uids_before") or ())
         version_by_object = {
             str(object_uid): str(candidate_versions[index])
@@ -127,13 +139,28 @@ class VLMIncidentBuilder:
 
         contexts: list[tuple[str, list[str]]] = [("ANCHOR", [anchor_obs])]
         current_uid = case.get("target_object_uid")
-        current_version = case.get("target_object_version_uid") or version_by_object.get(
-            str(current_uid)
-        )
+        current_version = case.get(
+            "target_object_version_uid"
+        ) or version_by_object.get(str(current_uid))
         if current_version:
             contexts.append(
-                ("CURRENT_ENTITY_CONTEXT", _representatives(self._version_members(str(current_version))))
+                (
+                    "CURRENT_ENTITY_CONTEXT",
+                    _representatives(self._version_members(str(current_version))),
+                )
             )
+        observed_current_decision = case.get("observed_current_decision")
+        if observed_current_decision is None:
+            corruption_plan = case.get("corruption_plan") or {}
+            if corruption_plan.get("corruption_type") == "FORCE_CREATE":
+                observed_current_decision = "CREATE"
+            elif str(association.get("decision", "")).upper() == "CREATE_OBJECT":
+                observed_current_decision = "CREATE"
+            else:
+                observed_current_decision = "ASSOCIATE"
+        observed_current_decision = str(observed_current_decision).upper()
+        if observed_current_decision not in {"CREATE", "ASSOCIATE"}:
+            raise ValueError("observed_current_decision must be CREATE or ASSOCIATE")
         for rank, candidate in enumerate(association.get("top_candidates") or (), 1):
             object_uid = str(candidate.get("object_uid", ""))
             version_uid = version_by_object.get(object_uid)
@@ -165,14 +192,16 @@ class VLMIncidentBuilder:
                         "confidence": row.get("confidence"),
                     }
                 )
-        incident_uid = "incident_" + hashlib.sha256(anchor_obs.encode()).hexdigest()[:12]
+        incident_uid = (
+            "incident_" + hashlib.sha256(anchor_obs.encode()).hexdigest()[:12]
+        )
         prompt_payload = {
             "incident_uid": incident_uid,
             "anchor_obs_key": canonical_obs_key(anchor_obs),
-            "anchor_class_name": self.provenance.get_observation(anchor_obs).get("class_name"),
-            "observed_current_decision": (
-                "CREATE" if case["corruption_plan"]["corruption_type"] == "FORCE_CREATE" else "ASSOCIATE"
+            "anchor_class_name": self.provenance.get_observation(anchor_obs).get(
+                "class_name"
             ),
+            "observed_current_decision": observed_current_decision,
             "candidate_scores": [
                 {
                     "alias": f"CANDIDATE_{rank}_CONTEXT",
@@ -223,7 +252,9 @@ class OpenAICompatibleConstraintClient:
     @staticmethod
     def _data_uri(path: Path) -> str:
         mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
-        return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+        return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode(
+            "ascii"
+        )
 
     def complete(self, evidence: VLMIncidentEvidence) -> dict[str, Any]:
         content: list[dict[str, Any]] = [{"type": "text", "text": evidence.prompt}]
@@ -239,11 +270,7 @@ class OpenAICompatibleConstraintClient:
             "messages": [
                 {
                     "role": "system",
-                    "content": (
-                        "You generate conservative, machine-executable repair constraints for "
-                        "object identity in a 3D scene graph. Never use semantic class alone as "
-                        "proof of identity. Prefer DEFER over an unsupported mutation."
-                    ),
+                    "content": evidence.system_prompt,
                 },
                 {"role": "user", "content": content},
             ],
@@ -268,7 +295,9 @@ class OpenAICompatibleConstraintClient:
                 },
             )
             try:
-                with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
+                with urllib.request.urlopen(
+                    request, timeout=self.timeout_seconds
+                ) as response:
                     decoded = json.loads(response.read())
                 break
             except urllib.error.HTTPError as exc:
@@ -277,7 +306,9 @@ class OpenAICompatibleConstraintClient:
                 if exc.code not in {408, 409, 429, 500, 502, 503, 504}:
                     raise last_error from exc
             except (urllib.error.URLError, TimeoutError, json.JSONDecodeError) as exc:
-                last_error = RuntimeError(f"VLM transport error: {type(exc).__name__}: {exc}")
+                last_error = RuntimeError(
+                    f"VLM transport error: {type(exc).__name__}: {exc}"
+                )
             if attempt < 2:
                 time.sleep(2**attempt)
         if decoded is None:
@@ -353,7 +384,9 @@ def normalize_incident_constraint(
     normalized["raw_action"] = str(constraint["action"])
     entities = [str(item) for item in constraint.get("entities") or ()]
     candidate_aliases = sorted(
-        item for item in entities if item.startswith("CANDIDATE_") and item.endswith("_CONTEXT")
+        item
+        for item in entities
+        if item.startswith("CANDIDATE_") and item.endswith("_CONTEXT")
     )
     if (
         str(constraint["action"]) == "SAME_INSTANCE"

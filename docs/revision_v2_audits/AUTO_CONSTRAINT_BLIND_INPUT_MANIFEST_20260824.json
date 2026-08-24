@@ -1,0 +1,169 @@
+{
+  "blind_input_uid": "revision_v2_auto_constraint_blind_inputs_20260824",
+  "case_count": 5,
+  "cases": [
+    {
+      "anchor_association_event_uid": "office0_20260820T090828Z_fbd2d994_e00000520",
+      "blind_case_uid": "blind_identity_001",
+      "endpoint_error_type_excluded": true,
+      "final_membership_excluded": true,
+      "human_label_excluded": true,
+      "human_notes_excluded": true,
+      "input_family": "IDENTITY_ASSOCIATION",
+      "scene_id": "office0",
+      "source_case_uid_excluded": true
+    },
+    {
+      "anchor_association_event_uid": "room0_20260820T093325Z_581b7c84_e00005804",
+      "blind_case_uid": "blind_identity_002",
+      "endpoint_error_type_excluded": true,
+      "final_membership_excluded": true,
+      "human_label_excluded": true,
+      "human_notes_excluded": true,
+      "input_family": "IDENTITY_ASSOCIATION",
+      "scene_id": "room0",
+      "source_case_uid_excluded": true
+    },
+    {
+      "anchor_association_event_uid": "room0_20260820T093325Z_581b7c84_e00006847",
+      "blind_case_uid": "blind_identity_003",
+      "endpoint_error_type_excluded": true,
+      "final_membership_excluded": true,
+      "human_label_excluded": true,
+      "human_notes_excluded": true,
+      "input_family": "IDENTITY_ASSOCIATION",
+      "scene_id": "room0",
+      "source_case_uid_excluded": true
+    },
+    {
+      "blind_case_uid": "blind_capability_001",
+      "endpoint_error_type_excluded": true,
+      "evidence_artifacts": [
+        {
+          "bytes": 3495,
+          "logical_name": "case.json",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000637/case.json",
+          "sha256": "f56e831a8aaf641f146e30509c057283c5cdb20b1de3914e446761265a68ed4a"
+        },
+        {
+          "bytes": 37583,
+          "logical_name": "review_evidence.json",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000637/review_evidence.json",
+          "sha256": "e74bb3131f4a8fb61761b5413b1bee941c7549f0bb5d0512eb1a8f664c3a0a84"
+        },
+        {
+          "bytes": 2019,
+          "logical_name": "view_selection.json",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000637/view_selection.json",
+          "sha256": "f1c6e7e6362389b164796ac3930c209e7235876b193bbfc7c9c562bfba672f8f"
+        },
+        {
+          "bytes": 559313,
+          "logical_name": "review_final_objects_detail.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000637/review_final_objects_detail.png",
+          "sha256": "f787de79748abfed7f45ef2aafc33cf8bd1e1478360c6ac743b62420b856d705"
+        },
+        {
+          "bytes": 349861,
+          "logical_name": "review_final_objects_relative.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000637/review_final_objects_relative.png",
+          "sha256": "43222fab478ac98d32d7d1e923d862cdbf21dd7088bc4e9b2864747033635259"
+        },
+        {
+          "bytes": 561390,
+          "logical_name": "review_observation_Q1.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000637/review_observation_Q1.png",
+          "sha256": "3c5379bb0892fb83ab5849191f4aad6809fb0821d2b7023d2a69356c99385ab2"
+        }
+      ],
+      "expected_capability_excluded": true,
+      "final_owner_uids_excluded": true,
+      "human_label_excluded": true,
+      "human_notes_excluded": true,
+      "incident_uid": "incident_38d24bc8f3651f1a4fa6",
+      "input_family": "CAPABILITY_PROBE",
+      "representative_trigger_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000005_r0012"
+      ],
+      "scene_id": "room0",
+      "source_case_uid_excluded": true
+    },
+    {
+      "blind_case_uid": "blind_capability_002",
+      "endpoint_error_type_excluded": true,
+      "evidence_artifacts": [
+        {
+          "bytes": 3960,
+          "logical_name": "case.json",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/case.json",
+          "sha256": "74c58d3d1259d56b2ff8f6c5bab2875810ae05cbe89a4c616a725b42c4cde677"
+        },
+        {
+          "bytes": 51697,
+          "logical_name": "review_evidence.json",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/review_evidence.json",
+          "sha256": "ace22fbcd2a336aa05b60f3cb8763984b1a5fa56f7884ae27d747284de489307"
+        },
+        {
+          "bytes": 2553,
+          "logical_name": "view_selection.json",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/view_selection.json",
+          "sha256": "cc0f3ea04ca84a3b554a7b5330aa47af7cad78730018ac51f9e497c1e1fb3906"
+        },
+        {
+          "bytes": 627499,
+          "logical_name": "review_final_objects_detail.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/review_final_objects_detail.png",
+          "sha256": "d53145f56d6a4cfd5482f6b710f928f44c06723db783caa6d08177c52bb96900"
+        },
+        {
+          "bytes": 425998,
+          "logical_name": "review_final_objects_relative.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/review_final_objects_relative.png",
+          "sha256": "51ec56561db2978e02aa51731894208bc754d31d2db5557f0fec9ccec5b26018"
+        },
+        {
+          "bytes": 845734,
+          "logical_name": "review_observation_Q1.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/review_observation_Q1.png",
+          "sha256": "bd1c9db991c85beeef94d1e68c31e8db0d91c12f60aeadc4c05af0a25cb1818f"
+        },
+        {
+          "bytes": 843738,
+          "logical_name": "review_observation_Q2.png",
+          "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/cases/finding_000053/review_observation_Q2.png",
+          "sha256": "2a04628eb47ca61730029a2d0e11de13898ab2c2d85ab9e69f4035f03d7bc50c"
+        }
+      ],
+      "expected_capability_excluded": true,
+      "final_owner_uids_excluded": true,
+      "human_label_excluded": true,
+      "human_notes_excluded": true,
+      "incident_uid": "incident_bf85de60c810b7f85939",
+      "input_family": "CAPABILITY_PROBE",
+      "representative_trigger_observation_uids": [
+        "office0_20260820T090828Z_fbd2d994_f000062_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000062_r0003"
+      ],
+      "scene_id": "office0",
+      "source_case_uid_excluded": true
+    }
+  ],
+  "frozen_before_generator_responses": true,
+  "request_exclusions": [
+    "source case UID",
+    "endpoint error type",
+    "human endpoint label",
+    "human notes",
+    "expected candidate family",
+    "expected constraint",
+    "final owner UID",
+    "final membership"
+  ],
+  "schema_version": "2.0.0",
+  "selection_uses_generator_outputs": false,
+  "source_manifest_integrity_only": {
+    "holdout_manifest_sha256": "1775150f449256b4c4b8da98db21c1e8f59023d68c70385e501660bcfa912551",
+    "identity_manifest_sha256": "5e39716e3e9f32707de63be294ee4a190cac2959e68475bdd17856bc3f2c28d2"
+  }
+}
