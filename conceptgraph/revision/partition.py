@@ -9,8 +9,14 @@ from typing import Any, Mapping, Sequence
 import numpy as np
 
 
-PARTITION_OBSERVATION_SCHEMA_VERSION = "1.0.0"
+PARTITION_OBSERVATION_SCHEMA_VERSION = "2.0.0"
+_SUPPORTED_SCHEMA_VERSIONS = {"1.0.0", PARTITION_OBSERVATION_SCHEMA_VERSION}
 _HASH_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+_PART_DISPOSITIONS = {
+    "EMIT_OBSERVATION",
+    "EXCLUDE_AS_CONTAMINATION",
+}
+_SOURCE_STAGES = {"STORED_OBSERVATION_PAYLOAD", "PRE_VOXEL_SAMPLED_PAYLOAD"}
 
 
 def _required_text(value: Any, field_name: str) -> str:
@@ -104,6 +110,8 @@ class ObservationPartitionPart:
     identity_uid: str
     label: str | None = None
 
+    disposition: str = "EMIT_OBSERVATION"
+
     def __post_init__(self) -> None:
         if int(self.part_index) < 0:
             raise ValueError("part_index must be non-negative")
@@ -115,6 +123,13 @@ class ObservationPartitionPart:
         if self.label is not None:
             object.__setattr__(self, "label", _required_text(self.label, "label"))
 
+        disposition = _required_text(
+            self.disposition, "partition part disposition"
+        ).upper()
+        if disposition not in _PART_DISPOSITIONS:
+            raise ValueError(f"unsupported partition part disposition: {disposition}")
+        object.__setattr__(self, "disposition", disposition)
+
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "ObservationPartitionPart":
         if not isinstance(value, Mapping):
@@ -124,6 +139,7 @@ class ObservationPartitionPart:
             part_uid=value.get("part_uid"),
             identity_uid=value.get("identity_uid"),
             label=value.get("label"),
+            disposition=value.get("disposition", "EMIT_OBSERVATION"),
         )
 
 
@@ -137,6 +153,8 @@ class ObservationPartitionContract:
     evidence_refs: tuple[str, ...]
     partition_uid: str = ""
     schema_version: str = PARTITION_OBSERVATION_SCHEMA_VERSION
+    source_stage: str = "STORED_OBSERVATION_PAYLOAD"
+    assignment_ref: Mapping[str, Any] | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "obs_uid", _required_text(self.obs_uid, "obs_uid"))
@@ -180,10 +198,41 @@ class ObservationPartitionContract:
         if not evidence:
             raise ValueError("PARTITION_OBSERVATION requires immutable evidence refs")
         object.__setattr__(self, "evidence_refs", evidence)
-        if self.schema_version != PARTITION_OBSERVATION_SCHEMA_VERSION:
-            raise ValueError(
-                f"unsupported partition schema_version: {self.schema_version}"
+        schema_version = _required_text(self.schema_version, "schema_version")
+        if schema_version not in _SUPPORTED_SCHEMA_VERSIONS:
+            raise ValueError(f"unsupported partition schema_version: {schema_version}")
+        object.__setattr__(self, "schema_version", schema_version)
+        source_stage = _required_text(self.source_stage, "source_stage").upper()
+        if source_stage not in _SOURCE_STAGES:
+            raise ValueError(f"unsupported partition source_stage: {source_stage}")
+        object.__setattr__(self, "source_stage", source_stage)
+        assignment_ref = None
+        if self.assignment_ref is not None:
+            if not isinstance(self.assignment_ref, Mapping):
+                raise ValueError("assignment_ref must be an object")
+            assignment_ref = dict(self.assignment_ref)
+            assignment_ref["path"] = _required_text(
+                assignment_ref.get("path"), "assignment_ref.path"
             )
+            assignment_ref["sha256"] = _sha256_text(
+                assignment_ref.get("sha256"), "assignment_ref.sha256"
+            )
+            assignment_ref["format"] = _required_text(
+                assignment_ref.get("format", "npz"), "assignment_ref.format"
+            ).lower()
+            if assignment_ref["format"] not in {"npy", "npz"}:
+                raise ValueError("assignment_ref format must be npy or npz")
+            if assignment_ref.get("assignment_sha256") is not None:
+                referenced_assignment_hash = _sha256_text(
+                    assignment_ref["assignment_sha256"],
+                    "assignment_ref.assignment_sha256",
+                )
+                if referenced_assignment_hash != self.assignment_sha256:
+                    raise ValueError("assignment_ref assignment hash mismatch")
+                assignment_ref["assignment_sha256"] = referenced_assignment_hash
+        if source_stage == "PRE_VOXEL_SAMPLED_PAYLOAD" and assignment_ref is None:
+            raise ValueError("pre-voxel partition requires assignment_ref")
+        object.__setattr__(self, "assignment_ref", assignment_ref)
         if not self.partition_uid:
             encoded = json.dumps(
                 self.as_dict(include_uid=False),
@@ -227,6 +276,8 @@ class ObservationPartitionContract:
             schema_version=str(
                 value.get("schema_version", PARTITION_OBSERVATION_SCHEMA_VERSION)
             ),
+            source_stage=value.get("source_stage", "STORED_OBSERVATION_PAYLOAD"),
+            assignment_ref=value.get("assignment_ref"),
         )
 
     def as_dict(self, *, include_uid: bool = True) -> dict[str, Any]:
@@ -275,6 +326,7 @@ class PartitionedObservation:
     parent_obs_uid: str
     part_uid: str
     identity_uid: str
+    disposition: str
     provenance_observation_uids: tuple[str, ...]
     payload: dict[str, np.ndarray]
     point_count: int
@@ -285,6 +337,7 @@ class PartitionExecutionResult:
     contract: ObservationPartitionContract
     parts: tuple[PartitionedObservation, ...]
     validation: dict[str, Any]
+    excluded_parts: tuple[PartitionedObservation, ...]
 
 
 def apply_observation_partition(
@@ -315,31 +368,40 @@ def apply_observation_partition(
     normalized_assignment = canonical_partition_assignment(assignment)
     validation = parsed.validate_assignment(normalized_assignment)
     outputs = []
+    excluded = []
     for part in parsed.parts:
         mask = normalized_assignment == part.part_index
         part_payload = {
             name: np.ascontiguousarray(array[mask])
             for name, array in normalized_payload.items()
         }
-        outputs.append(
-            PartitionedObservation(
-                obs_uid=f"{parsed.obs_uid}::partition::{part.part_uid}",
-                parent_obs_uid=parsed.obs_uid,
-                part_uid=part.part_uid,
-                identity_uid=part.identity_uid,
-                provenance_observation_uids=(parsed.obs_uid,),
-                payload=part_payload,
-                point_count=int(np.sum(mask)),
-            )
+        observation = PartitionedObservation(
+            obs_uid=f"{parsed.obs_uid}::partition::{part.part_uid}",
+            parent_obs_uid=parsed.obs_uid,
+            part_uid=part.part_uid,
+            identity_uid=part.identity_uid,
+            disposition=part.disposition,
+            provenance_observation_uids=(parsed.obs_uid,),
+            payload=part_payload,
+            point_count=int(np.sum(mask)),
         )
+        if part.disposition == "EMIT_OBSERVATION":
+            outputs.append(observation)
+        else:
+            excluded.append(observation)
     return PartitionExecutionResult(
         contract=parsed,
         parts=tuple(outputs),
         validation={
             **validation,
+            "emitted_part_count": len(outputs),
+            "excluded_part_count": len(excluded),
+            "emitted_point_count": int(sum(item.point_count for item in outputs)),
+            "excluded_point_count": int(sum(item.point_count for item in excluded)),
             "source_payload_hash_exact": True,
             "atomic": True,
             "identity_complete": True,
             "provenance_preserved": True,
         },
+        excluded_parts=tuple(excluded),
     )

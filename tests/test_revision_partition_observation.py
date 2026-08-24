@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 import numpy as np
 import pytest
 
@@ -200,3 +202,60 @@ def test_partition_constraint_rejects_obs_mismatch_and_scope_conflict():
     )
     with pytest.raises(ConstraintConflictError, match="cannot share"):
         ConstraintEngine([partition, create])
+
+
+def test_prevoxel_partition_excludes_contamination_atomically(tmp_path):
+    payload = _payload()
+    assignment = np.asarray([0, 0, 1, 1], dtype=np.uint16)
+    assignment_path = tmp_path / "assignment.npz"
+    np.savez_compressed(assignment_path, assignment=assignment)
+
+    value = _contract(payload=payload, assignment=assignment).as_dict()
+    value.pop("partition_uid")
+    value["source_stage"] = "PRE_VOXEL_SAMPLED_PAYLOAD"
+    value["assignment_ref"] = {
+        "path": str(assignment_path),
+        "format": "npz",
+        "key": "assignment",
+        "sha256": hashlib.sha256(assignment_path.read_bytes()).hexdigest(),
+        "assignment_sha256": value["assignment_sha256"],
+    }
+    value["parts"][1]["disposition"] = "EXCLUDE_AS_CONTAMINATION"
+    contract = ObservationPartitionContract.from_mapping(value)
+    result = apply_observation_partition(
+        contract,
+        payload=payload,
+        assignment=assignment,
+    )
+
+    assert contract.source_stage == "PRE_VOXEL_SAMPLED_PAYLOAD"
+    assert len(result.parts) == 1
+    assert len(result.excluded_parts) == 1
+    assert result.parts[0].point_count == 2
+    assert result.excluded_parts[0].point_count == 2
+    assert result.validation["assigned_point_count"] == 4
+    assert result.validation["emitted_point_count"] == 2
+    assert result.validation["excluded_point_count"] == 2
+    assert result.validation["exhaustive"]
+    assert result.validation["disjoint"]
+    assert ObservationPartitionContract.from_mapping(contract.as_dict()) == contract
+
+
+def test_partition_v1_roundtrip_remains_supported():
+    value = _contract().as_dict()
+    value.pop("partition_uid")
+    value.pop("source_stage")
+    value.pop("assignment_ref")
+    value["schema_version"] = "1.0.0"
+    contract = ObservationPartitionContract.from_mapping(value)
+    assert contract.schema_version == "1.0.0"
+    assert all(part.disposition == "EMIT_OBSERVATION" for part in contract.parts)
+
+
+def test_prevoxel_partition_requires_hash_bound_assignment_ref():
+    value = _contract().as_dict()
+    value.pop("partition_uid")
+    value["source_stage"] = "PRE_VOXEL_SAMPLED_PAYLOAD"
+    value["assignment_ref"] = None
+    with pytest.raises(ValueError, match="requires assignment_ref"):
+        ObservationPartitionContract.from_mapping(value)

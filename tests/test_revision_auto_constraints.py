@@ -8,6 +8,7 @@ from conceptgraph.revision.auto_constraints import (
     ShadowGateEvidence,
     aggregate_candidate_votes,
     canonicalize_vote,
+    enumerate_identity_hypotheses,
     compile_blind_candidate,
     decide_automatic_promotion,
     semantic_constraint_fingerprint,
@@ -178,6 +179,33 @@ def test_identity_ambiguity_and_unsupported_families_fail_closed():
         compiled = compile_blind_candidate(_aggregate(action, **fields), _binding())
         assert compiled["stage"] == GeneratorStage.DEFERRED.value
         assert compiled["candidate_constraint"] is None
+
+
+def test_identity_hypothesis_enumeration_is_finite_complete_and_bound():
+    hypotheses = enumerate_identity_hypotheses(
+        _binding(), candidate_aliases=["CANDIDATE_1_CONTEXT"]
+    )
+    assert [item["hypothesis_action"] for item in hypotheses] == [
+        "SAME_INSTANCE",
+        "SEPARATE_MEMBER_GROUPS",
+    ]
+    assert all(
+        item["stage"] == GeneratorStage.BOUND_PENDING_SHADOW.value
+        for item in hypotheses
+    )
+    assert all(
+        item["hypothesis_target_alias"] == "CANDIDATE_1_CONTEXT" for item in hypotheses
+    )
+    assert len({item["constraint_fingerprint"] for item in hypotheses}) == len(
+        hypotheses
+    )
+
+
+def test_identity_hypothesis_enumeration_rejects_unknown_alias():
+    with pytest.raises(ValueError, match="unknown or incomplete identity aliases"):
+        enumerate_identity_hypotheses(
+            _binding(), candidate_aliases=["CANDIDATE_99_CONTEXT"]
+        )
 
 
 def test_only_exact_all_pass_shadow_evidence_exposes_commit_constraint():

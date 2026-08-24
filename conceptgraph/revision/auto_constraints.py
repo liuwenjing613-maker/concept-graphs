@@ -546,6 +546,70 @@ def compile_blind_candidate(
     return result
 
 
+def enumerate_identity_hypotheses(
+    binding: IncidentBinding,
+    *,
+    candidate_aliases: Iterable[str] | None = None,
+) -> list[dict[str, Any]]:
+    """Compile the finite opposite identity hypotheses for independent shadowing.
+
+    Model votes may rank these hypotheses, but they do not remove an executable
+    alternative before the independent endpoint evaluator has seen it.
+    """
+
+    available = tuple(
+        sorted(
+            alias
+            for alias, value in binding.aliases.items()
+            if alias != "ANCHOR" and value.complete
+        )
+    )
+    requested = (
+        tuple(dict.fromkeys(str(alias) for alias in candidate_aliases))
+        if candidate_aliases is not None
+        else available
+    )
+    unknown = sorted(set(requested) - set(available))
+    if unknown:
+        raise ValueError(
+            "unknown or incomplete identity aliases: " + ", ".join(unknown)
+        )
+
+    compiled_rows = []
+    for alias in requested:
+        proposals = [
+            {
+                "action": AutomaticAction.SAME_INSTANCE.value,
+                "confidence": 1.0,
+                "entities": ["ANCHOR", alias],
+                "evidence_image_ids": ["DETERMINISTIC_HYPOTHESIS_ENUMERATION"],
+            }
+        ]
+        if binding.observed_current_decision == "CREATE":
+            proposals.append(
+                {
+                    "action": AutomaticAction.SEPARATE_MEMBER_GROUPS.value,
+                    "confidence": 1.0,
+                    "groups": [["ANCHOR"], [alias]],
+                    "evidence_image_ids": ["DETERMINISTIC_HYPOTHESIS_ENUMERATION"],
+                }
+            )
+        for proposal in proposals:
+            canonical = canonicalize_vote(proposal)
+            aggregate = {
+                "ready_for_binding": True,
+                "selected_proposal": canonical,
+                "aggregate_uid": _uid("hypothesis_aggregate_", canonical),
+                "defer_reasons": [],
+            }
+            compiled = compile_blind_candidate(aggregate, binding)
+            compiled["hypothesis_action"] = canonical["action"]
+            compiled["hypothesis_target_alias"] = alias
+            compiled["hypothesis_source"] = "FINITE_DETERMINISTIC_ENUMERATION"
+            compiled_rows.append(compiled)
+    return compiled_rows
+
+
 @dataclass(frozen=True)
 class ShadowGateEvidence:
     constraint_fingerprint: str

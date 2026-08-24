@@ -107,7 +107,9 @@ class InvariantVerifier:
                 action = str(detail.get("action") or "")
                 applied = decision.get("applied_match")
                 target = detail.get("target_index")
-                forbidden = set(int(item) for item in detail.get("forbidden_indices") or ())
+                forbidden = set(
+                    int(item) for item in detail.get("forbidden_indices") or ()
+                )
                 decision_uids = [
                     str(item) for item in detail.get("constraint_uids") or ()
                 ]
@@ -143,10 +145,14 @@ class InvariantVerifier:
                             }
                         )
                         continue
-                    if primitive.constraint_type.value in {
-                        "MUST_LINK",
-                        "ASSIGN_OBSERVATION",
-                    } and action != "FORCE_TARGET":
+                    if (
+                        primitive.constraint_type.value
+                        in {
+                            "MUST_LINK",
+                            "ASSIGN_OBSERVATION",
+                        }
+                        and action != "FORCE_TARGET"
+                    ):
                         semantic_errors.append(
                             {
                                 "obs_uid": decision.get("obs_uid"),
@@ -187,6 +193,54 @@ class InvariantVerifier:
                                     "reason": "created_instance_lineage_not_preserved",
                                     "constraint_uid": uid,
                                     "expected_lineage_uid": expected_lineage,
+                                }
+                            )
+                    if (
+                        primitive.constraint_type.value
+                        == "RESTORE_OBSERVATION_GEOMETRY"
+                    ):
+                        restoration = decision.get("geometry_restoration") or {}
+                        contract = primitive.geometry_contract or {}
+                        derivation = contract.get("derivation") or {}
+                        geometry_errors = []
+                        if action != "KEEP_NATURAL":
+                            geometry_errors.append(
+                                "geometry_overlay_did_not_keep_recomputed_natural"
+                            )
+                        if not restoration.get("applied"):
+                            geometry_errors.append("geometry_payload_not_applied")
+                        if not restoration.get("source_binding_pass"):
+                            geometry_errors.append("geometry_source_binding_failed")
+                        expected_fields = {
+                            "payload_uid": contract.get("payload_uid"),
+                            "replacement_pcd_sha256": (
+                                contract.get("replacement_pcd_ref") or {}
+                            ).get("sha256"),
+                            "replacement_mask_sha256": (
+                                contract.get("replacement_mask_ref") or {}
+                            ).get("sha256"),
+                            "replacement_points_sha256": derivation.get(
+                                "replacement_points_sha256"
+                            ),
+                            "replacement_colors_sha256": derivation.get(
+                                "replacement_colors_sha256"
+                            ),
+                            "replacement_mask_array_sha256": derivation.get(
+                                "replacement_mask_array_sha256"
+                            ),
+                        }
+                        for field, expected_value in expected_fields.items():
+                            if restoration.get(field) != expected_value:
+                                geometry_errors.append(
+                                    f"geometry_payload_mismatch:{field}"
+                                )
+                        if geometry_errors:
+                            semantic_errors.append(
+                                {
+                                    "obs_uid": decision.get("obs_uid"),
+                                    "reason": "geometry_restoration_not_verified",
+                                    "constraint_uid": uid,
+                                    "details": geometry_errors,
                                 }
                             )
                     if primitive.constraint_type.value in {

@@ -643,9 +643,20 @@ class SparseCounterfactualReplayEngine:
             )
         return natural, scores
 
-    def _materialize(self, obs_uid: str) -> dict[str, Any]:
+    def _materialize(
+        self,
+        obs_uid: str,
+        *,
+        geometry_contract: Mapping[str, Any] | None = None,
+        geometry_audit: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
         preferred = self._preferred_entity(obs_uid)
-        detection = self.materializer.materialize(obs_uid, preferred_uid=preferred)
+        detection = self.materializer.materialize(
+            obs_uid,
+            preferred_uid=preferred,
+            geometry_contract=geometry_contract,
+            geometry_audit=geometry_audit,
+        )
         observation_identity = self._identity_for_observation(obs_uid)
         attach_observation_identity(
             detection,
@@ -921,6 +932,14 @@ class SparseCounterfactualReplayEngine:
                 and bool(item.get("constraint_changed_default_decision"))
                 for item in decisions
             ),
+            "geometry_restoration_hit_count": sum(
+                bool((item.get("geometry_restoration") or {}).get("applied"))
+                for item in decisions
+            ),
+            "geometry_similarity_recompute_count": sum(
+                item.get("native_default_source") == "RECOMPUTED_AFTER_GEOMETRY_OVERLAY"
+                for item in decisions
+            ),
             "constraint_parsed_count": int(constraint_count),
             "constraint_hit_count": int(hits),
             "constraint_override_count": int(overrides),
@@ -1076,21 +1095,90 @@ class SparseCounterfactualReplayEngine:
         for frame in range(int(frame_start), int(frame_end) + 1):
             frame_rows = by_frame.get(frame, ())
             if frame_rows:
+                geometry_by_index: list[SparseRepairConstraint | None] = []
+                for row in frame_rows:
+                    obs_uid = str(row["obs_uid"])
+                    association = self.provenance.get_association_for_obs(obs_uid)
+                    event_uid = str(association["event_uid"])
+                    event_sequence = self.provenance.sequence(association)
+                    active_geometry = [
+                        item
+                        for item in primitives
+                        if item.constraint_type
+                        == ConstraintType.RESTORE_OBSERVATION_GEOMETRY
+                        and item.is_active(
+                            obs_uid=obs_uid,
+                            event_uid=event_uid,
+                            event_sequence=event_sequence,
+                        )
+                        and (
+                            mode == ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY
+                            or (
+                                mode == ReplayMode.ANCHOR_ONLY_REPAIR
+                                and item.applies_at_event_uid == event_uid
+                            )
+                        )
+                    ]
+                    if len(active_geometry) > 1:
+                        raise SparseReplayError(
+                            f"multiple active geometry overlays for {obs_uid}"
+                        )
+                    geometry_by_index.append(
+                        active_geometry[0] if active_geometry else None
+                    )
+                geometry_traces: list[dict[str, Any]] = [{} for _ in frame_rows]
                 detections = DetectionList(
-                    [self._materialize(str(row["obs_uid"])) for row in frame_rows]
+                    [
+                        self._materialize(
+                            str(row["obs_uid"]),
+                            geometry_contract=(
+                                geometry_by_index[index].geometry_contract
+                                if geometry_by_index[index] is not None
+                                else None
+                            ),
+                            geometry_audit=geometry_traces[index],
+                        )
+                        for index, row in enumerate(frame_rows)
+                    ]
                 )
+                restored_indices = [
+                    index
+                    for index, item in enumerate(geometry_by_index)
+                    if item is not None
+                ]
                 if frozen_recorded_frame is not None and frame == int(
                     frozen_recorded_frame
                 ):
-                    natural, score_matrix = self._frozen_recorded_frame_details(
-                        frame_rows, objects
-                    )
-                    native_default_source = "RECORDED_FRAME_START_ASSOCIATION"
+                    (
+                        historical_default,
+                        score_matrix,
+                    ) = self._frozen_recorded_frame_details(frame_rows, objects)
+                    natural = list(historical_default)
+                    native_default_sources = [
+                        "RECORDED_FRAME_START_ASSOCIATION" for _ in frame_rows
+                    ]
+                    if restored_indices:
+                        recomputed_natural, recomputed_scores = self._natural_details(
+                            detections, objects
+                        )
+                        for index in restored_indices:
+                            natural[index] = recomputed_natural[index]
+                            score_matrix[index, :] = recomputed_scores[index, :]
+                            native_default_sources[
+                                index
+                            ] = "RECOMPUTED_AFTER_GEOMETRY_OVERLAY"
                 else:
                     natural, score_matrix = self._natural_details(detections, objects)
-                    native_default_source = "RECOMPUTED_NATIVE_MATCHER"
+                    historical_default = list(natural)
+                    native_default_sources = [
+                        (
+                            "RECOMPUTED_AFTER_GEOMETRY_OVERLAY"
+                            if index in restored_indices
+                            else "RECOMPUTED_NATIVE_MATCHER"
+                        )
+                        for index in range(len(frame_rows))
+                    ]
                 applied = list(natural)
-                historical_default = list(natural)
                 constraint_decisions: list[ConstraintDecision] = [
                     ConstraintDecision(ConstraintAction.NO_CONSTRAINT)
                     for _ in frame_rows
@@ -1420,7 +1508,8 @@ class SparseCounterfactualReplayEngine:
                             "frame_idx": frame,
                             "obs_uid": obs_uid,
                             "event_uid": str(association["event_uid"]),
-                            "native_default_source": native_default_source,
+                            "native_default_source": native_default_sources[index],
+                            "geometry_restoration": geometry_traces[index] or None,
                             "natural_match": natural[index],
                             "historical_default_match": historical_default[index],
                             "applied_match": applied[index],

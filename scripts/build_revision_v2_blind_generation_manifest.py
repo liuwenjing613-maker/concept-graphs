@@ -40,6 +40,10 @@ def main() -> int:
     parser.add_argument("--identity-manifest", required=True, type=Path)
     parser.add_argument("--holdout-manifest", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
+    parser.add_argument(
+        "--blind-input-uid",
+        default="revision_v2_auto_constraint_blind_inputs_20260824",
+    )
     args = parser.parse_args()
 
     identity = _read(args.identity_manifest)
@@ -118,7 +122,7 @@ def main() -> int:
 
     output = {
         "schema_version": "2.0.0",
-        "blind_input_uid": "revision_v2_auto_constraint_blind_inputs_20260824",
+        "blind_input_uid": str(args.blind_input_uid),
         "frozen_before_generator_responses": True,
         "selection_uses_generator_outputs": False,
         "case_count": len(cases),

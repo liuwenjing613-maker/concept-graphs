@@ -1,0 +1,61 @@
+{
+  "candidate_aliases_deterministic": true,
+  "case_count": 3,
+  "cases": [
+    {
+      "anchor_event_alias": "identity_incident_4797202ea09b4242fc53",
+      "binding_private_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_001/binding.private.json",
+      "binding_private_sha256": "edb41edfbeb36d08d1034964e5bfb13c908c120c7184f7e578e9d4e80d6fb048",
+      "blind_case_uid": "identity_dev_001",
+      "bundle_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_001/bundle.json",
+      "bundle_sha256": "d47a3c178b76abc2937c960b2fdb705262b2c9e788d432f6a7e623ff520f9e9f",
+      "bundle_uid": "identity_evidence_23bdb1422e61e619222e",
+      "development_gold_excluded_from_request": true,
+      "development_source_case_uid": "human6_office0_false_split_51aaf9ba",
+      "image_count": 10,
+      "prompt_sha256": "a5e19f7994be41e37cb75b538604202cc1cd45bdad1b87075ef1472b1e520f99",
+      "request_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_001/request.frozen.json",
+      "request_sha256": "075c944622b1d8b6190b0da6e2d1e88d917ac390d2ed2cb058b821ede9f224cd",
+      "scene_id": "office0"
+    },
+    {
+      "anchor_event_alias": "identity_incident_c3eba8e0d3631a57e6a3",
+      "binding_private_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_002/binding.private.json",
+      "binding_private_sha256": "7bc6a946c6585688991c8bfad2c8691d0b23190b5778735382b941594b650386",
+      "blind_case_uid": "identity_dev_002",
+      "bundle_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_002/bundle.json",
+      "bundle_sha256": "119a7bc89ae63e5e6b5656ff59dd05b7949db6f436fcc514b553d9dd8c5883cd",
+      "bundle_uid": "identity_evidence_4b85fe6d9725d6ddb59c",
+      "development_gold_excluded_from_request": true,
+      "development_source_case_uid": "human6_room0_false_merge_06525b4b",
+      "image_count": 10,
+      "prompt_sha256": "63a933d0b74b4d59f01cc8f06b7d60bf3a1a97f4b99b07489c58b10032f79743",
+      "request_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_002/request.frozen.json",
+      "request_sha256": "d3770787a8aa15e2c2a5b2996c08aff65a062431979b0150ff929e2c164f1d98",
+      "scene_id": "room0"
+    },
+    {
+      "anchor_event_alias": "identity_incident_00d252fbd82ac16e55c5",
+      "binding_private_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_003/binding.private.json",
+      "binding_private_sha256": "18419820c3f59a5763e79a8bbc49e95a15e55d4eefcbfbfde0bd58ed969831e0",
+      "blind_case_uid": "identity_dev_003",
+      "bundle_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_003/bundle.json",
+      "bundle_sha256": "07898af429f3df214d33489c17f466e8777731777e121726469b3c2a184e2ef4",
+      "bundle_uid": "identity_evidence_5919c226e4910718f3ef",
+      "development_gold_excluded_from_request": true,
+      "development_source_case_uid": "human6_room0_false_merge_9727f850",
+      "image_count": 10,
+      "prompt_sha256": "0bc93ef7b453804a92fbe053f14a8b6fc3cba441b77b21278f56913bd23443aa",
+      "request_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_003/request.frozen.json",
+      "request_sha256": "ad7ba5946537a89405b024e25b2c78db39e1472edaa8edd08195ecb661e3eedb",
+      "scene_id": "room0"
+    }
+  ],
+  "current_corrupted_map_evidence_allowed": true,
+  "frozen_before_model_responses": true,
+  "human_answers_excluded": true,
+  "identity_manifest_sha256": "5e39716e3e9f32707de63be294ee4a190cac2959e68475bdd17856bc3f2c28d2",
+  "manifest_uid": "identity_evidence_bundle_v1_20260824",
+  "role": "DEVELOPMENT_NOT_HOLDOUT",
+  "schema_version": "1.0.0"
+}

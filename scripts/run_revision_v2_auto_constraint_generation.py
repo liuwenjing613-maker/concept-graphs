@@ -343,6 +343,10 @@ def main() -> int:
     parser.add_argument("--model", default="gpt-5.6-sol")
     parser.add_argument("--key-count", type=int, default=5)
     parser.add_argument("--votes-per-case", type=int, default=3)
+    parser.add_argument(
+        "--experiment-uid",
+        default="revision_v2_blind_auto_constraint_generation_20260824",
+    )
     args = parser.parse_args()
     if args.key_count != 5 or args.votes_per_case != 3:
         raise ValueError(
@@ -385,6 +389,7 @@ def main() -> int:
         "FALSE_SPLIT",
         "SEMANTIC_IDENTITY_ERROR",
         "GEOMETRY_CORRUPTION",
+        "SPURIOUS_OBJECT",
         "posthoc_gold",
         "expected_capability",
         "final_owner_uids",
@@ -413,7 +418,7 @@ def main() -> int:
         )
     protocol = {
         "schema_version": "2.0.0",
-        "experiment_uid": "revision_v2_blind_auto_constraint_generation_20260824",
+        "experiment_uid": str(args.experiment_uid),
         "blind_manifest_path": str(args.blind_manifest.resolve()),
         "blind_manifest_sha256": _sha256(args.blind_manifest.resolve()),
         "frozen_before_responses": True,

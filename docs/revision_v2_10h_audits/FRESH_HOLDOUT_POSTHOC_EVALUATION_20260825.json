@@ -1,0 +1,352 @@
+{
+  "audit_checks": {
+    "geometry_formal_checks_pass": true,
+    "label_artifact_hash_matches_freeze": true,
+    "protocol_frozen_and_label_free": true,
+    "spurious_fail_closed_checks_pass": true,
+    "zero_production_commits": true,
+    "zero_unsafe_automatic_commits": true
+  },
+  "audit_integrity_and_safety_pass": true,
+  "cases": [
+    {
+      "blind_case_uid": "blind_identity_001",
+      "compiled_has_executable_constraint": false,
+      "compiled_stage": "DEFERRED",
+      "expected_action": "SAME_INSTANCE",
+      "input_family": "IDENTITY_ASSOCIATION",
+      "majority_action": "DEFER",
+      "majority_correct": false,
+      "majority_count": 3,
+      "posthoc_endpoint_error_type": "FALSE_SPLIT",
+      "source_case_uid": "human6_office0_false_split_51aaf9ba",
+      "strict_aggregate_action": "DEFER",
+      "strict_aggregate_correct": false,
+      "strict_gate_defer_reasons": [],
+      "strict_selected_proposal": {
+        "action": "DEFER",
+        "confidence": 0.98,
+        "evidence_image_ids": [
+          "I01",
+          "I02",
+          "I03",
+          "I04",
+          "I05"
+        ],
+        "signature": "{\"action\":\"DEFER\"}"
+      },
+      "vote_action_counts": {
+        "DEFER": 3
+      },
+      "vote_correct_count": 0,
+      "vote_count": 3
+    },
+    {
+      "blind_case_uid": "blind_identity_002",
+      "compiled_has_executable_constraint": false,
+      "compiled_stage": "DEFERRED",
+      "expected_action": "SEPARATE_MEMBER_GROUPS",
+      "input_family": "IDENTITY_ASSOCIATION",
+      "majority_action": "DEFER",
+      "majority_correct": false,
+      "majority_count": 2,
+      "posthoc_endpoint_error_type": "FALSE_MERGE",
+      "source_case_uid": "human6_room0_false_merge_06525b4b",
+      "strict_aggregate_action": "DEFER",
+      "strict_aggregate_correct": false,
+      "strict_gate_defer_reasons": [
+        "structural_vote_disagreement"
+      ],
+      "strict_selected_proposal": null,
+      "vote_action_counts": {
+        "DEFER": 2,
+        "SAME_INSTANCE": 1
+      },
+      "vote_correct_count": 0,
+      "vote_count": 3
+    },
+    {
+      "blind_case_uid": "blind_identity_003",
+      "compiled_has_executable_constraint": false,
+      "compiled_stage": "DEFERRED",
+      "expected_action": "SEPARATE_MEMBER_GROUPS",
+      "input_family": "IDENTITY_ASSOCIATION",
+      "majority_action": "DEFER",
+      "majority_correct": false,
+      "majority_count": 3,
+      "posthoc_endpoint_error_type": "FALSE_MERGE",
+      "source_case_uid": "human6_room0_false_merge_9727f850",
+      "strict_aggregate_action": "DEFER",
+      "strict_aggregate_correct": false,
+      "strict_gate_defer_reasons": [],
+      "strict_selected_proposal": {
+        "action": "DEFER",
+        "confidence": 0.94,
+        "evidence_image_ids": [
+          "I01",
+          "I02",
+          "I03",
+          "I04",
+          "I05"
+        ],
+        "signature": "{\"action\":\"DEFER\"}"
+      },
+      "vote_action_counts": {
+        "DEFER": 3
+      },
+      "vote_correct_count": 0,
+      "vote_count": 3
+    },
+    {
+      "blind_case_uid": "blind_capability_001",
+      "capability_resolution": {
+        "automatic_action": "DEFER",
+        "disposition": "DEFER_UNSUPPORTED",
+        "executable": false,
+        "executable_constraint_type": null,
+        "reason": "no_safe_suppress_or_delete_primitive_is_implemented",
+        "required_capability": "SUPPRESS_SPURIOUS_OBJECT"
+      },
+      "compiled_has_executable_constraint": false,
+      "compiled_stage": "DEFERRED",
+      "expected_action": "DEFER",
+      "expected_obs_key": null,
+      "incident_uid": "incident_b714504baedfbd92b49c",
+      "input_family": "CAPABILITY_PROBE",
+      "majority_action": "RESTORE_OBSERVATION_GEOMETRY",
+      "majority_correct": false,
+      "majority_count": 3,
+      "posthoc_endpoint_error_type": "SPURIOUS_OBJECT",
+      "posthoc_final_owner_uids": [
+        "29217bca-abb2-475c-a9c8-f9e5787d6a4d"
+      ],
+      "posthoc_human_notes": "应该是wall的一部分碎片",
+      "scene_id": "room0",
+      "source_case_uid": "fresh_holdout_room0_b714504b",
+      "strict_aggregate_action": "RESTORE_OBSERVATION_GEOMETRY",
+      "strict_aggregate_correct": false,
+      "strict_gate_defer_reasons": [],
+      "strict_payload_correct": false,
+      "strict_selected_proposal": {
+        "action": "RESTORE_OBSERVATION_GEOMETRY",
+        "confidence": 0.93,
+        "evidence_image_ids": [
+          "I03"
+        ],
+        "obs_key": "f000174_r0013",
+        "signature": "{\"action\":\"RESTORE_OBSERVATION_GEOMETRY\",\"obs_key\":\"f000174_r0013\"}"
+      },
+      "vote_action_counts": {
+        "RESTORE_OBSERVATION_GEOMETRY": 3
+      },
+      "vote_correct_count": 0,
+      "vote_count": 3
+    },
+    {
+      "blind_case_uid": "blind_capability_002",
+      "capability_resolution": {
+        "automatic_action": "RESTORE_OBSERVATION_GEOMETRY",
+        "disposition": "EXECUTABLE_CANDIDATE",
+        "executable": true,
+        "executable_constraint_type": "RESTORE_OBSERVATION_GEOMETRY",
+        "reason": "hash_bound_geometry_restoration_primitive_is_available",
+        "required_capability": "RESTORE_OBSERVATION_GEOMETRY"
+      },
+      "compiled_has_executable_constraint": false,
+      "compiled_stage": "DEFERRED",
+      "expected_action": "RESTORE_OBSERVATION_GEOMETRY",
+      "expected_obs_key": "f000191_r0002",
+      "incident_uid": "incident_fe3d3de7f35ffa7cd495",
+      "input_family": "CAPABILITY_PROBE",
+      "majority_action": "RESTORE_OBSERVATION_GEOMETRY",
+      "majority_correct": true,
+      "majority_count": 3,
+      "posthoc_endpoint_error_type": "GEOMETRY_CORRUPTION",
+      "posthoc_final_owner_uids": [
+        "7a590db2-07dc-4611-8771-e6bd22d1df85"
+      ],
+      "posthoc_human_notes": "raw mask是准确的，处理后只留下了碎片",
+      "scene_id": "office0",
+      "source_case_uid": "fresh_holdout_office0_fe3d3de7",
+      "strict_aggregate_action": "RESTORE_OBSERVATION_GEOMETRY",
+      "strict_aggregate_correct": true,
+      "strict_gate_defer_reasons": [],
+      "strict_payload_correct": true,
+      "strict_selected_proposal": {
+        "action": "RESTORE_OBSERVATION_GEOMETRY",
+        "confidence": 0.99,
+        "evidence_image_ids": [
+          "I01",
+          "I02",
+          "I03"
+        ],
+        "obs_key": "f000191_r0002",
+        "signature": "{\"action\":\"RESTORE_OBSERVATION_GEOMETRY\",\"obs_key\":\"f000191_r0002\"}"
+      },
+      "vote_action_counts": {
+        "RESTORE_OBSERVATION_GEOMETRY": 3
+      },
+      "vote_correct_count": 3,
+      "vote_count": 3
+    }
+  ],
+  "conclusion": "PARTIAL_SUCCESS_FAIL_CLOSED",
+  "evaluation_role": "POSTHOC_EVALUATION_OF_TWO_FROZEN_FRESH_HOLDOUTS; NOT_A_POPULATION_OR_SCENE_GENERALIZATION_ESTIMATE",
+  "formal_holdout_execution": {
+    "geometry": {
+      "case_uid": "fresh_holdout_office0_fe3d3de7",
+      "checks": {
+        "build_pass": true,
+        "build_role_frozen_holdout": true,
+        "global_pass": true,
+        "global_role_frozen_holdout": true,
+        "local_global_partition_exact": true,
+        "local_pass": true,
+        "local_role_frozen_holdout": true,
+        "observation_binding_exact": true,
+        "office_base_source_hashes_match_build": true,
+        "overlay_and_recompute_once": true,
+        "point_support_increased": true,
+        "production_commit_disabled": true,
+        "raw_mask_restored_exact": true,
+        "sources_immutable": true
+      },
+      "endpoint_disposition": "GEOMETRY_MECHANISM_PASS_WITH_IDENTITY_SIDE_EFFECT_UNADJUDICATED",
+      "generator_candidate_family_correct": true,
+      "geometry_mechanism_pass": true,
+      "identity_side_effect": true,
+      "identity_side_effect_adjudication": "UNADJUDICATED_BY_GEOMETRY_ONLY_HUMAN_LABEL",
+      "natural_owner_summaries": [
+        {
+          "class_name": "potted plant",
+          "entity_uid": "7a590db2-07dc-4611-8771-e6bd22d1df85",
+          "member_count": 2,
+          "n_points": 964,
+          "num_detections": 2,
+          "revision_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000022_r0001"
+          ]
+        }
+      ],
+      "natural_owner_uids": [
+        "7a590db2-07dc-4611-8771-e6bd22d1df85"
+      ],
+      "original_point_count": 633,
+      "point_support_gain_ratio": 24.27172195892575,
+      "posthoc_endpoint_error_type": "GEOMETRY_CORRUPTION",
+      "posthoc_recorded_final_owner_uids": [
+        "7a590db2-07dc-4611-8771-e6bd22d1df85"
+      ],
+      "production_commit_permitted": false,
+      "restored_point_count": 15364,
+      "sparse_owner_summaries": [
+        {
+          "class_name": "potted plant",
+          "entity_uid": "c8f5e9f5-e1c5-4352-9083-e6f0130868cd",
+          "member_count": 92,
+          "n_points": 30563,
+          "num_detections": 92,
+          "revision_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000013_r0007",
+            "origin_office0_20260820T090828Z_fbd2d994_f000014_r0002",
+            "origin_office0_20260820T090828Z_fbd2d994_f000022_r0001"
+          ]
+        }
+      ],
+      "sparse_owner_uids": [
+        "c8f5e9f5-e1c5-4352-9083-e6f0130868cd"
+      ]
+    },
+    "spurious_object": {
+      "capability_resolution": {
+        "automatic_action": "DEFER",
+        "disposition": "DEFER_UNSUPPORTED",
+        "executable": false,
+        "executable_constraint_type": null,
+        "reason": "no_safe_suppress_or_delete_primitive_is_implemented",
+        "required_capability": "SUPPRESS_SPURIOUS_OBJECT"
+      },
+      "case_uid": "fresh_holdout_room0_b714504b",
+      "checks": {
+        "capability_registry_defers": true,
+        "no_constraint_materialized": true,
+        "no_delete_or_suppress_primitive": true,
+        "no_executable_constraint_type": true,
+        "no_replay_or_state_mutation": true,
+        "sources_immutable": true,
+        "wrong_generator_candidate_blocked": true
+      },
+      "endpoint_disposition": "DEFERRED_NO_SAFE_SUPPRESS_OR_DELETE_PRIMITIVE",
+      "endpoint_repaired": false,
+      "expected_safe_action": "DEFER",
+      "fail_closed_safety_pass": true,
+      "formal_constraints": [],
+      "generator_candidate_action": "RESTORE_OBSERVATION_GEOMETRY",
+      "posthoc_endpoint_error_type": "SPURIOUS_OBJECT",
+      "production_commit_permitted": false,
+      "source_hashes_after": {
+        "associations.jsonl": "c25844d1ebf3e6c574cfcfe91b52fa88e94fc6a778a8edce730872bbb40b0a5c",
+        "final_membership.json": "7456cf520252f3f5310457f8c0d67cb1643eb558258e2a98400fad04dc71fc8d",
+        "mapping_events.jsonl": "e42a46e2a69220310431385363b29bf49d0a666f57f447e4b31325224cd58d0d",
+        "object_pair_decisions.jsonl": "89ea72e4593240f32b95712ce7168a722737ee69bf7803cb316c4ac35ae5197b",
+        "object_versions.jsonl": "a51ace1a0e5338103c35c064d2e69597895b9438d6285f983ea0f96f4ed29e27",
+        "observations.jsonl": "0810f71c112b18cf37cf3c275aaede85dae8d13e0eff9bddd6c032ce1a11c133"
+      },
+      "source_hashes_before": {
+        "associations.jsonl": "c25844d1ebf3e6c574cfcfe91b52fa88e94fc6a778a8edce730872bbb40b0a5c",
+        "final_membership.json": "7456cf520252f3f5310457f8c0d67cb1643eb558258e2a98400fad04dc71fc8d",
+        "mapping_events.jsonl": "e42a46e2a69220310431385363b29bf49d0a666f57f447e4b31325224cd58d0d",
+        "object_pair_decisions.jsonl": "89ea72e4593240f32b95712ce7168a722737ee69bf7803cb316c4ac35ae5197b",
+        "object_versions.jsonl": "a51ace1a0e5338103c35c064d2e69597895b9438d6285f983ea0f96f4ed29e27",
+        "observations.jsonl": "0810f71c112b18cf37cf3c275aaede85dae8d13e0eff9bddd6c032ce1a11c133"
+      }
+    }
+  },
+  "input_hashes": {
+    "blind_manifest": "310e835c6eba78953f4e7a4c51bb18e8d3bea48d63c856b4aedf6e6494898edd",
+    "generation_result": "ff17c1912e3915aeefcec360dbf6b2ff6cbfe3496a53b51c3ce68e18816529e9",
+    "geometry_build": "bc0727775b73e8e58a1992e50fb2e56a2f0c3100b69cf41e393f3b1cd4a60bcb",
+    "geometry_global": "5dd3e14c602aea7ef6e5757bf33001b7e076b3e68df38df4bf144fc6235308a0",
+    "geometry_local": "eafca78a6501bfb39a115dacb9b720a3298c4e1267ead95435c9523430fa2711",
+    "holdout_manifest": "929380dc849a0a68431728729635228bb790f88ac370825ad01fceb01a4a5241",
+    "inference_protocol": "02b800aebe396534105963e6035110f4e99efb2752ca1eb73fba726ca72bfedb"
+  },
+  "limitations": [
+    "Only two fresh incidents were selected; this is not a population estimate.",
+    "The geometry label does not adjudicate the induced identity merge.",
+    "No safe entity suppression/deletion primitive exists, so the spurious object remains unresolved.",
+    "Automatic generation produced no commit-eligible mutation under the current shadow gate."
+  ],
+  "method_checks": {
+    "automatic_fresh_capability_routing_succeeds": false,
+    "automatic_identity_routing_succeeds": false,
+    "both_fresh_holdout_endpoints_repaired": false,
+    "geometry_identity_side_effect_fully_adjudicated": false
+  },
+  "method_complete": false,
+  "metrics": {
+    "automatic_commit_eligible_count": 0,
+    "case_count": 5,
+    "fresh_capability_strict_action_accuracy": 0.5,
+    "fresh_capability_strict_payload_correct_count": 1,
+    "fresh_holdout_count": 2,
+    "fresh_holdout_endpoint_repaired_count": 1,
+    "fresh_holdout_unresolved_count": 1,
+    "identity_strict_action_accuracy": 0.0,
+    "production_commit_count": 0,
+    "strict_aggregate_action_accuracy": 0.2,
+    "unsafe_automatic_commit_count_posthoc": 0,
+    "vote_candidate_action_accuracy": 0.2,
+    "vote_count": 15
+  },
+  "production_commit_permitted": false,
+  "protocol_checks": {
+    "blind_hash_matches_frozen_protocol": true,
+    "frozen_before_posthoc_label_access": true,
+    "no_api_credential_persistence": true,
+    "no_forbidden_prompt_leakage": true,
+    "no_outcome_based_replacement": true,
+    "protocol_hash_matches_generation_result": true
+  },
+  "schema_version": "1.0.0"
+}

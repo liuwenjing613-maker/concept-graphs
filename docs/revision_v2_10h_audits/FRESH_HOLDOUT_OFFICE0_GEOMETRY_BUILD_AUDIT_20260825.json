@@ -1,0 +1,71 @@
+{
+  "constraint_uid": "constraint_1e18c3267633d0f1",
+  "evaluation_role": "FROZEN_FRESH_HOLDOUT_GEOMETRY_BUILD",
+  "event_uid": "office0_20260820T090828Z_fbd2d994_e00003854",
+  "geometry_metrics": {
+    "deterministic_rederive_exact": true,
+    "loss_ratio": 0.9317325800376648,
+    "original_aabb": {
+      "center": [
+        1.7491431558276105,
+        -2.536877306591614,
+        0.8290941153604854
+      ],
+      "extent": [
+        0.34550965073816897,
+        0.26368731569675097,
+        0.1070948424708753
+      ],
+      "maximum": [
+        1.921897981196695,
+        -2.405033648743238,
+        0.882641536595923
+      ],
+      "minimum": [
+        1.576388330458526,
+        -2.668720964439989,
+        0.7755466941250477
+      ],
+      "volume": 0.009757037588244411
+    },
+    "original_observation_point_count": 633,
+    "point_support_gain_ratio": 24.27172195892575,
+    "processed_mask_area": 2755,
+    "raw_mask_area": 40356,
+    "removed_pixel_count": 37601,
+    "restored_aabb": {
+      "center": [
+        1.8814079400964179,
+        -2.4471956530734165,
+        -0.15513967733311113
+      ],
+      "extent": [
+        1.0301498334922485,
+        0.8980017621166954,
+        1.9216884992659247
+      ],
+      "maximum": [
+        2.396482856842542,
+        -1.9981947720150686,
+        0.8057045722998512
+      ],
+      "minimum": [
+        1.3663330233502935,
+        -2.896196534131764,
+        -1.1159839269660734
+      ],
+      "volume": 1.7777086129473412
+    },
+    "restored_mask_contains_processed": true,
+    "restored_mask_exact_to_raw": true,
+    "restored_observation_point_count": 15364
+  },
+  "manifest_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/fresh_holdout_formal/office0_fe3d3de7/geometry/build_manifest.json",
+  "manifest_sha256": "bc0727775b73e8e58a1992e50fb2e56a2f0c3100b69cf41e393f3b1cd4a60bcb",
+  "obs_uid": "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+  "pass": true,
+  "payload_uid": "geometry_payload_f98b7c8c17f2e8139e81",
+  "schema_version": "1.0.0",
+  "source_artifacts_unchanged": true,
+  "source_hashes_unchanged": true
+}

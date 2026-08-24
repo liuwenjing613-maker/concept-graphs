@@ -1,0 +1,77 @@
+{
+  "schema_version": "1.0.0",
+  "protocol_id": "ali_my_revision_kernel_v2_10h_20260824",
+  "execution_host": "ubun",
+  "execution_scope": "REMOTE_SERVER_ONLY",
+  "baseline_commit": "ba55d7ce9b67d7808f15944c390baee18743a5f6",
+  "working_branch": "publish/ali-my-v2-10h-20260824",
+  "experiment_root": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824",
+  "environment": {
+    "python": "/home/chenkejun/beauty/conceptgraphs/envs/cg-ali/bin/python",
+    "gpu_policy": "Use free GPUs only after local gates pass; never scale a failing method.",
+    "api_policy": "Up to five concurrent credential slots after blind evidence manifests are frozen; credentials remain process-only."
+  },
+  "frozen_development_cases": {
+    "identity": [
+      "human6_office0_false_split_51aaf9ba",
+      "human6_room0_false_merge_06525b4b",
+      "human6_room0_false_merge_9727f850"
+    ],
+    "geometry": [
+      "capability_holdout_geometry_room0_38d"
+    ],
+    "partition_design": [
+      "human6_room0_undersegmentation_f74cb"
+    ]
+  },
+  "consumed_not_holdout": [
+    "human6_office0_false_split_51aaf9ba",
+    "human6_room0_false_merge_06525b4b",
+    "human6_room0_false_merge_9727f850",
+    "capability_holdout_geometry_room0_38d",
+    "capability_holdout_semantic_office0_bf85"
+  ],
+  "stage_order": [
+    "table_part_false_merge_global_parity",
+    "identity_evidence_bundle_and_alias_compiler",
+    "automatic_constraint_generation_v2_shadow_gate",
+    "restore_observation_geometry",
+    "partition_observation_point_gold_feasibility",
+    "relation_repair_impact",
+    "freeze_and_run_two_new_holdouts",
+    "regression_timing_audit_report_push"
+  ],
+  "gates": {
+    "kernel_integrity": {
+      "required": [
+        "revision_tests_pass",
+        "two_noops_exact",
+        "legal_merge_accepted",
+        "provenance_invariants_hold"
+      ]
+    },
+    "global_parity": {
+      "required_checks": 9,
+      "required_passes": 9
+    },
+    "automatic_generation": {
+      "unsafe_commit_max": 0,
+      "maximum_prompt_or_schema_iterations": 2,
+      "target_correct_executable_identity_dev_cases": 2,
+      "identity_dev_case_count": 3
+    },
+    "holdout": {
+      "freeze_before_answer_access": true,
+      "formal_runs_per_case": 1,
+      "no_tuning_after_failure": true
+    }
+  },
+  "stop_rules": {
+    "single_failed_direction_minutes": 90,
+    "local_gate_before_global": true,
+    "shadow_gate_before_commit": true,
+    "exact_point_mapping_before_partition": true,
+    "automatic_cluster_is_not_gold": true
+  },
+  "status": "FROZEN"
+}

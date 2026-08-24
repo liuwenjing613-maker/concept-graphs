@@ -1,0 +1,1001 @@
+{
+  "checks": {
+    "build_manifest_pass": true,
+    "geometry_source_artifacts_unchanged": true,
+    "global_geometry_trace_exact": true,
+    "global_overlay_hit_exactly_once": true,
+    "global_owner_unique": true,
+    "global_runtime_invariants": true,
+    "global_similarity_recomputed_exactly_once": true,
+    "local_geometry_trace_exact": true,
+    "local_global_applied_target_origin_exact": true,
+    "local_global_geometry_equivalent": true,
+    "local_global_membership_partition_exact": true,
+    "local_global_owner_members_exact": true,
+    "local_overlay_hit_exactly_once": true,
+    "local_owner_unique": true,
+    "local_similarity_recomputed_exactly_once": true,
+    "provenance_hashes_unchanged": true
+  },
+  "constraint_uid": "constraint_1e18c3267633d0f1",
+  "evaluation_role": "FROZEN_FRESH_HOLDOUT_GEOMETRY_LOCAL_GLOBAL_PARITY",
+  "global_trace": [
+    {
+      "applied_match": 12,
+      "applied_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+      "constraint": {
+        "action": "KEEP_NATURAL",
+        "constraint_uids": [
+          "constraint_1e18c3267633d0f1"
+        ],
+        "created_entity_uid": null,
+        "created_identity_uid": null,
+        "created_lineage_uid": null,
+        "forbidden_indices": [],
+        "reason": "geometry_payload_overlay_applied_before_association",
+        "separate_from_identity_uids": [],
+        "target_index": 12
+      },
+      "constraint_changed_default_decision": false,
+      "constraint_hit": true,
+      "constraint_overrode_historical": false,
+      "constraint_overrode_native_natural": false,
+      "constraint_overrode_natural": false,
+      "created_identity_boundary": null,
+      "event_uid": "office0_20260820T090828Z_fbd2d994_e00003854",
+      "frame_idx": 191,
+      "geometry_restoration": {
+        "applied": true,
+        "obs_uid": "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+        "original_mask_area": 2755,
+        "original_point_count": 633,
+        "payload_uid": "geometry_payload_f98b7c8c17f2e8139e81",
+        "replacement_colors_sha256": "72fe00bc32c2b2cdc67935bc8ec6d9ac804d606b46cbca2d6133e45b88c5cea8",
+        "replacement_mask_array_sha256": "7e3bf09e58d16545e33a8fc27d45decc64c8a08872d40d2260fffb212666e393",
+        "replacement_mask_sha256": "cdc57787bf98c2f73854f86a4ad6e5c2be1378870b970209d0f8d58f60b7b197",
+        "replacement_pcd_sha256": "254df978a96762b34191031590a5b65b7fd37bb4ecff75eacbd5790ec0caf89a",
+        "replacement_points_sha256": "73e7fdcbedafe7d329f63ef83f0abee0205da1e78ab3d5a813a7ce3588980643",
+        "restored_mask_area": 40356,
+        "restored_point_count": 15364,
+        "source_binding_pass": true,
+        "source_observation_sha256": "3fb73f8e51ac8f6745e6c4c5d335ba1474728588d718e36b162299799b7b5ce1"
+      },
+      "historical_default_match": 12,
+      "historical_default_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+      "intervention_overrode_natural": false,
+      "native_default_source": "RECOMPUTED_AFTER_GEOMETRY_OVERLAY",
+      "natural_candidates": [
+        {
+          "eligible": true,
+          "entity_uid": "c8f5e9f5-e1c5-4352-9083-e6f0130868cd",
+          "identity_complete": true,
+          "index": 12,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000013_r0007",
+            "origin_office0_20260820T090828Z_fbd2d994_f000014_r0002"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000013_r0007",
+            "origin_office0_20260820T090828Z_fbd2d994_f000014_r0002"
+          ],
+          "score": 1.8217069808780697,
+          "score_minus_threshold": 0.6217069808780697
+        },
+        {
+          "eligible": false,
+          "entity_uid": "7a590db2-07dc-4611-8771-e6bd22d1df85",
+          "identity_complete": true,
+          "index": 15,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000022_r0001"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000022_r0001"
+          ],
+          "score": 0.8553962111473083,
+          "score_minus_threshold": -0.3446037888526916
+        },
+        {
+          "eligible": false,
+          "entity_uid": "c2088c21-a813-4d2e-8af3-7268bd467fe5",
+          "identity_complete": true,
+          "index": 13,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0002",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0006",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0008"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0002",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0006",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0008"
+          ],
+          "score": 0.7591468992409561,
+          "score_minus_threshold": -0.4408531007590438
+        },
+        {
+          "eligible": false,
+          "entity_uid": "d50800d1-9e6d-4086-b7f5-4f8aa3f50e0c",
+          "identity_complete": true,
+          "index": 6,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0008",
+            "origin_office0_20260820T090828Z_fbd2d994_f000039_r0002"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0008",
+            "origin_office0_20260820T090828Z_fbd2d994_f000039_r0002"
+          ],
+          "score": 0.7178002595901489,
+          "score_minus_threshold": -0.48219974040985103
+        },
+        {
+          "eligible": false,
+          "entity_uid": "a7236267-ac1f-4c93-b941-90c5755fd9a1",
+          "identity_complete": true,
+          "index": 5,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0007"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0007"
+          ],
+          "score": 0.7163593173027039,
+          "score_minus_threshold": -0.4836406826972961
+        },
+        {
+          "eligible": false,
+          "entity_uid": "af72396d-bcf6-48f7-85c6-e960e8e622c8",
+          "identity_complete": true,
+          "index": 16,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000032_r0001"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000032_r0001"
+          ],
+          "score": 0.7133836150169373,
+          "score_minus_threshold": -0.4866163849830627
+        },
+        {
+          "eligible": false,
+          "entity_uid": "73bfb361-05a6-48d5-90af-2a551c3cb473",
+          "identity_complete": true,
+          "index": 4,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0006"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0006"
+          ],
+          "score": 0.7131390571594238,
+          "score_minus_threshold": -0.4868609428405761
+        },
+        {
+          "eligible": false,
+          "entity_uid": "190a66ac-6758-4e63-ab2f-a692aff6671e",
+          "identity_complete": true,
+          "index": 28,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000173_r0000"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000173_r0000"
+          ],
+          "score": 0.682906985282898,
+          "score_minus_threshold": -0.517093014717102
+        },
+        {
+          "eligible": false,
+          "entity_uid": "92ffa8b7-984d-4cb1-9a10-04187ae8e206",
+          "identity_complete": true,
+          "index": 3,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0004",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0005"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0004",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0005"
+          ],
+          "score": 0.680111825466156,
+          "score_minus_threshold": -0.519888174533844
+        },
+        {
+          "eligible": false,
+          "entity_uid": "0d1112ad-cc6b-4840-9dbc-172a3d498774",
+          "identity_complete": true,
+          "index": 2,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0001",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0003"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0001",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0003"
+          ],
+          "score": 0.6721987128257751,
+          "score_minus_threshold": -0.5278012871742248
+        }
+      ],
+      "natural_match": 12,
+      "natural_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+      "obs_uid": "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+      "persistent_create_instance_boundary": {
+        "candidate_assessments": [],
+        "default_match": 12,
+        "forbidden_indices": [],
+        "observation_identity": null,
+        "overrode_match": false,
+        "resolved_match": 12,
+        "unknown_indices": []
+      },
+      "persistent_lineage_redirect_source_lineages": [],
+      "threshold_semantics": {
+        "comparator": "STRICT_GREATER_THAN",
+        "equality_decision": "CREATE_OBJECT",
+        "native_decision": "MERGE_TO_OBJECT",
+        "sim_threshold": 1.2,
+        "top1_minus_threshold": 0.6217069808780697,
+        "top1_score": 1.8217069808780697,
+        "top1_strictly_exceeds_threshold": true
+      }
+    }
+  ],
+  "local_trace": [
+    {
+      "applied_match": 12,
+      "applied_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+      "constraint": {
+        "action": "KEEP_NATURAL",
+        "constraint_uids": [
+          "constraint_1e18c3267633d0f1"
+        ],
+        "created_entity_uid": null,
+        "created_identity_uid": null,
+        "created_lineage_uid": null,
+        "forbidden_indices": [],
+        "reason": "geometry_payload_overlay_applied_before_association",
+        "separate_from_identity_uids": [],
+        "target_index": 12
+      },
+      "constraint_changed_default_decision": true,
+      "constraint_hit": true,
+      "constraint_overrode_historical": true,
+      "constraint_overrode_native_natural": false,
+      "constraint_overrode_natural": false,
+      "created_identity_boundary": null,
+      "event_uid": "office0_20260820T090828Z_fbd2d994_e00003854",
+      "frame_idx": 191,
+      "geometry_restoration": {
+        "applied": true,
+        "obs_uid": "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+        "original_mask_area": 2755,
+        "original_point_count": 633,
+        "payload_uid": "geometry_payload_f98b7c8c17f2e8139e81",
+        "replacement_colors_sha256": "72fe00bc32c2b2cdc67935bc8ec6d9ac804d606b46cbca2d6133e45b88c5cea8",
+        "replacement_mask_array_sha256": "7e3bf09e58d16545e33a8fc27d45decc64c8a08872d40d2260fffb212666e393",
+        "replacement_mask_sha256": "cdc57787bf98c2f73854f86a4ad6e5c2be1378870b970209d0f8d58f60b7b197",
+        "replacement_pcd_sha256": "254df978a96762b34191031590a5b65b7fd37bb4ecff75eacbd5790ec0caf89a",
+        "replacement_points_sha256": "73e7fdcbedafe7d329f63ef83f0abee0205da1e78ab3d5a813a7ce3588980643",
+        "restored_mask_area": 40356,
+        "restored_point_count": 15364,
+        "source_binding_pass": true,
+        "source_observation_sha256": "3fb73f8e51ac8f6745e6c4c5d335ba1474728588d718e36b162299799b7b5ce1"
+      },
+      "historical_default_match": 15,
+      "historical_default_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000022_r0001",
+      "intervention_overrode_natural": false,
+      "native_default_source": "RECOMPUTED_AFTER_GEOMETRY_OVERLAY",
+      "natural_candidates": [
+        {
+          "eligible": true,
+          "entity_uid": "c8f5e9f5-e1c5-4352-9083-e6f0130868cd",
+          "identity_complete": true,
+          "index": 12,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000013_r0007",
+            "origin_office0_20260820T090828Z_fbd2d994_f000014_r0002"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000013_r0007",
+            "origin_office0_20260820T090828Z_fbd2d994_f000014_r0002"
+          ],
+          "score": 1.8217069808780697,
+          "score_minus_threshold": 0.6217069808780697
+        },
+        {
+          "eligible": false,
+          "entity_uid": "7a590db2-07dc-4611-8771-e6bd22d1df85",
+          "identity_complete": true,
+          "index": 15,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000022_r0001"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000022_r0001"
+          ],
+          "score": 0.8553962111473083,
+          "score_minus_threshold": -0.3446037888526916
+        },
+        {
+          "eligible": false,
+          "entity_uid": "c2088c21-a813-4d2e-8af3-7268bd467fe5",
+          "identity_complete": true,
+          "index": 13,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0002",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0006",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0008"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0002",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0006",
+            "origin_office0_20260820T090828Z_fbd2d994_f000015_r0008"
+          ],
+          "score": 0.7591468992409561,
+          "score_minus_threshold": -0.4408531007590438
+        },
+        {
+          "eligible": false,
+          "entity_uid": "d50800d1-9e6d-4086-b7f5-4f8aa3f50e0c",
+          "identity_complete": true,
+          "index": 6,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0008",
+            "origin_office0_20260820T090828Z_fbd2d994_f000039_r0002"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0008",
+            "origin_office0_20260820T090828Z_fbd2d994_f000039_r0002"
+          ],
+          "score": 0.7178002595901489,
+          "score_minus_threshold": -0.48219974040985103
+        },
+        {
+          "eligible": false,
+          "entity_uid": "a7236267-ac1f-4c93-b941-90c5755fd9a1",
+          "identity_complete": true,
+          "index": 5,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0007"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0007"
+          ],
+          "score": 0.7163593173027039,
+          "score_minus_threshold": -0.4836406826972961
+        },
+        {
+          "eligible": false,
+          "entity_uid": "af72396d-bcf6-48f7-85c6-e960e8e622c8",
+          "identity_complete": true,
+          "index": 16,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000032_r0001"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000032_r0001"
+          ],
+          "score": 0.7133836150169373,
+          "score_minus_threshold": -0.4866163849830627
+        },
+        {
+          "eligible": false,
+          "entity_uid": "73bfb361-05a6-48d5-90af-2a551c3cb473",
+          "identity_complete": true,
+          "index": 4,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0006"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0006"
+          ],
+          "score": 0.7131390571594238,
+          "score_minus_threshold": -0.4868609428405761
+        },
+        {
+          "eligible": false,
+          "entity_uid": "190a66ac-6758-4e63-ab2f-a692aff6671e",
+          "identity_complete": true,
+          "index": 28,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000173_r0000"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000173_r0000"
+          ],
+          "score": 0.682906985282898,
+          "score_minus_threshold": -0.517093014717102
+        },
+        {
+          "eligible": false,
+          "entity_uid": "92ffa8b7-984d-4cb1-9a10-04187ae8e206",
+          "identity_complete": true,
+          "index": 3,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0004",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0005"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0004",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0005"
+          ],
+          "score": 0.680111825466156,
+          "score_minus_threshold": -0.519888174533844
+        },
+        {
+          "eligible": false,
+          "entity_uid": "0d1112ad-cc6b-4840-9dbc-172a3d498774",
+          "identity_complete": true,
+          "index": 2,
+          "lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0001",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0003"
+          ],
+          "provenance_lineage_uids": [
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0001",
+            "origin_office0_20260820T090828Z_fbd2d994_f000000_r0003"
+          ],
+          "score": 0.6721987128257751,
+          "score_minus_threshold": -0.5278012871742248
+        }
+      ],
+      "natural_match": 12,
+      "natural_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+      "obs_uid": "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+      "persistent_create_instance_boundary": {
+        "candidate_assessments": [],
+        "default_match": 15,
+        "forbidden_indices": [],
+        "observation_identity": null,
+        "overrode_match": false,
+        "resolved_match": 12,
+        "unknown_indices": []
+      },
+      "persistent_lineage_redirect_source_lineages": [],
+      "threshold_semantics": {
+        "comparator": "STRICT_GREATER_THAN",
+        "equality_decision": "CREATE_OBJECT",
+        "native_decision": "MERGE_TO_OBJECT",
+        "sim_threshold": 1.2,
+        "top1_minus_threshold": 0.6217069808780697,
+        "top1_score": 1.8217069808780697,
+        "top1_strictly_exceeds_threshold": true
+      }
+    }
+  ],
+  "local_vs_global": {
+    "geometry": {
+      "bbox_iou_to_clean": 1.0,
+      "center_error_to_clean": 0.0,
+      "extent_error_to_clean": 0.0,
+      "matched_object_count": 29,
+      "matches": [
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "12e6645e-2cb5-4bcd-8e1c-d2cfb577e7db",
+          "center_error": 0.0,
+          "clean_entity_uid": "12e6645e-2cb5-4bcd-8e1c-d2cfb577e7db",
+          "extent_error": 0.0,
+          "member_overlap": 101,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "201ac6ed-133e-47d1-97df-dae4fe13fdf7",
+          "center_error": 0.0,
+          "clean_entity_uid": "201ac6ed-133e-47d1-97df-dae4fe13fdf7",
+          "extent_error": 0.0,
+          "member_overlap": 119,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "0d1112ad-cc6b-4840-9dbc-172a3d498774",
+          "center_error": 0.0,
+          "clean_entity_uid": "0d1112ad-cc6b-4840-9dbc-172a3d498774",
+          "extent_error": 0.0,
+          "member_overlap": 151,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "92ffa8b7-984d-4cb1-9a10-04187ae8e206",
+          "center_error": 0.0,
+          "clean_entity_uid": "92ffa8b7-984d-4cb1-9a10-04187ae8e206",
+          "extent_error": 0.0,
+          "member_overlap": 113,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "73bfb361-05a6-48d5-90af-2a551c3cb473",
+          "center_error": 0.0,
+          "clean_entity_uid": "73bfb361-05a6-48d5-90af-2a551c3cb473",
+          "extent_error": 0.0,
+          "member_overlap": 72,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "a7236267-ac1f-4c93-b941-90c5755fd9a1",
+          "center_error": 0.0,
+          "clean_entity_uid": "a7236267-ac1f-4c93-b941-90c5755fd9a1",
+          "extent_error": 0.0,
+          "member_overlap": 81,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "d50800d1-9e6d-4086-b7f5-4f8aa3f50e0c",
+          "center_error": 0.0,
+          "clean_entity_uid": "d50800d1-9e6d-4086-b7f5-4f8aa3f50e0c",
+          "extent_error": 0.0,
+          "member_overlap": 109,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "b3f2c54a-4fc9-49b6-923f-ce18409b4968",
+          "center_error": 0.0,
+          "clean_entity_uid": "b3f2c54a-4fc9-49b6-923f-ce18409b4968",
+          "extent_error": 0.0,
+          "member_overlap": 18,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "03f74338-c722-4f01-92d8-e65070b928e2",
+          "center_error": 0.0,
+          "clean_entity_uid": "03f74338-c722-4f01-92d8-e65070b928e2",
+          "extent_error": 0.0,
+          "member_overlap": 124,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "cbbfeff4-0d84-4b04-a3d1-9f9b5e246dfe",
+          "center_error": 0.0,
+          "clean_entity_uid": "cbbfeff4-0d84-4b04-a3d1-9f9b5e246dfe",
+          "extent_error": 0.0,
+          "member_overlap": 31,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "85507977-02a1-4b74-9403-e66a528ee3da",
+          "center_error": 0.0,
+          "clean_entity_uid": "85507977-02a1-4b74-9403-e66a528ee3da",
+          "extent_error": 0.0,
+          "member_overlap": 36,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "19e73046-251c-4c6a-9807-9c79c7d1f62a",
+          "center_error": 0.0,
+          "clean_entity_uid": "19e73046-251c-4c6a-9807-9c79c7d1f62a",
+          "extent_error": 0.0,
+          "member_overlap": 72,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "c8f5e9f5-e1c5-4352-9083-e6f0130868cd",
+          "center_error": 0.0,
+          "clean_entity_uid": "c8f5e9f5-e1c5-4352-9083-e6f0130868cd",
+          "extent_error": 0.0,
+          "member_overlap": 92,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "c2088c21-a813-4d2e-8af3-7268bd467fe5",
+          "center_error": 0.0,
+          "clean_entity_uid": "c2088c21-a813-4d2e-8af3-7268bd467fe5",
+          "extent_error": 0.0,
+          "member_overlap": 63,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "600a376c-16f7-4e58-9802-ccfd17629bb4",
+          "center_error": 0.0,
+          "clean_entity_uid": "600a376c-16f7-4e58-9802-ccfd17629bb4",
+          "extent_error": 0.0,
+          "member_overlap": 25,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "7a590db2-07dc-4611-8771-e6bd22d1df85",
+          "center_error": 0.0,
+          "clean_entity_uid": "7a590db2-07dc-4611-8771-e6bd22d1df85",
+          "extent_error": 0.0,
+          "member_overlap": 1,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "af72396d-bcf6-48f7-85c6-e960e8e622c8",
+          "center_error": 0.0,
+          "clean_entity_uid": "af72396d-bcf6-48f7-85c6-e960e8e622c8",
+          "extent_error": 0.0,
+          "member_overlap": 131,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "750efaad-f2be-4c07-8f4a-36a3a7f40a89",
+          "center_error": 0.0,
+          "clean_entity_uid": "750efaad-f2be-4c07-8f4a-36a3a7f40a89",
+          "extent_error": 0.0,
+          "member_overlap": 72,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "a9113450-0d1a-4081-a2e8-f16ae1786436",
+          "center_error": 0.0,
+          "clean_entity_uid": "a9113450-0d1a-4081-a2e8-f16ae1786436",
+          "extent_error": 0.0,
+          "member_overlap": 88,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "36519b80-463f-49b7-9bf8-46c75b1a93c7",
+          "center_error": 0.0,
+          "clean_entity_uid": "36519b80-463f-49b7-9bf8-46c75b1a93c7",
+          "extent_error": 0.0,
+          "member_overlap": 1,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "3ca37ff6-d6e0-4f4c-96b4-07471865d06e",
+          "center_error": 0.0,
+          "clean_entity_uid": "3ca37ff6-d6e0-4f4c-96b4-07471865d06e",
+          "extent_error": 0.0,
+          "member_overlap": 30,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "ac685b38-859e-417a-9fa0-836c681dfea0",
+          "center_error": 0.0,
+          "clean_entity_uid": "ac685b38-859e-417a-9fa0-836c681dfea0",
+          "extent_error": 0.0,
+          "member_overlap": 4,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "aa48e0cf-22d0-4669-9ccb-95b7e34c2a13",
+          "center_error": 0.0,
+          "clean_entity_uid": "aa48e0cf-22d0-4669-9ccb-95b7e34c2a13",
+          "extent_error": 0.0,
+          "member_overlap": 1,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "136100b2-d769-4023-86cd-8b2a9e6efe77",
+          "center_error": 0.0,
+          "clean_entity_uid": "136100b2-d769-4023-86cd-8b2a9e6efe77",
+          "extent_error": 0.0,
+          "member_overlap": 1,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "da915866-de68-4cb7-adc0-eb4185b27577",
+          "center_error": 0.0,
+          "clean_entity_uid": "da915866-de68-4cb7-adc0-eb4185b27577",
+          "extent_error": 0.0,
+          "member_overlap": 16,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "2f3636f2-cf71-4495-833f-c81ed1849267",
+          "center_error": 0.0,
+          "clean_entity_uid": "2f3636f2-cf71-4495-833f-c81ed1849267",
+          "extent_error": 0.0,
+          "member_overlap": 1,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "4c9f4ff1-881c-4c05-80c8-99957dc607df",
+          "center_error": 0.0,
+          "clean_entity_uid": "4c9f4ff1-881c-4c05-80c8-99957dc607df",
+          "extent_error": 0.0,
+          "member_overlap": 1,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "a1fe80f5-a8ca-4e97-87f4-cbee42f02bac",
+          "center_error": 0.0,
+          "clean_entity_uid": "a1fe80f5-a8ca-4e97-87f4-cbee42f02bac",
+          "extent_error": 0.0,
+          "member_overlap": 2,
+          "point_support": 1.0
+        },
+        {
+          "bbox_iou": 1.0,
+          "candidate_entity_uid": "190a66ac-6758-4e63-ab2f-a692aff6671e",
+          "center_error": 0.0,
+          "clean_entity_uid": "190a66ac-6758-4e63-ab2f-a692aff6671e",
+          "extent_error": 0.0,
+          "member_overlap": 4,
+          "point_support": 1.0
+        }
+      ],
+      "point_support": 1.0
+    },
+    "global_applied_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+    "global_full_replay_runtime_ms": 98837.2206762433,
+    "global_owner": {
+      "c8f5e9f5-e1c5-4352-9083-e6f0130868cd": [
+        "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000015_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000015_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000015_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0010",
+        "office0_20260820T090828Z_fbd2d994_f000017_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000017_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000017_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000018_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000018_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000019_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000020_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000020_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000021_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000021_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000022_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000022_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000023_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000023_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000023_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000024_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000024_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000024_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000025_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000026_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000027_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000028_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000028_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000028_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000029_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000089_r0011",
+        "office0_20260820T090828Z_fbd2d994_f000095_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000100_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000100_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000101_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000102_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000102_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000103_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000103_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000104_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000104_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000104_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000105_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000106_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000107_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000108_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000109_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000109_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000109_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000110_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000179_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000180_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000181_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000182_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000182_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000183_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000184_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000185_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000186_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000187_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000188_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000188_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000189_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000189_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0006",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000192_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000192_r0006",
+        "office0_20260820T090828Z_fbd2d994_f000192_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000193_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000193_r0006",
+        "office0_20260820T090828Z_fbd2d994_f000193_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000194_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000195_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000196_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000197_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000198_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000198_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000199_r0000"
+      ]
+    },
+    "local_applied_target_origin_obs_uid": "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+    "local_owner": {
+      "c8f5e9f5-e1c5-4352-9083-e6f0130868cd": [
+        "office0_20260820T090828Z_fbd2d994_f000013_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000014_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000015_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000015_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000015_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000016_r0010",
+        "office0_20260820T090828Z_fbd2d994_f000017_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000017_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000017_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000018_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000018_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000019_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000020_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000020_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000021_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000021_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000022_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000022_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000023_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000023_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000023_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000024_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000024_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000024_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000025_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000026_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000027_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000028_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000028_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000028_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000029_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000089_r0011",
+        "office0_20260820T090828Z_fbd2d994_f000095_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000100_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000100_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000101_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000102_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000102_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000103_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000103_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000104_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000104_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000104_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000105_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000106_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000107_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000108_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000109_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000109_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000109_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000110_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000179_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000180_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000181_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000182_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000182_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000183_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000184_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000185_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000186_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000187_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000188_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000188_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000189_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000189_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0004",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0006",
+        "office0_20260820T090828Z_fbd2d994_f000190_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0005",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000191_r0009",
+        "office0_20260820T090828Z_fbd2d994_f000192_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000192_r0006",
+        "office0_20260820T090828Z_fbd2d994_f000192_r0008",
+        "office0_20260820T090828Z_fbd2d994_f000193_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000193_r0006",
+        "office0_20260820T090828Z_fbd2d994_f000193_r0007",
+        "office0_20260820T090828Z_fbd2d994_f000194_r0002",
+        "office0_20260820T090828Z_fbd2d994_f000195_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000196_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000197_r0001",
+        "office0_20260820T090828Z_fbd2d994_f000198_r0000",
+        "office0_20260820T090828Z_fbd2d994_f000198_r0003",
+        "office0_20260820T090828Z_fbd2d994_f000199_r0000"
+      ]
+    },
+    "local_suffix_wall_ms": 6489.496998488903,
+    "membership": {
+      "comparison_scope": "UNION_OF_BOTH_PARTITIONS",
+      "first_duplicate_observations": [],
+      "first_observation_count": 1560,
+      "first_partition_mismatch_observations": [],
+      "member_f1": 1.0,
+      "member_precision": 1.0,
+      "member_recall": 1.0,
+      "missing_from_first": [],
+      "missing_from_second": [],
+      "observation_count": 1560,
+      "partition_exact": true,
+      "partition_mismatch_observation_count": 0,
+      "second_duplicate_observations": [],
+      "second_observation_count": 1560
+    }
+  },
+  "obs_uid": "office0_20260820T090828Z_fbd2d994_f000191_r0002",
+  "pass": true,
+  "payload_uid": "geometry_payload_f98b7c8c17f2e8139e81",
+  "production_commit_permitted": false,
+  "schema_version": "1.0.0",
+  "source_artifact_hashes_after": {
+    "depth": "8e1d27f81f0fe0e7d1bec74de35ece6ea4d366dbcf43ec9fded4610068e1d019",
+    "original_observation_pcd": "b451a924a99ee8f9a70fc640adc28c5996fa987ef31c6a03900cf943ca458100",
+    "processed_mask": "b94c6aa1dd036107da0ffd43e147054a474bdfe3c77b1f8b344cbb440bce5e23",
+    "raw_mask": "7ca28fd619480641532bc26cd5d181bb8954f1495b3d7e54d4e4943c15e872c8",
+    "rgb": "8923515c6f96883b10052e78f41a79505f74055ecf65596508d9034ae9608e38"
+  },
+  "source_artifact_hashes_before": {
+    "depth": "8e1d27f81f0fe0e7d1bec74de35ece6ea4d366dbcf43ec9fded4610068e1d019",
+    "original_observation_pcd": "b451a924a99ee8f9a70fc640adc28c5996fa987ef31c6a03900cf943ca458100",
+    "processed_mask": "b94c6aa1dd036107da0ffd43e147054a474bdfe3c77b1f8b344cbb440bce5e23",
+    "raw_mask": "7ca28fd619480641532bc26cd5d181bb8954f1495b3d7e54d4e4943c15e872c8",
+    "rgb": "8923515c6f96883b10052e78f41a79505f74055ecf65596508d9034ae9608e38"
+  },
+  "source_hashes_after": {
+    "associations.jsonl": "1f5eaebbbf711ad680b0fd908b728ef32fcc2bbc04a42509ec74e3c7e84ff4a5",
+    "final_membership.json": "8f9a4299788c84d6a3930f2f349455acd5eaccac37bae029ec137cb64eda74fe",
+    "mapping_events.jsonl": "9650702ad2ba5f634d45ff879ea177ff6b3c892c11fcdff227bbd4dc9ae5e83f",
+    "object_pair_decisions.jsonl": "b22cc09f5980eda171d1392b32eddf5f64ee439ea45dee363cd85f4bc91743e8",
+    "object_versions.jsonl": "03179c1e4b7daf55c94e9f92588e6a21078a45c58868770d979108b802b704fa",
+    "observations.jsonl": "ec56b165d65f6fc85eb0a890f5aa4f0e5b00eb34c41acb6cf0954cf830414393"
+  },
+  "source_hashes_before": {
+    "associations.jsonl": "1f5eaebbbf711ad680b0fd908b728ef32fcc2bbc04a42509ec74e3c7e84ff4a5",
+    "final_membership.json": "8f9a4299788c84d6a3930f2f349455acd5eaccac37bae029ec137cb64eda74fe",
+    "mapping_events.jsonl": "9650702ad2ba5f634d45ff879ea177ff6b3c892c11fcdff227bbd4dc9ae5e83f",
+    "object_pair_decisions.jsonl": "b22cc09f5980eda171d1392b32eddf5f64ee439ea45dee363cd85f4bc91743e8",
+    "object_versions.jsonl": "03179c1e4b7daf55c94e9f92588e6a21078a45c58868770d979108b802b704fa",
+    "observations.jsonl": "ec56b165d65f6fc85eb0a890f5aa4f0e5b00eb34c41acb6cf0954cf830414393"
+  },
+  "verification": {
+    "checks": {
+      "R10_sources_immutable": true,
+      "R11_scope_overlay": true,
+      "R1_unique_owner": true,
+      "R2_evidence_and_object_refs": true,
+      "R3_R4_finite_geometry": true,
+      "R6_constraint_satisfied": true,
+      "R7_R8_edges_structural": true
+    },
+    "hard_invariant_failures": [],
+    "pass": true,
+    "schema_version": "1.0.0"
+  }
+}

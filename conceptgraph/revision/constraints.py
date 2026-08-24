@@ -5,6 +5,8 @@ import json
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import Any, Iterable, Mapping, Sequence
+
+from .geometry import ObservationGeometryContract
 from .partition import ObservationPartitionContract
 
 
@@ -25,6 +27,7 @@ class ConstraintType(str, Enum):
     ASSIGN_OBSERVATION = "ASSIGN_OBSERVATION"
     CREATE_INSTANCE = "CREATE_INSTANCE"
     PARTITION_OBSERVATION = "PARTITION_OBSERVATION"
+    RESTORE_OBSERVATION_GEOMETRY = "RESTORE_OBSERVATION_GEOMETRY"
     PARTITION_ENTITY = "PARTITION_ENTITY"
     RELABEL = "RELABEL"
     DEFER = "DEFER"
@@ -75,6 +78,7 @@ class SparseRepairConstraint:
     created_identity_uid: str | None = None
     separate_from_identity_uids: tuple[str, ...] = ()
     partition_contract: dict[str, Any] | None = None
+    geometry_contract: dict[str, Any] | None = None
     entity_uid: str | None = None
     groups: dict[str, tuple[str, ...]] = field(default_factory=dict)
     label: str | None = None
@@ -146,6 +150,23 @@ class SparseRepairConstraint:
             object.__setattr__(self, "partition_contract", parsed_partition.as_dict())
         elif self.partition_contract is not None:
             raise ValueError("partition_contract requires PARTITION_OBSERVATION")
+        if kind == ConstraintType.RESTORE_OBSERVATION_GEOMETRY:
+            if not self.obs_uid:
+                raise ValueError("RESTORE_OBSERVATION_GEOMETRY requires obs_uid")
+            if self.geometry_contract is None:
+                raise ValueError(
+                    "RESTORE_OBSERVATION_GEOMETRY requires geometry_contract"
+                )
+            parsed_geometry = ObservationGeometryContract.from_mapping(
+                self.geometry_contract
+            )
+            if parsed_geometry.obs_uid != self.obs_uid:
+                raise ValueError(
+                    "RESTORE_OBSERVATION_GEOMETRY obs_uid does not match its contract"
+                )
+            object.__setattr__(self, "geometry_contract", parsed_geometry.as_dict())
+        elif self.geometry_contract is not None:
+            raise ValueError("geometry_contract requires RESTORE_OBSERVATION_GEOMETRY")
         if kind == ConstraintType.PARTITION_ENTITY:
             if not self.entity_uid or len(self.groups) < 2:
                 raise ValueError(
@@ -190,6 +211,7 @@ class SparseRepairConstraint:
                 value.get("separate_from_identity_uids"), "separate_from_identity_uids"
             ),
             partition_contract=value.get("partition_contract"),
+            geometry_contract=value.get("geometry_contract"),
             entity_uid=value.get("entity_uid"),
             groups=groups,
             label=value.get("label"),
@@ -224,6 +246,8 @@ class SparseRepairConstraint:
             value.pop("separate_from_identity_uids", None)
         if self.partition_contract is None:
             value.pop("partition_contract", None)
+        if self.geometry_contract is None:
+            value.pop("geometry_contract", None)
         if not include_uid:
             value.pop("constraint_uid", None)
         return value
@@ -386,6 +410,19 @@ class ConstraintEngine:
                 raise ConstraintConflictError(
                     f"observation partition cannot share association scope {scope}"
                 )
+            geometry = [
+                item
+                for item in values
+                if item.constraint_type == ConstraintType.RESTORE_OBSERVATION_GEOMETRY
+            ]
+            if len(geometry) > 1:
+                raise ConstraintConflictError(
+                    f"multiple observation geometry restorations for scope {scope}"
+                )
+            if geometry and len(values) > 1:
+                raise ConstraintConflictError(
+                    f"geometry restoration cannot share association scope {scope}"
+                )
             if create and positive:
                 raise ConstraintConflictError(
                     f"scope {scope} requires both an existing target and a new instance"
@@ -457,6 +494,18 @@ class ConstraintEngine:
                 ConstraintAction.DEFER,
                 constraint_uids=uids,
                 reason="partition_observation_requires_pre_association_payload_stage",
+            )
+        geometry = [
+            item
+            for item in active
+            if item.constraint_type == ConstraintType.RESTORE_OBSERVATION_GEOMETRY
+        ]
+        if geometry:
+            return ConstraintDecision(
+                ConstraintAction.KEEP_NATURAL,
+                target_index=natural_match,
+                constraint_uids=uids,
+                reason="geometry_payload_overlay_applied_before_association",
             )
 
         positive = [
