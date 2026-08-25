@@ -150,6 +150,29 @@ def test_separation_compiles_to_pair_specific_create_boundary():
     assert constraint["separate_from_identity_uids"] == ["origin_target"]
 
 
+def test_associate_separation_compiles_to_deterministic_new_identity():
+    value = _binding().as_dict()
+    value["observed_current_decision"] = "ASSOCIATE"
+    value["created_entity_uid"] = None
+    value["created_identity_uid"] = None
+    binding = IncidentBinding.from_mapping(value)
+    aggregate = _aggregate(
+        "SEPARATE_MEMBER_GROUPS",
+        groups=[["ANCHOR"], ["CANDIDATE_1_CONTEXT"]],
+    )
+
+    compiled = compile_blind_candidate(aggregate, binding)
+
+    constraint = compiled["candidate_constraint"]
+    assert compiled["stage"] == GeneratorStage.BOUND_PENDING_SHADOW.value
+    assert constraint["type"] == "CREATE_INSTANCE"
+    assert constraint["created_entity_uid"] is None
+    assert constraint["created_identity_uid"] == (
+        "revision-lineage:scene_run_f000010_r0002"
+    )
+    assert constraint["separate_from_identity_uids"] == ["origin_target"]
+
+
 def test_identity_ambiguity_and_unsupported_families_fail_closed():
     value = _binding().as_dict()
     value["aliases"]["CANDIDATE_1_CONTEXT"]["identity_uids"] = [
@@ -199,6 +222,22 @@ def test_identity_hypothesis_enumeration_is_finite_complete_and_bound():
     assert len({item["constraint_fingerprint"] for item in hypotheses}) == len(
         hypotheses
     )
+
+
+def test_associate_hypothesis_enumeration_contains_distinct_opposite_action():
+    value = _binding().as_dict()
+    value["observed_current_decision"] = "ASSOCIATE"
+    value["created_entity_uid"] = None
+    value["created_identity_uid"] = None
+    hypotheses = enumerate_identity_hypotheses(
+        IncidentBinding.from_mapping(value),
+        candidate_aliases=["CANDIDATE_1_CONTEXT"],
+    )
+    assert [item["hypothesis_action"] for item in hypotheses] == [
+        "SAME_INSTANCE",
+        "SEPARATE_MEMBER_GROUPS",
+    ]
+    assert all(item["candidate_constraint"] for item in hypotheses)
 
 
 def test_identity_hypothesis_enumeration_rejects_unknown_alias():

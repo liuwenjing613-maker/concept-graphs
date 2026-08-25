@@ -505,22 +505,28 @@ def compile_blind_candidate(
             "target_entity_uid": target.entity_uid,
         }
     else:
-        if binding.observed_current_decision != "CREATE":
+        if binding.observed_current_decision == "CREATE":
+            if not binding.created_entity_uid or not binding.created_identity_uid:
+                return _deferred_compilation(
+                    binding, aggregate, "created_identity_binding_incomplete"
+                )
+            created_entity_uid = binding.created_entity_uid
+            created_identity_uid = binding.created_identity_uid
+        elif binding.observed_current_decision == "ASSOCIATE":
+            created_entity_uid = None
+            created_identity_uid = "revision-lineage:" + binding.obs_uid
+        else:
             return _deferred_compilation(
                 binding,
                 aggregate,
-                "separate_member_groups_requires_native_create_anchor",
-            )
-        if not binding.created_entity_uid or not binding.created_identity_uid:
-            return _deferred_compilation(
-                binding, aggregate, "created_identity_binding_incomplete"
+                "separate_member_groups_requires_native_create_or_associate",
             )
         constraint = {
             **common,
             "type": "CREATE_INSTANCE",
-            "created_entity_uid": binding.created_entity_uid,
-            "created_lineage_uid": binding.created_identity_uid,
-            "created_identity_uid": binding.created_identity_uid,
+            "created_entity_uid": created_entity_uid,
+            "created_lineage_uid": created_identity_uid,
+            "created_identity_uid": created_identity_uid,
             "separate_from_identity_uids": list(target.identity_uids),
         }
     try:
@@ -585,7 +591,7 @@ def enumerate_identity_hypotheses(
                 "evidence_image_ids": ["DETERMINISTIC_HYPOTHESIS_ENUMERATION"],
             }
         ]
-        if binding.observed_current_decision == "CREATE":
+        if binding.observed_current_decision in {"ASSOCIATE", "CREATE"}:
             proposals.append(
                 {
                     "action": AutomaticAction.SEPARATE_MEMBER_GROUPS.value,
