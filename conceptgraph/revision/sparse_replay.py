@@ -1915,6 +1915,47 @@ class SparseCounterfactualReplayEngine:
         snapshot_timing: Mapping[str, Any] | None = None,
         component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
     ) -> dict[str, Any]:
+        """Replay a suffix while preserving the historical state-only API."""
+
+        state, _ = self._replay_suffix_from_snapshot_impl(
+            mode=mode,
+            snapshot_objects=snapshot_objects,
+            snapshot_runtime_ms=snapshot_runtime_ms,
+            anchor_frame=anchor_frame,
+            snapshot_watermark_event_sequence=snapshot_watermark_event_sequence,
+            closure=closure,
+            current_state=current_state,
+            constraints=constraints,
+            corruption_plan=corruption_plan,
+            historical_anchor_plan=historical_anchor_plan,
+            snapshot_timing=snapshot_timing,
+            component_policy=component_policy,
+        )
+        return state
+
+    def replay_local_from_snapshot_with_objects(
+        self, **kwargs: Any
+    ) -> tuple[dict[str, Any], list[Mapping[str, Any]]]:
+        """Return the endpoint state plus affected raw replay objects."""
+
+        return self._replay_suffix_from_snapshot_impl(**kwargs)
+
+    def _replay_suffix_from_snapshot_impl(
+        self,
+        *,
+        mode: ReplayMode,
+        snapshot_objects: Any,
+        snapshot_runtime_ms: float,
+        anchor_frame: int,
+        snapshot_watermark_event_sequence: int,
+        closure: DependencyClosure,
+        current_state: Mapping[str, Any],
+        constraints: Iterable[SparseRepairConstraint | Mapping[str, Any]] = (),
+        corruption_plan: CorruptionPlan | Mapping[str, Any] | None = None,
+        historical_anchor_plan: CorruptionPlan | Mapping[str, Any] | None = None,
+        snapshot_timing: Mapping[str, Any] | None = None,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
+    ) -> tuple[dict[str, Any], list[Mapping[str, Any]]]:
         suffix_started = time.perf_counter()
         mode = ReplayMode(mode)
         if mode not in {
@@ -1958,7 +1999,7 @@ class SparseCounterfactualReplayEngine:
                 snapshot_watermark_event_sequence,
             )
             execute_started = time.perf_counter()
-            replay_state, _ = self._execute(
+            replay_state, replay_objects = self._execute(
                 mode=mode,
                 rows=rows,
                 frame_start=int(anchor_frame),
@@ -2044,4 +2085,82 @@ class SparseCounterfactualReplayEngine:
         # Keep the legacy field, but correct it to the complete suffix-call wall
         # time rather than only the last execution attempt.
         overlaid["runtime_ms"] = suffix_total_wall_ms
-        return overlaid
+        affected_objects = [
+            obj
+            for obj in replay_objects
+            if set(str(item) for item in obj.get("obs_uids", ())) & scoped
+        ]
+        return overlaid, affected_objects
+
+    def replay_causal_prefix_from_snapshot_with_objects(
+        self,
+        *,
+        mode: ReplayMode,
+        snapshot_objects: Any,
+        snapshot_runtime_ms: float,
+        anchor_frame: int,
+        cutoff_frame: int,
+        snapshot_watermark_event_sequence: int,
+        closure: DependencyClosure,
+        constraints: Iterable[SparseRepairConstraint | Mapping[str, Any]] = (),
+        current_state: Mapping[str, Any],
+        snapshot_timing: Mapping[str, Any] | None = None,
+        component_policy: (ReplayComponentPolicy | Mapping[str, Any] | None) = None,
+    ) -> tuple[dict[str, Any], list[Mapping[str, Any]]]:
+        """Replay only evidence strictly before a held-out verification frame.
+
+        The caller supplies cutoff_frame equal to verification_frame minus one.
+        Raw objects therefore contain the causal state available before the view
+        being scored and cannot self-explain with that view's own point cloud.
+        """
+
+        mode = ReplayMode(mode)
+        if mode not in {
+            ReplayMode.ANCHOR_ONLY_REPAIR,
+            ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY,
+        }:
+            raise ValueError("causal prefix replay requires a proposed repair mode")
+        if int(cutoff_frame) < int(anchor_frame):
+            raise ValueError("causal cutoff must not precede the anchor frame")
+        scoped = set(str(item) for item in closure.obs_uids)
+        _expand_observation_scope(
+            scoped,
+            current_state.get("membership") or {},
+        )
+        rows = self._rows_strictly_after_watermark(
+            [
+                row
+                for row in self._all_rows
+                if str(row["obs_uid"]) in scoped
+                and int(anchor_frame)
+                <= _frame_index(str(row["frame_uid"]))
+                <= int(cutoff_frame)
+            ],
+            snapshot_watermark_event_sequence,
+        )
+        state, objects = self._execute(
+            mode=mode,
+            rows=rows,
+            frame_start=int(anchor_frame),
+            frame_end=int(cutoff_frame),
+            initial_objects=snapshot_objects,
+            constraints=constraints,
+            final_scene_frame=self.final_frame,
+            frozen_recorded_frame=int(anchor_frame),
+            scope="dependency_bounded_causal_prefix",
+            snapshot_runtime_ms=snapshot_runtime_ms,
+            component_policy=component_policy,
+        )
+        affected_objects = [
+            obj
+            for obj in objects
+            if set(str(item) for item in obj.get("obs_uids", ())) & scoped
+        ]
+        state["closure"] = closure.as_dict()
+        state["causal_cutoff_frame"] = int(cutoff_frame)
+        state["verification_frame_must_be_after"] = int(cutoff_frame)
+        state["snapshot_timing"] = dict(snapshot_timing or {})
+        state[
+            "causal_geometry_policy"
+        ] = "LEAVE_ONE_VERIFICATION_FRAME_OUT_REPLAY_THROUGH_PREVIOUS_FRAME"
+        return state, affected_objects

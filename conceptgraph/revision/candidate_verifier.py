@@ -13,6 +13,10 @@ from dataclasses import asdict, dataclass
 from typing import Any, Mapping, Sequence
 
 from .auto_constraints import forbidden_inference_paths
+from .counterfactual_projection import (
+    CMVIC_STATISTIC_NAME,
+    CMVICResult,
+)
 from .evidence_split import EvidenceSplitManifest
 
 
@@ -41,6 +45,7 @@ class CandidateEvidenceScore:
     vlm_pairwise_preference: float | None
     valid: bool
     verification_observation_count: int
+    evidence_policy_uid: str
     diagnostics: dict[str, Any]
     score_uid: str
 
@@ -58,6 +63,7 @@ class CandidateEvidenceScore:
         verification_observation_count: int,
         diagnostics: Mapping[str, Any],
         vlm_pairwise_preference: float | None = None,
+        evidence_policy_uid: str | None = None,
     ) -> "CandidateEvidenceScore":
         primary = float(primary_score)
         noop = float(noop_primary_score)
@@ -77,6 +83,9 @@ class CandidateEvidenceScore:
             "vlm_pairwise_preference": vlm_pairwise_preference,
             "valid": bool(valid),
             "verification_observation_count": int(verification_observation_count),
+            "evidence_policy_uid": str(
+                evidence_policy_uid or "LEGACY_UNDECLARED_EVIDENCE_POLICY"
+            ),
             "diagnostics": dict(diagnostics),
         }
         forbidden = forbidden_inference_paths(payload)
@@ -215,29 +224,73 @@ class CandidateVerifier:
         split: EvidenceSplitManifest,
         runtime_valid: bool,
         vlm_pairwise_preference: float | None = None,
+        primary_scorer: str = "ASSIGNMENT_LIKELIHOOD",
+        candidate_cmvic: CMVICResult | None = None,
+        noop_cmvic: CMVICResult | None = None,
     ) -> CandidateEvidenceScore:
         if not split.verification_available:
             raise ValueError("independent verification evidence is unavailable")
-        noop = self.identity_scorer.score(state=noop_state, split=split)
-        candidate = self.identity_scorer.score(state=candidate_state, split=split)
+        assignment_noop = self.identity_scorer.score(state=noop_state, split=split)
+        assignment_candidate = self.identity_scorer.score(
+            state=candidate_state, split=split
+        )
+        scorer = str(primary_scorer).strip().upper()
+        if scorer in {"ASSIGNMENT", "ASSIGNMENT_LIKELIHOOD"}:
+            primary_statistic = self.identity_scorer.statistic_name
+            primary_score = assignment_candidate.score
+            noop_primary_score = assignment_noop.score
+            observation_count = assignment_candidate.observation_count
+            evidence_policy_uid = split.manifest_uid
+            primary_diagnostics = {
+                "noop": assignment_noop.diagnostics,
+                "candidate": assignment_candidate.diagnostics,
+            }
+        elif scorer == "CMVIC":
+            if candidate_cmvic is None or noop_cmvic is None:
+                raise ValueError("CMVIC primary scoring requires both state results")
+            if candidate_cmvic.evidence_policy_uid != noop_cmvic.evidence_policy_uid:
+                raise ValueError("candidate and NO-OP CMVIC evidence policies differ")
+            primary_statistic = CMVIC_STATISTIC_NAME
+            primary_score = candidate_cmvic.score
+            noop_primary_score = noop_cmvic.score
+            observation_count = len(candidate_cmvic.frame_results)
+            evidence_policy_uid = candidate_cmvic.evidence_policy_uid
+            primary_diagnostics = {
+                "counterfactual_observable": candidate_cmvic.observable,
+                "projected_difference_pixel_count": (
+                    candidate_cmvic.projected_difference_pixel_count
+                ),
+                "noop_score_uid": noop_cmvic.score_uid,
+                "candidate_score_uid": candidate_cmvic.score_uid,
+                "frame_count": observation_count,
+            }
+        else:
+            raise ValueError(f"unsupported identity primary scorer: {primary_scorer}")
         diagnostics = {
-            "noop": noop.diagnostics,
-            "candidate": candidate.diagnostics,
+            **primary_diagnostics,
             "evidence_split_uid": split.manifest_uid,
             "evidence_sequestered": True,
             "mapper_likelihood_is_not_independent_truth": True,
+            "diagnostic_assignment_likelihood": {
+                "noop_score": assignment_noop.score,
+                "candidate_score": assignment_candidate.score,
+                "advantage": (assignment_candidate.score - assignment_noop.score),
+                "noop": assignment_noop.diagnostics,
+                "candidate": assignment_candidate.diagnostics,
+            },
         }
         return CandidateEvidenceScore.build(
             incident_uid=incident_uid,
             candidate_uid=candidate_uid,
             capability="IDENTITY",
-            primary_statistic=self.identity_scorer.statistic_name,
-            primary_score=candidate.score,
-            noop_primary_score=noop.score,
+            primary_statistic=primary_statistic,
+            primary_score=primary_score,
+            noop_primary_score=noop_primary_score,
             valid=runtime_valid,
-            verification_observation_count=candidate.observation_count,
+            verification_observation_count=observation_count,
             diagnostics=diagnostics,
             vlm_pairwise_preference=vlm_pairwise_preference,
+            evidence_policy_uid=evidence_policy_uid,
         )
 
 

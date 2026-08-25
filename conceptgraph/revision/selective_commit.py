@@ -43,6 +43,9 @@ class CalibrationArtifact:
     fit_negative_count: int
     target_harm_rate: float
     source_hashes: dict[str, str]
+    primary_statistic: str
+    evidence_policy_uid: str
+    evidence_schema_declared: bool
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "CalibrationArtifact":
@@ -70,6 +73,9 @@ class CalibrationArtifact:
             str(key): str(digest)
             for key, digest in (value.get("source_hashes") or {}).items()
         }
+        schema_declared = (
+            "primary_statistic" in value and "evidence_policy_uid" in value
+        )
         payload = {
             "capability": str(value.get("capability") or "").upper(),
             "feature_names": list(feature_names),
@@ -83,6 +89,9 @@ class CalibrationArtifact:
             "target_harm_rate": target_harm_rate,
             "source_hashes": source_hashes,
         }
+        if schema_declared:
+            payload["primary_statistic"] = str(value["primary_statistic"])
+            payload["evidence_policy_uid"] = str(value["evidence_policy_uid"])
         expected_uid = _uid("calibration_", payload)
         supplied_uid = str(value.get("calibration_uid") or "")
         if supplied_uid and supplied_uid != expected_uid:
@@ -100,7 +109,31 @@ class CalibrationArtifact:
             fit_negative_count=payload["fit_negative_count"],
             target_harm_rate=target_harm_rate,
             source_hashes=source_hashes,
+            primary_statistic=str(
+                value.get("primary_statistic")
+                or "HELD_OUT_APPLIED_ASSIGNMENT_LOG_LIKELIHOOD"
+            ),
+            evidence_policy_uid=str(
+                value.get("evidence_policy_uid")
+                or "LEGACY_ANY_ASSIGNMENT_EVIDENCE_POLICY"
+            ),
+            evidence_schema_declared=schema_declared,
         )
+
+    def compatibility_reasons(self, score: CandidateEvidenceScore) -> tuple[str, ...]:
+        reasons = []
+        if not self.evidence_schema_declared:
+            if (
+                score.primary_statistic
+                == "COUNTERFACTUAL_MULTI_VIEW_INSTANCE_CONSISTENCY"
+            ):
+                reasons.append("calibration_evidence_schema_undeclared")
+            return tuple(reasons)
+        if score.primary_statistic != self.primary_statistic:
+            reasons.append("calibration_primary_statistic_mismatch")
+        if score.evidence_policy_uid != self.evidence_policy_uid:
+            reasons.append("calibration_evidence_policy_mismatch")
+        return tuple(reasons)
 
     def predict(self, score: CandidateEvidenceScore) -> float:
         if score.capability != self.capability:
@@ -140,14 +173,20 @@ def decide_selective_commit(
 
     rows = []
     for candidate in candidates:
-        probability = (
-            calibration.predict(candidate.score) if candidate.score.valid else 0.0
-        )
+        compatibility_reasons = calibration.compatibility_reasons(candidate.score)
+        schema_compatible = not compatibility_reasons
+        valid = bool(candidate.score.valid and schema_compatible)
+        probability = calibration.predict(candidate.score) if valid else 0.0
         rows.append(
             {
                 "candidate_uid": candidate.score.candidate_uid,
                 "score_uid": candidate.score.score_uid,
-                "valid": candidate.score.valid,
+                "runtime_valid": candidate.score.valid,
+                "valid": valid,
+                "schema_compatible": schema_compatible,
+                "schema_defer_reasons": list(compatibility_reasons),
+                "candidate_primary_statistic": (candidate.score.primary_statistic),
+                "candidate_evidence_policy_uid": (candidate.score.evidence_policy_uid),
                 "benefit_probability": probability,
                 "candidate_constraint": dict(candidate.candidate_constraint),
             }
@@ -157,7 +196,19 @@ def decide_selective_commit(
         reasons.append("calibration_not_ready_for_automatic_commit")
     valid_rows = [row for row in rows if row["valid"]]
     if not valid_rows:
-        reasons.append("no_runtime_valid_candidate")
+        runtime_valid_rows = [row for row in rows if row["runtime_valid"]]
+        if runtime_valid_rows:
+            mismatch_reasons = sorted(
+                {
+                    reason
+                    for row in runtime_valid_rows
+                    for reason in row["schema_defer_reasons"]
+                }
+            )
+            reasons.extend(mismatch_reasons)
+            reasons.append("no_calibration_compatible_candidate")
+        else:
+            reasons.append("no_runtime_valid_candidate")
         best = None
     else:
         best_probability = max(row["benefit_probability"] for row in valid_rows)
@@ -177,6 +228,9 @@ def decide_selective_commit(
         "semantic_commit_threshold_count": 1,
         "commit_threshold": calibration.commit_threshold,
         "calibration_uid": calibration.calibration_uid,
+        "calibration_primary_statistic": calibration.primary_statistic,
+        "calibration_evidence_policy_uid": calibration.evidence_policy_uid,
+        "calibration_evidence_schema_declared": calibration.evidence_schema_declared,
         "selected_candidate_uid": best["candidate_uid"] if commit else None,
         "selected_benefit_probability": (
             best["benefit_probability"] if best is not None else None
