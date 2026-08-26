@@ -114,6 +114,7 @@ def main() -> int:
     parser.add_argument("--exp-suffix", required=True)
     parser.add_argument("--detections-exp-suffix", default="room0_detections_stride10")
     parser.add_argument("--reuse-experiment-root", type=Path)
+    parser.add_argument("--output-subdir", default="online_mvp")
     parser.add_argument("--mapping-gpu", default="0")
     parser.add_argument("--replay-gpu", default="1")
     parser.add_argument("--api-key-count", type=int, default=5)
@@ -131,6 +132,8 @@ def main() -> int:
         raise ValueError("ali-my-new MVP is intentionally frozen to stride=10")
     if args.api_key_count < 1 and not args.no_vlm:
         raise ValueError("at least one API key is required")
+    if Path(args.output_subdir).name != args.output_subdir:
+        raise ValueError("output-subdir must be one plain directory name")
     project_root = Path(args.project_root).resolve()
     worktree = Path(args.worktree).resolve()
     if args.reuse_experiment_root:
@@ -139,7 +142,7 @@ def main() -> int:
         experiment_root = (
             project_root / "data" / "Replica" / args.scene / "exps" / args.exp_suffix
         )
-    output_root = experiment_root / "online_mvp"
+    output_root = experiment_root / args.output_subdir
     if output_root.exists() and any(output_root.iterdir()):
         raise FileExistsError(f"refusing to overwrite online output: {output_root}")
     output_root.mkdir(parents=True, exist_ok=True)
@@ -159,6 +162,7 @@ def main() -> int:
     protocol = {
         "schema_version": "0.1.0",
         "experiment_root": str(experiment_root),
+        "output_subdir": args.output_subdir,
         "worktree": str(worktree),
         "scene": args.scene,
         "start": args.start,
