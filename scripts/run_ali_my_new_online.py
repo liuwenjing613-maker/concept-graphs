@@ -294,12 +294,13 @@ def main() -> int:
                             "issue": issue.as_dict(),
                         },
                     )
-                tickets.refresh(
-                    ledger=ledger,
-                    tracker=tracker,
-                    task_context=task_context,
-                    stop_sequence=ledger.max_sequence,
-                )
+                if not args.reuse_experiment_root:
+                    tickets.refresh(
+                        ledger=ledger,
+                        tracker=tracker,
+                        task_context=task_context,
+                        stop_sequence=ledger.max_sequence,
+                    )
                 if committed_frame % 10 == 0:
                     print(
                         "WATERMARK "
@@ -308,6 +309,16 @@ def main() -> int:
                         f"shadow={shadows_started}",
                         flush=True,
                     )
+
+            if committed and args.reuse_experiment_root:
+                # A completed ledger arrives as one batch; ranking every historical
+                # frame would repeat the same full causal closure hundreds of times.
+                tickets.refresh(
+                    ledger=ledger,
+                    tracker=tracker,
+                    task_context=task_context,
+                    stop_sequence=ledger.max_sequence,
+                )
 
             for slot, future in list(slot_futures.items()):
                 if not future.done():
