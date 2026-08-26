@@ -43,6 +43,26 @@ def test_jsonl_tail_waits_for_complete_line(tmp_path: Path) -> None:
     assert tail.poll() == []
 
 
+def test_jsonl_tail_freezes_file_length_per_poll(tmp_path: Path, monkeypatch) -> None:
+    path = tmp_path / "rows.jsonl"
+    _append(path, {"a": 1})
+    tail = JsonlTail(path)
+    original_stat = Path.stat
+    appended = False
+
+    def stat_then_append(self: Path, *args, **kwargs):
+        nonlocal appended
+        result = original_stat(self, *args, **kwargs)
+        if self == path and not appended:
+            _append(path, {"a": 2})
+            appended = True
+        return result
+
+    monkeypatch.setattr(Path, "stat", stat_then_append)
+    assert tail.poll() == [{"a": 1}]
+    assert tail.poll() == [{"a": 2}]
+
+
 def test_ledger_commits_with_one_frame_delay(tmp_path: Path) -> None:
     evidence = tmp_path / "evidence"
     for name in (

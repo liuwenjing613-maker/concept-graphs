@@ -117,26 +117,34 @@ class JsonlTail:
         self.position = 0
 
     def poll(self) -> list[dict[str, Any]]:
-        if not self.path.is_file():
+        try:
+            snapshot_size = self.path.stat().st_size
+        except FileNotFoundError:
             return []
-        rows: list[dict[str, Any]] = []
-        with self.path.open("r", encoding="utf-8") as handle:
+        if self.position > snapshot_size:
+            self.position = 0
+        if self.position == snapshot_size:
+            return []
+
+        # Freeze the readable boundary for this poll.  Otherwise a fast writer can
+        # keep moving EOF and starve the online control loop indefinitely.
+        with self.path.open("rb") as handle:
             handle.seek(self.position)
-            while True:
-                start = handle.tell()
-                line = handle.readline()
-                if not line:
-                    break
-                if not line.endswith("\n"):
-                    handle.seek(start)
-                    break
-                self.position = handle.tell()
-                if not line.strip():
-                    continue
-                value = json.loads(line)
-                if not isinstance(value, dict):
-                    raise ValueError(f"{self.path}: JSONL row is not an object")
-                rows.append(value)
+            payload = handle.read(snapshot_size - self.position)
+        complete_end = payload.rfind(b"\n")
+        if complete_end < 0:
+            return []
+        complete = payload[: complete_end + 1]
+        self.position += len(complete)
+
+        rows: list[dict[str, Any]] = []
+        for raw_line in complete.splitlines():
+            if not raw_line.strip():
+                continue
+            value = json.loads(raw_line.decode("utf-8"))
+            if not isinstance(value, dict):
+                raise ValueError(f"{self.path}: JSONL row is not an object")
+            rows.append(value)
         return rows
 
 
