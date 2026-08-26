@@ -11,6 +11,7 @@ from conceptgraph.revision.online_mvp import (
     SubIssue,
     TaskContext,
     TicketStore,
+    final_scene_metric_gate,
     scene_health_metrics,
 )
 
@@ -215,3 +216,26 @@ def test_scene_health_metrics_are_label_free() -> None:
     assert metrics["weighted_semantic_purity"] == 1.0
     assert metrics["duplicate_ownership_count"] == 0
     assert not any("gold" in key or "label" in key for key in metrics)
+
+
+def test_final_scene_metric_gate_rejects_loss_and_collapse() -> None:
+    baseline = {
+        "state_hash": "a",
+        "observation_count": 100,
+        "object_count": 20,
+        "weighted_semantic_purity": 0.8,
+        "singleton_object_rate": 0.2,
+        "low_purity_object_rate": 0.1,
+        "duplicate_ownership_count": 0,
+        "invalid_geometry_object_count": 0,
+    }
+    candidate = {
+        **baseline,
+        "state_hash": "b",
+        "observation_count": 99,
+        "object_count": 15,
+    }
+    gate = final_scene_metric_gate(baseline, candidate)
+    assert gate["partition_changed"]
+    assert not gate["observation_count_conserved"]
+    assert not gate["object_count_not_collapsed"]

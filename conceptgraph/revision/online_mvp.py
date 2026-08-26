@@ -1711,6 +1711,36 @@ def run_shadow_validation(
         return result
 
 
+def final_scene_metric_gate(
+    baseline_metrics: Mapping[str, Any], candidate_metrics: Mapping[str, Any]
+) -> dict[str, bool]:
+    baseline_object_count = int(baseline_metrics["object_count"])
+    minimum_object_count = max(1, math.floor(0.90 * baseline_object_count))
+    return {
+        "partition_changed": candidate_metrics["state_hash"] != baseline_metrics["state_hash"],
+        "observation_count_conserved": (
+            candidate_metrics["observation_count"] == baseline_metrics["observation_count"]
+        ),
+        "object_count_not_collapsed": (
+            int(candidate_metrics["object_count"]) >= minimum_object_count
+        ),
+        "semantic_purity_not_degraded": (
+            candidate_metrics["weighted_semantic_purity"]
+            >= baseline_metrics["weighted_semantic_purity"] - 0.01
+        ),
+        "singleton_rate_not_degraded": (
+            candidate_metrics["singleton_object_rate"]
+            <= baseline_metrics["singleton_object_rate"] + 0.01
+        ),
+        "low_purity_rate_not_degraded": (
+            candidate_metrics["low_purity_object_rate"]
+            <= baseline_metrics["low_purity_object_rate"] + 0.02
+        ),
+        "no_duplicate_ownership": candidate_metrics["duplicate_ownership_count"] == 0,
+        "no_invalid_geometry": candidate_metrics["invalid_geometry_object_count"] == 0,
+    }
+
+
 def run_final_combined_replay(
     *,
     experiment_root: str | Path,
@@ -1787,23 +1817,7 @@ def run_final_combined_replay(
     )
     baseline_metrics = scene_health_metrics(baseline)
     candidate_metrics = scene_health_metrics(candidate)
-    metric_gate = {
-        "partition_changed": candidate.get("state_hash") != baseline.get("state_hash"),
-        "semantic_purity_not_degraded": (
-            candidate_metrics["weighted_semantic_purity"]
-            >= baseline_metrics["weighted_semantic_purity"] - 0.01
-        ),
-        "singleton_rate_not_degraded": (
-            candidate_metrics["singleton_object_rate"]
-            <= baseline_metrics["singleton_object_rate"] + 0.01
-        ),
-        "low_purity_rate_not_degraded": (
-            candidate_metrics["low_purity_object_rate"]
-            <= baseline_metrics["low_purity_object_rate"] + 0.02
-        ),
-        "no_duplicate_ownership": candidate_metrics["duplicate_ownership_count"] == 0,
-        "no_invalid_geometry": candidate_metrics["invalid_geometry_object_count"] == 0,
-    }
+    metric_gate = final_scene_metric_gate(baseline_metrics, candidate_metrics)
     activated = bool(
         constraints
         and verification["pass"]
