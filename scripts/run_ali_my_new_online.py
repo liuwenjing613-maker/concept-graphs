@@ -14,6 +14,11 @@ from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
+# Running ``python scripts/run_ali_my_new_online.py`` sets sys.path[0] to the
+# scripts directory. Make the repository importable without relying on a shell's
+# pre-existing PYTHONPATH.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from conceptgraph.revision.online_mvp import (
     EvidenceRouter,
     LiveDependencyTracker,
@@ -44,23 +49,22 @@ def _read_json(path: Path | None) -> dict[str, Any]:
 
 def _mapping_command(args: argparse.Namespace, experiment_root: Path) -> list[str]:
     worktree = Path(args.worktree).resolve()
-    root = Path(args.project_root).resolve()
     return [
         str(Path(args.python).resolve()),
         "conceptgraph/slam/rerun_realtime_mapping.py",
-        f"dataset_root={root / 'data' / 'Replica'}",
-        f"dataset_config={worktree / 'conceptgraph' / 'dataset' / 'dataconfigs' / 'replica' / 'replica.yaml'}",
+        f"dataset_root={Path(args.dataset_root).resolve()}",
+        f"dataset_config={Path(args.dataset_config).resolve()}",
         f"scene_id={args.scene}",
         f"start={args.start}",
         f"end={args.end}",
         f"stride={args.stride}",
-        "image_height=680",
-        "image_width=1200",
+        f"image_height={args.image_height}",
+        f"image_width={args.image_width}",
         "make_edges=false",
         "use_rerun=false",
         "save_rerun=false",
-        "force_detection=false",
-        "save_detections=false",
+        f"force_detection={str(args.force_detection).lower()}",
+        f"save_detections={str(args.save_detections).lower()}",
         f"detections_exp_suffix={args.detections_exp_suffix}",
         f"exp_suffix={args.exp_suffix}",
         "save_video=false",
@@ -107,10 +111,22 @@ def main() -> int:
     parser.add_argument(
         "--python", default="/home/chenkejun/beauty/conceptgraphs/envs/cg-ali/bin/python"
     )
+    parser.add_argument(
+        "--dataset-root",
+        help="Dataset root containing <scene>/results and <scene>/traj.txt",
+    )
+    parser.add_argument(
+        "--dataset-config",
+        help="ConceptGraphs dataset camera YAML (defaults to Replica)",
+    )
     parser.add_argument("--scene", default="room0")
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--end", type=int, default=2000)
     parser.add_argument("--stride", type=int, default=10)
+    parser.add_argument("--image-height", type=int, default=680)
+    parser.add_argument("--image-width", type=int, default=1200)
+    parser.add_argument("--force-detection", action="store_true")
+    parser.add_argument("--save-detections", action="store_true")
     parser.add_argument("--exp-suffix", required=True)
     parser.add_argument("--detections-exp-suffix", default="room0_detections_stride10")
     parser.add_argument("--reuse-experiment-root", type=Path)
@@ -136,12 +152,26 @@ def main() -> int:
         raise ValueError("output-subdir must be one plain directory name")
     project_root = Path(args.project_root).resolve()
     worktree = Path(args.worktree).resolve()
+    args.dataset_root = str(
+        Path(args.dataset_root).resolve()
+        if args.dataset_root
+        else project_root / "data" / "Replica"
+    )
+    args.dataset_config = str(
+        Path(args.dataset_config).resolve()
+        if args.dataset_config
+        else worktree
+        / "conceptgraph"
+        / "dataset"
+        / "dataconfigs"
+        / "replica"
+        / "replica.yaml"
+    )
+    dataset_root = Path(args.dataset_root)
     if args.reuse_experiment_root:
         experiment_root = args.reuse_experiment_root.resolve()
     else:
-        experiment_root = (
-            project_root / "data" / "Replica" / args.scene / "exps" / args.exp_suffix
-        )
+        experiment_root = dataset_root / args.scene / "exps" / args.exp_suffix
     output_root = experiment_root / args.output_subdir
     if output_root.exists() and any(output_root.iterdir()):
         raise FileExistsError(f"refusing to overwrite online output: {output_root}")
@@ -164,10 +194,16 @@ def main() -> int:
         "experiment_root": str(experiment_root),
         "output_subdir": args.output_subdir,
         "worktree": str(worktree),
+        "dataset_root": str(dataset_root),
+        "dataset_config": args.dataset_config,
         "scene": args.scene,
         "start": args.start,
         "end": args.end,
         "stride": args.stride,
+        "image_height": args.image_height,
+        "image_width": args.image_width,
+        "force_detection": args.force_detection,
+        "save_detections": args.save_detections,
         "mapping_gpu": args.mapping_gpu,
         "replay_gpu": args.replay_gpu,
         "model": args.model,
@@ -198,6 +234,19 @@ def main() -> int:
         environment = os.environ.copy()
         environment["CUDA_VISIBLE_DEVICES"] = str(args.mapping_gpu)
         environment["PYTHONPATH"] = str(worktree)
+        # Reuse the server workspace caches instead of silently downloading
+        # multi-gigabyte detector/encoder weights into the login user's cache.
+        environment.setdefault("XDG_CACHE_HOME", str(project_root / ".cache"))
+        environment.setdefault(
+            "HF_HOME", str(project_root / "models" / "huggingface")
+        )
+        environment.setdefault("TORCH_HOME", str(project_root / "models" / "torch"))
+        environment.setdefault(
+            "YOLO_CONFIG_DIR", str(project_root / ".config" / "Ultralytics")
+        )
+        environment.setdefault(
+            "MPLCONFIGDIR", str(project_root / ".config" / "matplotlib")
+        )
         mapping_handle = mapping_log.open("w", encoding="utf-8", newline="\n")
         mapping_process = subprocess.Popen(
             command,
