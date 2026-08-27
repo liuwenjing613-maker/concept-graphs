@@ -30,7 +30,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
-PROMPT_VERSION = "ali_my_unified_v1_1_overlay_guard"
+PROMPT_VERSION = "ali_my_unified_v1_2_identity_partition"
 ALIAS_ORDER = ("A", "E0", "E1", "E2")
 ALIAS_COLORS = {
     "A": (255, 212, 0),
@@ -443,13 +443,26 @@ def action_candidates(decision: str, aliases: Mapping[str, Mapping[str, Any]], a
     ]
     next_id = 1
     if decision == "CREATE_OBJECT":
-        for alias in ("E1", "E2"):
-            if alias in aliases:
-                values.append({
-                    "id": f"H{next_id}", "axis": "IDENTITY", "action": "SAME_INSTANCE",
-                    "parameters": {"entities": ["A", alias]}, "executable": True,
-                })
-                next_id += 1
+        present = [alias for alias in ("E1", "E2") if alias in aliases]
+        values[0]["parameters"] = {"groups": [["A"], *[[alias] for alias in present]]}
+        values[0]["meaning"] = "keep the current all-separate alias partition"
+        if present == ["E1", "E2"]:
+            partitions = [
+                [["A", "E1"], ["E2"]],
+                [["A", "E2"], ["E1"]],
+                [["A"], ["E1", "E2"]],
+                [["A", "E1", "E2"]],
+            ]
+        elif present:
+            partitions = [[["A", present[0]]]]
+        else:
+            partitions = []
+        for groups in partitions:
+            values.append({
+                "id": f"H{next_id}", "axis": "IDENTITY", "action": "PARTITION_ALIASES",
+                "parameters": {"groups": groups}, "executable": True,
+            })
+            next_id += 1
     elif decision == "POSTPROCESS_MERGE":
         values.append({
             "id": f"H{next_id}", "axis": "IDENTITY", "action": "SEPARATE_MEMBER_GROUPS",
@@ -1275,12 +1288,27 @@ def candidate_description(candidate: Mapping[str, Any] | None, manifest: Mapping
     parameters = candidate.get("parameters") or {}
     labels = {str(item.get("id")): str(item.get("text")) for item in manifest.get("semantic_label_hypotheses") or []}
     if action == "NO_OP":
-        detail = "保持当前 identity 与稳定标签"
+        groups = parameters.get("groups") or []
+        if groups:
+            rendered_groups = [
+                " + ".join(f"{alias}({alias_label(manifest, str(alias))})" for alias in group)
+                for group in groups
+            ]
+            detail = "保持当前 alias 分组：" + " ｜ ".join(rendered_groups)
+        else:
+            detail = "保持当前 identity 与稳定标签"
     elif action == "REQUEST_MORE_EVIDENCE":
         detail = "证据不足或候选表中没有安全动作"
     elif action == "SAME_INSTANCE":
         entities = parameters.get("entities") or []
         detail = "判为同一实例：" + " + ".join(f"{alias}({alias_label(manifest, str(alias))})" for alias in entities)
+    elif action == "PARTITION_ALIASES":
+        groups = parameters.get("groups") or []
+        rendered_groups = [
+            " + ".join(f"{alias}({alias_label(manifest, str(alias))})" for alias in group)
+            for group in groups
+        ]
+        detail = "alias 分组：" + " ｜ ".join(rendered_groups)
     elif action == "MOVE_OBSERVATION":
         src, dst = str(parameters.get("from")), str(parameters.get("to"))
         detail = f"把 A({alias_label(manifest, 'A')}) 从 {src}({alias_label(manifest, src)}) 移到 {dst}({alias_label(manifest, dst)})"
@@ -1303,9 +1331,21 @@ def candidate_description(candidate: Mapping[str, Any] | None, manifest: Mapping
 
 def posthoc_verdict(output: Mapping[str, Any], candidate: Mapping[str, Any] | None, metadata: Mapping[str, Any]) -> str:
     expected = set(str(value) for value in metadata.get("acceptable_actions") or [])
+    action = str((candidate or {}).get("action") or "")
+    if action == "REQUEST_MORE_EVIDENCE" and action in expected:
+        return "证据不足，安全延期符合事后参考"
+    expected_partitions = metadata.get("acceptable_partitions") or []
+    if expected_partitions and output:
+        actual = ((candidate or {}).get("parameters") or {}).get("groups") or []
+
+        def normalized(groups: Any) -> tuple[tuple[str, ...], ...]:
+            return tuple(sorted(tuple(sorted(str(alias) for alias in group)) for group in groups))
+
+        if any(normalized(actual) == normalized(expected) for expected in expected_partitions):
+            return "与事后参考 alias 分组一致"
+        return "与事后参考 alias 分组不一致"
     if not expected or not output:
         return "未设置事后动作参考；请人工评判"
-    action = str((candidate or {}).get("action") or "")
     if action in expected:
         return "与事后参考动作族一致"
     if output.get("selected_candidate") == "DEFER":
