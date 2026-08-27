@@ -82,6 +82,7 @@ class SparseRepairConstraint:
     entity_uid: str | None = None
     groups: dict[str, tuple[str, ...]] = field(default_factory=dict)
     label: str | None = None
+    expected_label: str | None = None
     reason: str | None = None
     applies_at_event_uid: str | None = None
     active_from_sequence: int | None = None
@@ -215,6 +216,7 @@ class SparseRepairConstraint:
             entity_uid=value.get("entity_uid"),
             groups=groups,
             label=value.get("label"),
+            expected_label=value.get("expected_label"),
             reason=value.get("reason"),
             applies_at_event_uid=value.get("applies_at_event_uid"),
             active_from_sequence=(
@@ -248,6 +250,8 @@ class SparseRepairConstraint:
             value.pop("partition_contract", None)
         if self.geometry_contract is None:
             value.pop("geometry_contract", None)
+        if self.expected_label is None:
+            value.pop("expected_label", None)
         if not include_uid:
             value.pop("constraint_uid", None)
         return value

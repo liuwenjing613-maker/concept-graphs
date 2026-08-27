@@ -372,6 +372,7 @@ def semantic_constraint_fingerprint(constraint: Mapping[str, Any]) -> str:
         "entity_uid",
         "groups",
         "label",
+        "expected_label",
         "applies_at_event_uid",
         "active_from_sequence",
         "active_until_sequence",

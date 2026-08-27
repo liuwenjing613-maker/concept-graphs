@@ -28,13 +28,19 @@ from conceptgraph.revision.online_mvp import (
     TaskContext,
     TicketStore,
     append_jsonl,
-    compile_vlm_response,
+    compile_unified_vlm_response,
     freeze_watermarked_view,
     run_final_combined_replay,
     run_shadow_validation,
     write_json,
 )
-from conceptgraph.revision.vlm import OpenAICompatibleConstraintClient
+from scripts.validate_unified_vlm_v1 import (
+    PROMPT_VERSION as UNIFIED_VLM_PROMPT_VERSION,
+    FrozenRun,
+    PreflightDefer,
+    call_vlm,
+    prepare_case,
+)
 
 
 def _read_json(path: Path | None) -> dict[str, Any]:
@@ -80,14 +86,82 @@ def _mapping_command(args: argparse.Namespace, experiment_root: Path) -> list[st
     ]
 
 
+def _run_unified_vlm(
+    *,
+    experiment_root: Path,
+    output_root: Path,
+    packet: OnlineEvidencePacket,
+    api_key: str,
+    base_url: str,
+    model: str,
+    timeout: float,
+) -> dict[str, Any]:
+    """Prepare three frozen views, then make at most one strict VLM call."""
+
+    prepare_started = time.monotonic()
+    case_root = output_root / "vlm_unified"
+    try:
+        run = FrozenRun(experiment_root, online_subdir=output_root.name)
+        case = prepare_case(run, packet.ticket_uid, case_root)
+    except PreflightDefer as exc:
+        case_dir = case_root / packet.ticket_uid
+        failure = {
+            "ticket_uid": packet.ticket_uid,
+            "status": "PREFLIGHT_DEFER",
+            "defer_code": exc.code,
+            "defer_detail": exc.detail,
+            "prepare_elapsed_seconds": time.monotonic() - prepare_started,
+            "api_call_attempted": False,
+            "prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        }
+        write_json(case_dir / "validation.json", failure)
+        return failure
+    except Exception as exc:
+        case_dir = case_root / packet.ticket_uid
+        failure = {
+            "ticket_uid": packet.ticket_uid,
+            "status": "PREPARE_ERROR",
+            "error": f"{type(exc).__name__}:{exc}",
+            "prepare_elapsed_seconds": time.monotonic() - prepare_started,
+            "api_call_attempted": False,
+            "prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        }
+        write_json(case_dir / "validation.json", failure)
+        return failure
+
+    prepare_elapsed = time.monotonic() - prepare_started
+    result = call_vlm(case, api_key, base_url, model, timeout)
+    result.update(
+        {
+            "candidates": [dict(value) for value in case.candidates],
+            "allowed_image_ids": ["I1", "I2", "I3"],
+            "case_dir": str(case.case_dir),
+            "prepare_elapsed_seconds": prepare_elapsed,
+            "api_call_attempted": True,
+            "prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        }
+    )
+    return result
+
+
 def _safe_response(response: dict[str, Any]) -> dict[str, Any]:
     return {
-        "incident_uid": response.get("incident_uid"),
-        "constraint": response.get("constraint"),
+        "ticket_uid": response.get("ticket_uid"),
+        "status": response.get("status"),
+        "output": response.get("output"),
+        "candidates": response.get("candidates") or [],
+        "allowed_image_ids": response.get("allowed_image_ids") or [],
         "model": response.get("model"),
         "response_id": response.get("response_id"),
         "usage": response.get("usage") or {},
         "elapsed_seconds": response.get("elapsed_seconds"),
+        "prepare_elapsed_seconds": response.get("prepare_elapsed_seconds"),
+        "api_call_attempted": bool(response.get("api_call_attempted")),
+        "prompt_version": response.get("prompt_version"),
+        "case_dir": response.get("case_dir"),
+        "defer_code": response.get("defer_code"),
+        "defer_detail": response.get("defer_detail"),
+        "error": response.get("error"),
     }
 
 
@@ -106,7 +180,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--worktree",
-        default="/home/chenkejun/beauty/conceptgraphs/code/official/ali-my-new",
+        default=str(Path(__file__).resolve().parents[1]),
     )
     parser.add_argument(
         "--python", default="/home/chenkejun/beauty/conceptgraphs/envs/cg-ali/bin/python"
@@ -211,6 +285,12 @@ def main() -> int:
         "api_credential_slots": len(api_keys),
         "api_keys_persisted": False,
         "one_call_per_ticket": True,
+        "vlm_prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        "vlm_input_image_count": 3,
+        "vlm_output_contract": "candidate_id_only",
+        "compound_partition_policy": "defer_until_multi_constraint_executor",
+        "semantic_policy": "vlm_selected_label_only_pilot_with_optimistic_guard",
+        "semantic_accuracy_validated": False,
         "annotations_loaded": False,
         "ground_truth_loaded": False,
         "make_edges": False,
@@ -268,21 +348,14 @@ def main() -> int:
     router = EvidenceRouter(experiment_root, max_images=6)
     vlm_executor = ThreadPoolExecutor(max_workers=max(1, len(api_keys)))
     shadow_executor = ThreadPoolExecutor(max_workers=1)
-    clients = [
-        OpenAICompatibleConstraintClient(
-            api_key=key,
-            base_url=args.base_url,
-            model=args.model,
-            timeout_seconds=300.0,
-        )
-        for key in api_keys
-    ]
+    clients = list(api_keys)
     slot_futures: dict[int, Future[dict[str, Any]]] = {}
     slot_packets: dict[int, OnlineEvidencePacket] = {}
     shadow_futures: dict[str, Future[dict[str, Any]]] = {}
     shadow_compilations: dict[str, dict[str, Any]] = {}
     locked_lineages: set[str] = set()
     dispatched = 0
+    api_calls_attempted = 0
     shadows_started = 0
     latest_committed = -1
     accepted_results: list[dict[str, Any]] = []
@@ -378,11 +451,13 @@ def main() -> int:
                 try:
                     raw_response = future.result()
                     response = _safe_response(raw_response)
+                    if response.get("api_call_attempted"):
+                        api_calls_attempted += 1
                     response_path = output_root / "vlm" / packet.ticket_uid / "response.json"
                     write_json(response_path, response)
-                    compilation = compile_vlm_response(
+                    compilation = compile_unified_vlm_response(
                         packet=packet,
-                        response=response,
+                        result=response,
                         ledger=ledger,
                     )
                     write_json(
@@ -392,7 +467,7 @@ def main() -> int:
                     ticket.attempts.append(
                         {
                             "stage": "VLM",
-                            "status": "PASS",
+                            "status": response.get("status"),
                             "response_path": str(response_path),
                             "compilation_stage": compilation.get("stage"),
                         }
@@ -400,7 +475,7 @@ def main() -> int:
                     if compilation.get("candidate_constraint"):
                         submit_shadow(packet, compilation)
                     else:
-                        ticket.state = "ABORTED"
+                        ticket.state = "NO_ACTION" if compilation.get("stage") == "NO_OP" else "ABORTED"
                         terminal_vlm_tickets.add(ticket.ticket_uid)
                         locked_lineages.difference_update(ticket.primary_lineage_uids)
                     append_jsonl(
@@ -409,6 +484,7 @@ def main() -> int:
                             "type": "VLM_COMPLETED",
                             "ticket_uid": packet.ticket_uid,
                             "slot": slot,
+                            "vlm_status": response.get("status"),
                             "compilation_stage": compilation.get("stage"),
                         },
                     )
@@ -525,7 +601,14 @@ def main() -> int:
                     locked_lineages.update(ticket.primary_lineage_uids)
                     slot_packets[slot] = packet
                     slot_futures[slot] = vlm_executor.submit(
-                        clients[slot].complete, packet.evidence
+                        _run_unified_vlm,
+                        experiment_root=experiment_root,
+                        output_root=output_root,
+                        packet=packet,
+                        api_key=clients[slot],
+                        base_url=args.base_url,
+                        model=args.model,
+                        timeout=300.0,
                     )
                     dispatched += 1
                     append_jsonl(
@@ -588,20 +671,24 @@ def main() -> int:
         return 2
 
     selected_constraints: list[dict[str, Any]] = []
-    used_observations: set[str] = set()
+    used_targets: set[str] = set()
     used_lineages: set[str] = set()
     for row in accepted_results:
         ticket = tickets.tickets[row["ticket_uid"]]
         constraint = row["compilation"].get("candidate_constraint")
         if not isinstance(constraint, dict):
             continue
-        observation_uid = str(constraint.get("obs_uid") or "")
-        if observation_uid in used_observations:
+        constraint_type = str(constraint.get("type") or "").upper()
+        if constraint_type == "RELABEL":
+            target_key = "semantic:" + str(constraint.get("entity_uid") or "")
+        else:
+            target_key = "observation:" + str(constraint.get("obs_uid") or "")
+        if target_key.endswith(":") or target_key in used_targets:
             continue
         if used_lineages.intersection(ticket.primary_lineage_uids):
             continue
         selected_constraints.append(constraint)
-        used_observations.add(observation_uid)
+        used_targets.add(target_key)
         used_lineages.update(ticket.primary_lineage_uids)
 
     final_comparison = run_final_combined_replay(
@@ -618,9 +705,21 @@ def main() -> int:
         "final_event_sequence": ledger.max_sequence,
         "ticket_count": len(tickets.tickets),
         "vlm_dispatched": dispatched,
+        "vlm_api_calls_attempted": api_calls_attempted,
+        "vlm_prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        "vlm_output_contract": "candidate_id_only",
         "shadow_started": shadows_started,
         "shadow_would_commit_count": len(accepted_results),
         "combined_constraint_count": len(selected_constraints),
+        "combined_identity_constraint_count": sum(
+            str(value.get("type") or "").upper() != "RELABEL"
+            for value in selected_constraints
+        ),
+        "combined_semantic_constraint_count": sum(
+            str(value.get("type") or "").upper() == "RELABEL"
+            for value in selected_constraints
+        ),
+        "semantic_accuracy_validated": False,
         "activated_repaired_version": final_comparison[
             "activated_repaired_version"
         ],

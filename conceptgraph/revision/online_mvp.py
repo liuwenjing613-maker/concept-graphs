@@ -9,6 +9,7 @@ control path stays small and auditable.
 
 from __future__ import annotations
 
+import copy
 import gzip
 import hashlib
 import json
@@ -17,7 +18,7 @@ import os
 import pickle
 import re
 import time
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -1282,6 +1283,266 @@ def compile_vlm_response(
     return compiled
 
 
+_UNIFIED_ALIAS_TO_CONTEXT = {
+    "A": "ANCHOR",
+    "E0": "CURRENT_ENTITY_CONTEXT",
+    "E1": "CANDIDATE_1_CONTEXT",
+    "E2": "CANDIDATE_2_CONTEXT",
+}
+
+
+def compile_unified_vlm_response(
+    *,
+    packet: OnlineEvidencePacket,
+    result: Mapping[str, Any],
+    ledger: LiveEvidenceLedger,
+) -> dict[str, Any]:
+    """Translate one strict candidate-ID result into one existing sparse primitive.
+
+    The unified VLM does not author a free-form constraint.  It selects one row
+    from a locally generated candidate table.  A single-anchor identity change
+    uses the existing replay kernel.  A semantic candidate becomes a guarded,
+    label-only pilot constraint.  Compound partitions remain audit-only and fail
+    closed until a multi-constraint executor is independently validated.
+    """
+
+    output = result.get("output")
+    candidates = result.get("candidates")
+    audit = {
+        "prompt_version": result.get("prompt_version"),
+        "vlm_status": result.get("status"),
+        "selected_candidate": output.get("selected_candidate") if isinstance(output, Mapping) else None,
+        "output": dict(output) if isinstance(output, Mapping) else None,
+    }
+
+    def deferred(reason: str, *, stage: str = "DEFERRED", candidate: Mapping[str, Any] | None = None) -> dict[str, Any]:
+        return {
+            "stage": stage,
+            "candidate_constraint": None,
+            "defer_reasons": [reason],
+            "proposal": dict(output) if isinstance(output, Mapping) else None,
+            "selected_candidate_row": dict(candidate) if isinstance(candidate, Mapping) else None,
+            "unified_vlm": audit,
+        }
+
+    if str(result.get("status")) != "VALID":
+        code = str(result.get("defer_code") or result.get("status") or "invalid_result")
+        return deferred("unified_vlm_not_valid:" + code)
+    if not isinstance(output, Mapping) or not isinstance(candidates, Sequence):
+        return deferred("unified_vlm_contract_missing")
+
+    selected_id = str(output.get("selected_candidate") or "")
+    matches = [
+        row for row in candidates
+        if isinstance(row, Mapping) and str(row.get("id") or "") == selected_id
+    ]
+    if len(matches) != 1:
+        return deferred("selected_candidate_not_unique_or_missing")
+    candidate = matches[0]
+    audit["selected_action"] = candidate.get("action")
+    if str(candidate.get("axis") or "NONE") != str(output.get("decision_axis") or ""):
+        return deferred("selected_candidate_axis_mismatch", candidate=candidate)
+
+    action = str(candidate.get("action") or "").upper()
+    axis = str(candidate.get("axis") or "NONE")
+    if selected_id == "H0" or action == "NO_OP":
+        return deferred("vlm_selected_no_op", stage="NO_OP", candidate=candidate)
+    if selected_id == "DEFER" or action == "REQUEST_MORE_EVIDENCE":
+        return deferred("vlm_requested_more_evidence", candidate=candidate)
+    if not bool(candidate.get("executable")):
+        return deferred("selected_candidate_not_executable", candidate=candidate)
+
+    evidence_ids = [str(value) for value in output.get("evidence_ids") or ()]
+    if not evidence_ids:
+        return deferred("executable_candidate_requires_evidence", candidate=candidate)
+    allowed_image_ids = tuple(
+        str(value) for value in result.get("allowed_image_ids") or ("I1", "I2", "I3")
+    )
+    invalid_evidence_ids = sorted(set(evidence_ids) - set(allowed_image_ids))
+    if invalid_evidence_ids:
+        return deferred(
+            "invalid_evidence_citations:" + ",".join(invalid_evidence_ids),
+            candidate=candidate,
+        )
+    parameters = candidate.get("parameters")
+    if not isinstance(parameters, Mapping):
+        return deferred("selected_candidate_parameters_missing", candidate=candidate)
+
+    if axis == "SEMANTIC_LABEL":
+        if action != "RELABEL_ENTITY":
+            return deferred("selected_semantic_action_unsupported:" + action, candidate=candidate)
+        if str(parameters.get("entity") or "") != "E0":
+            return deferred("semantic_relabel_must_target_E0", candidate=candidate)
+        if len(set(evidence_ids)) < 2:
+            return deferred("semantic_relabel_requires_two_images", candidate=candidate)
+        label_text = candidate.get("label_text")
+        if not isinstance(label_text, Mapping):
+            return deferred("semantic_candidate_label_text_missing", candidate=candidate)
+
+        version_uid = str(
+            packet.alias_version_uids.get("CURRENT_ENTITY_CONTEXT")
+            or packet.association.get("target_object_version_after")
+            or packet.association.get("target_object_version_before")
+            or ""
+        )
+        version = ledger.object_versions.get(version_uid)
+        if not version:
+            return deferred("semantic_target_version_unresolved", candidate=candidate)
+        lineage_uid = str(version.get("lineage_uid") or version.get("object_uid") or "")
+        latest_for_lineage = getattr(ledger, "latest_version_for_lineage", None)
+        if lineage_uid and callable(latest_for_lineage):
+            version = (
+                latest_for_lineage(lineage_uid, cutoff_frame=packet.freeze_frame)
+                or version
+            )
+        binding = _binding_row(version)
+        if not binding.get("complete"):
+            return deferred("semantic_target_binding_incomplete", candidate=candidate)
+
+        current_label = str(version.get("class_name") or "").strip()
+        candidate_from = str(label_text.get("from") or "").strip()
+        candidate_target_label = str(label_text.get("to") or "").strip()
+        output_target_label = output.get("suggested_label_for_logging")
+        if not isinstance(output_target_label, str) or not output_target_label.strip():
+            return deferred("semantic_output_label_missing", candidate=candidate)
+        target_label = output_target_label.strip()
+        if target_label != candidate_target_label:
+            return deferred(
+                "semantic_output_label_not_exact_candidate",
+                candidate=candidate,
+            )
+
+        def comparable_label(value: Any) -> str:
+            return re.sub(r"\s+\d+$", "", _normal_label(value))
+
+        if not current_label or comparable_label(current_label) != comparable_label(candidate_from):
+            return deferred("semantic_source_label_changed_since_freeze", candidate=candidate)
+        if not target_label or comparable_label(target_label) == comparable_label(current_label):
+            return deferred("semantic_target_label_empty_or_unchanged", candidate=candidate)
+
+        from conceptgraph.revision.auto_constraints import semantic_constraint_fingerprint
+        from conceptgraph.revision.constraints import SparseRepairConstraint
+
+        sparse = SparseRepairConstraint.from_mapping(
+            {
+                "type": "RELABEL",
+                "entity_uid": binding["entity_uid"],
+                "target_lineage_uid": binding["lineage_uid"],
+                "label": target_label,
+                "expected_label": current_label,
+                "reason": "vlm_output_label_matches_finite_semantic_candidate",
+                "applies_at_event_uid": str(packet.association["event_uid"]),
+                "active_from_sequence": int(packet.association.get("event_sequence", -1)),
+                "source": "unified_vlm_semantic_pilot",
+                "evidence_refs": [
+                    *(f"image:{image_id}" for image_id in evidence_ids),
+                    str(packet.association["event_uid"]),
+                ],
+            }
+        )
+        bound = sparse.as_dict()
+        return {
+            "stage": "BOUND_PENDING_SHADOW",
+            "candidate_constraint": bound,
+            "constraint_fingerprint": semantic_constraint_fingerprint(bound),
+            "defer_reasons": [],
+            "proposal": dict(output),
+            "selected_candidate_row": dict(candidate),
+            "unified_vlm": audit,
+            "citation_check": {
+                "pass": True,
+                "cited_image_ids": evidence_ids,
+                "allowed_image_ids": list(allowed_image_ids),
+            },
+            "semantic_pilot": {
+                "target_entity_uid": binding["entity_uid"],
+                "expected_label": current_label,
+                "target_label": target_label,
+                "label_source": "vlm_output_guarded_by_finite_candidate",
+                "accuracy_validated": False,
+            },
+        }
+
+    if axis != "IDENTITY":
+        return deferred("selected_candidate_axis_not_executable:" + axis, candidate=candidate)
+
+    proposal: dict[str, Any]
+    if action == "PARTITION_ALIASES":
+        groups = [
+            [str(alias) for alias in group]
+            for group in parameters.get("groups") or ()
+            if isinstance(group, Sequence) and not isinstance(group, (str, bytes))
+        ]
+        flattened = [alias for group in groups for alias in group]
+        if not groups or len(flattened) != len(set(flattened)) or "A" not in flattened:
+            return deferred("invalid_alias_partition", candidate=candidate)
+        anchor_group = next(group for group in groups if "A" in group)
+        anchor_contexts = [alias for alias in anchor_group if alias != "A"]
+        other_groups = [group for group in groups if "A" not in group]
+        if len(anchor_contexts) == 0:
+            return deferred("partition_changes_only_non_anchor_entities", candidate=candidate)
+        if len(anchor_contexts) != 1 or any(len(group) != 1 for group in other_groups):
+            return deferred(
+                "compound_identity_partition_requires_multi_constraint_executor",
+                candidate=candidate,
+            )
+        target_alias = _UNIFIED_ALIAS_TO_CONTEXT.get(anchor_contexts[0])
+        if not target_alias:
+            return deferred("partition_target_alias_unknown", candidate=candidate)
+        proposal = {
+            "action": "SAME_INSTANCE",
+            "entities": ["ANCHOR", target_alias],
+        }
+    elif action == "SAME_INSTANCE":
+        aliases = [str(value) for value in parameters.get("entities") or ()]
+        mapped = [_UNIFIED_ALIAS_TO_CONTEXT.get(alias) for alias in aliases]
+        if any(value is None for value in mapped):
+            return deferred("same_instance_alias_unknown", candidate=candidate)
+        proposal = {"action": "SAME_INSTANCE", "entities": mapped}
+    elif action == "MOVE_OBSERVATION":
+        if str(parameters.get("observation")) != "A":
+            return deferred("move_observation_must_target_anchor", candidate=candidate)
+        source = _UNIFIED_ALIAS_TO_CONTEXT.get(str(parameters.get("from")))
+        target = _UNIFIED_ALIAS_TO_CONTEXT.get(str(parameters.get("to")))
+        if not source or not target:
+            return deferred("move_observation_alias_unknown", candidate=candidate)
+        proposal = {
+            "action": "MOVE_OBSERVATION",
+            "obs_key": obs_key(str(packet.association["obs_uid"])),
+            "from_alias": source,
+            "to_alias": target,
+        }
+    elif action == "SEPARATE_MEMBER_GROUPS":
+        mapped_groups = []
+        for group in parameters.get("groups") or ():
+            if not isinstance(group, Sequence) or isinstance(group, (str, bytes)):
+                return deferred("separation_group_invalid", candidate=candidate)
+            mapped = [_UNIFIED_ALIAS_TO_CONTEXT.get(str(alias)) for alias in group]
+            if any(value is None for value in mapped):
+                return deferred("separation_alias_unknown", candidate=candidate)
+            mapped_groups.append(mapped)
+        proposal = {"action": "SEPARATE_MEMBER_GROUPS", "groups": mapped_groups}
+    else:
+        return deferred("selected_identity_action_unsupported:" + action, candidate=candidate)
+
+    proposal.update(
+        {
+            "confidence": float(output.get("confidence_diagnostic", 0.0)),
+            "evidence_image_ids": evidence_ids,
+        }
+    )
+    translated_packet = replace(packet, allowed_image_ids=allowed_image_ids)
+    compiled = compile_vlm_response(
+        packet=translated_packet,
+        response={"constraint": proposal},
+        ledger=ledger,
+    )
+    compiled["selected_candidate_row"] = dict(candidate)
+    compiled["unified_vlm"] = audit
+    compiled["adapter_proposal"] = proposal
+    return compiled
+
+
 @dataclass(frozen=True)
 class FrozenEvidenceView:
     root: Path
@@ -1437,6 +1698,182 @@ def _purity(row: Mapping[str, Any] | None) -> float:
     return max(histogram.values()) / total if total else 0.0
 
 
+def _semantic_state_hash(state: Mapping[str, Any]) -> str:
+    labels = [
+        {
+            "entity_uid": str(row.get("entity_uid") or ""),
+            "class_name": str(row.get("class_name") or ""),
+        }
+        for row in state.get("objects") or ()
+    ]
+    labels.sort(key=lambda row: row["entity_uid"])
+    return hashlib.sha256(_canonical_json(labels).encode("utf-8")).hexdigest()
+
+
+def _apply_semantic_relabels(
+    state: Mapping[str, Any], constraints: Sequence[Mapping[str, Any]]
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """Apply optimistic, label-only overrides to a copied replay state."""
+
+    derived = copy.deepcopy(dict(state))
+    rows = [row for row in derived.get("objects") or () if isinstance(row, dict)]
+    by_entity: dict[str, list[dict[str, Any]]] = {}
+    for row in rows:
+        by_entity.setdefault(str(row.get("entity_uid") or ""), []).append(row)
+    reports: list[dict[str, Any]] = []
+    seen_entities: set[str] = set()
+
+    def stable_label(value: Any) -> str:
+        return re.sub(r"\s+\d+$", "", _normal_label(value))
+
+    for raw in constraints:
+        entity_uid = str(raw.get("entity_uid") or "")
+        expected_label = str(raw.get("expected_label") or "").strip()
+        target_label = str(raw.get("label") or "").strip()
+        report = {
+            "constraint_uid": raw.get("constraint_uid"),
+            "entity_uid": entity_uid,
+            "expected_label": expected_label,
+            "target_label": target_label,
+            "applied": False,
+            "reason": None,
+        }
+        matches = by_entity.get(entity_uid, [])
+        if entity_uid in seen_entities:
+            report["reason"] = "duplicate_semantic_target"
+        elif len(matches) != 1:
+            report["reason"] = "semantic_target_not_unique"
+        elif not expected_label:
+            report["reason"] = "expected_label_missing"
+        elif not target_label:
+            report["reason"] = "target_label_missing"
+        else:
+            row = matches[0]
+            current_label = str(row.get("class_name") or "").strip()
+            report["current_label"] = current_label
+            if stable_label(current_label) != stable_label(expected_label):
+                report["reason"] = "expected_label_mismatch"
+            elif stable_label(current_label) == stable_label(target_label):
+                report["reason"] = "target_label_unchanged"
+            else:
+                row["class_name"] = target_label
+                report["applied"] = True
+                report["reason"] = "label_replaced"
+        seen_entities.add(entity_uid)
+        reports.append(report)
+
+    derived["semantic_label_overrides"] = reports
+    derived["semantic_label_override_count"] = sum(
+        bool(report["applied"]) for report in reports
+    )
+    derived["semantic_state_hash"] = _semantic_state_hash(derived)
+    return derived, reports
+
+
+def _semantic_relabel_gate(
+    *,
+    before_state: Mapping[str, Any],
+    after_state: Mapping[str, Any],
+    constraints: Sequence[Mapping[str, Any]],
+    reports: Sequence[Mapping[str, Any]],
+) -> dict[str, bool]:
+    """Prove that a semantic pilot changed labels and nothing structural."""
+
+    if not constraints:
+        return {
+            "all_semantic_relabels_applied": True,
+            "semantic_state_changed": False,
+            "expected_labels_matched": True,
+            "target_labels_applied": True,
+            "membership_unchanged": True,
+            "membership_hash_unchanged": True,
+            "object_count_conserved": True,
+            "observation_count_conserved": True,
+            "class_histograms_unchanged": True,
+            "target_non_label_fields_unchanged": True,
+            "non_target_objects_unchanged": True,
+            "pass": True,
+        }
+
+    before_rows = {
+        str(row.get("entity_uid") or ""): dict(row)
+        for row in before_state.get("objects") or ()
+    }
+    after_rows = {
+        str(row.get("entity_uid") or ""): dict(row)
+        for row in after_state.get("objects") or ()
+    }
+    targets = {str(raw.get("entity_uid") or "") for raw in constraints}
+
+    def stable_label(value: Any) -> str:
+        return re.sub(r"\s+\d+$", "", _normal_label(value))
+
+    def without_label(row: Mapping[str, Any]) -> dict[str, Any]:
+        value = dict(row)
+        value.pop("class_name", None)
+        return value
+
+    expected_labels_matched = all(
+        entity in before_rows
+        and stable_label(before_rows[entity].get("class_name"))
+        == stable_label(raw.get("expected_label"))
+        for raw in constraints
+        for entity in [str(raw.get("entity_uid") or "")]
+    )
+    target_labels_applied = all(
+        entity in after_rows
+        and stable_label(after_rows[entity].get("class_name"))
+        == stable_label(raw.get("label"))
+        for raw in constraints
+        for entity in [str(raw.get("entity_uid") or "")]
+    )
+    target_non_label_fields_unchanged = all(
+        entity in before_rows
+        and entity in after_rows
+        and without_label(before_rows[entity]) == without_label(after_rows[entity])
+        for entity in targets
+    )
+    non_targets = set(before_rows) - targets
+    non_target_objects_unchanged = (
+        set(before_rows) == set(after_rows)
+        and all(before_rows[entity] == after_rows[entity] for entity in non_targets)
+    )
+    before_observations = sum(
+        len(values or ()) for values in (before_state.get("membership") or {}).values()
+    )
+    after_observations = sum(
+        len(values or ()) for values in (after_state.get("membership") or {}).values()
+    )
+    gates = {
+        "all_semantic_relabels_applied": (
+            len(reports) == len(constraints)
+            and all(bool(report.get("applied")) for report in reports)
+        ),
+        "semantic_state_changed": (
+            _semantic_state_hash(before_state) != _semantic_state_hash(after_state)
+        ),
+        "expected_labels_matched": expected_labels_matched,
+        "target_labels_applied": target_labels_applied,
+        "membership_unchanged": (
+            before_state.get("membership") == after_state.get("membership")
+        ),
+        "membership_hash_unchanged": (
+            before_state.get("state_hash") == after_state.get("state_hash")
+        ),
+        "object_count_conserved": set(before_rows) == set(after_rows),
+        "observation_count_conserved": before_observations == after_observations,
+        "class_histograms_unchanged": all(
+            before_rows.get(entity, {}).get("class_histogram")
+            == after_rows.get(entity, {}).get("class_histogram")
+            for entity in set(before_rows) | set(after_rows)
+        ),
+        "target_non_label_fields_unchanged": target_non_label_fields_unchanged,
+        "non_target_objects_unchanged": non_target_objects_unchanged,
+    }
+    gates["pass"] = all(gates.values())
+    return gates
+
+
 def scene_health_metrics(state: Mapping[str, Any]) -> dict[str, Any]:
     objects = list(state.get("objects") or ())
     membership = state.get("membership") or {}
@@ -1481,6 +1918,7 @@ def scene_health_metrics(state: Mapping[str, Any]) -> dict[str, Any]:
         "low_purity_object_rate": low_purity / len(objects) if objects else 0.0,
         "invalid_geometry_object_count": invalid_geometry,
         "state_hash": state.get("state_hash"),
+        "semantic_state_hash": _semantic_state_hash(state),
     }
 
 
@@ -1529,6 +1967,104 @@ def _constraint_target_gate(
     }
 
 
+def _run_semantic_shadow_validation(
+    *,
+    provenance: Any,
+    baseline_state: Mapping[str, Any],
+    packet: OnlineEvidencePacket,
+    compilation: Mapping[str, Any],
+    constraint: Mapping[str, Any],
+    destination: Path,
+    started: float,
+) -> dict[str, Any]:
+    """Validate one VLM-selected label replacement at the frozen watermark."""
+
+    from conceptgraph.revision.verify import StructuralVerifier
+
+    noop_state = copy.deepcopy(dict(baseline_state))
+    noop_state["semantic_state_hash"] = _semantic_state_hash(noop_state)
+    candidate_state, reports = _apply_semantic_relabels(noop_state, (constraint,))
+    target_entity = str(constraint.get("entity_uid") or "")
+    target_row = _object_row(noop_state, target_entity)
+    closure = {
+        "obs_uids": sorted(
+            str(value) for value in (target_row or {}).get("member_observation_uids") or ()
+        ),
+        "entity_uids": [target_entity] if target_entity else [],
+        "event_uids": [str(packet.association.get("event_uid") or "")],
+        "version_uids": [],
+        "edge_uids": [],
+        "start_sequence": 0,
+        "end_sequence": provenance.max_sequence,
+    }
+    verifier = StructuralVerifier(provenance)
+    expected_hashes = provenance.source_hashes()
+    noop_verification = verifier.verify(
+        baseline_state=baseline_state,
+        derived_state=noop_state,
+        closure=closure,
+        expected_source_hashes=expected_hashes,
+    )
+    candidate_verification = verifier.verify(
+        baseline_state=noop_state,
+        derived_state=candidate_state,
+        closure=closure,
+        expected_source_hashes=expected_hashes,
+    )
+    semantic_gate = _semantic_relabel_gate(
+        before_state=noop_state,
+        after_state=candidate_state,
+        constraints=(constraint,),
+        reports=reports,
+    )
+    noop_exact = bool(
+        noop_verification["pass"]
+        and noop_state.get("state_hash") == baseline_state.get("state_hash")
+        and _semantic_state_hash(noop_state) == _semantic_state_hash(baseline_state)
+    )
+    adopted = bool(
+        noop_exact and candidate_verification["pass"] and semantic_gate["pass"]
+    )
+    result = {
+        "schema_version": "0.1.0",
+        "ticket_uid": packet.ticket_uid,
+        "freeze_frame": packet.freeze_frame,
+        "freeze_sequence": packet.freeze_sequence,
+        "anchor_event_uid": str(packet.association.get("event_uid") or ""),
+        "decision": "WOULD_COMMIT" if adopted else "DEFER",
+        "reason": (
+            "semantic_label_only_gate_pass"
+            if adopted
+            else "semantic_label_only_gate_not_satisfied"
+        ),
+        "constraint": dict(constraint),
+        "constraint_fingerprint": compilation.get("constraint_fingerprint"),
+        "closure": closure,
+        "noop_exact_reproduction": noop_exact,
+        "noop_verification": noop_verification,
+        "candidate_verification": candidate_verification,
+        "mechanism": {
+            "constraint_hit_count": sum(bool(row.get("applied")) for row in reports),
+            "constraint_override_count": sum(
+                bool(row.get("applied")) for row in reports
+            ),
+            "partition_changed_from_noop": False,
+            "semantic_label_changed": semantic_gate["semantic_state_changed"],
+        },
+        "target_gate": semantic_gate,
+        "semantic_relabel_reports": reports,
+        "evaluation_scope": "semantic_pilot_vlm_selected_label_only",
+        "accuracy_validated": False,
+        "noop_metrics": scene_health_metrics(noop_state),
+        "candidate_metrics": scene_health_metrics(candidate_state),
+        "elapsed_seconds": time.perf_counter() - started,
+    }
+    write_json(destination / "noop_state.json", noop_state)
+    write_json(destination / "candidate_state.json", candidate_state)
+    write_json(destination / "shadow_result.json", result)
+    return result
+
+
 def _run_shadow_validation_impl(
     *,
     frozen_view: FrozenEvidenceView,
@@ -1564,6 +2100,16 @@ def _run_shadow_validation_impl(
     provenance.experiment_root = frozen_view.source_experiment_root
     engine = SparseCounterfactualReplayEngine(provenance)
     baseline_state = engine.replay_global(mode=ReplayMode.NATURAL_REPLAY)
+    if str(constraint.get("type") or "").upper() == "RELABEL":
+        return _run_semantic_shadow_validation(
+            provenance=provenance,
+            baseline_state=baseline_state,
+            packet=packet,
+            compilation=compilation,
+            constraint=constraint,
+            destination=destination,
+            started=started,
+        )
     graph = TypedDependencyGraph(provenance)
     anchor_uid = str(packet.association["event_uid"])
     anchor_sequence = int(packet.association.get("event_sequence", -1))
@@ -1720,12 +2266,18 @@ def run_shadow_validation(
 
 
 def final_scene_metric_gate(
-    baseline_metrics: Mapping[str, Any], candidate_metrics: Mapping[str, Any]
+    baseline_metrics: Mapping[str, Any],
+    candidate_metrics: Mapping[str, Any],
+    *,
+    require_partition_change: bool = True,
 ) -> dict[str, bool]:
     baseline_object_count = int(baseline_metrics["object_count"])
     minimum_object_count = max(1, math.floor(0.90 * baseline_object_count))
     return {
-        "partition_changed": candidate_metrics["state_hash"] != baseline_metrics["state_hash"],
+        "partition_changed": (
+            not require_partition_change
+            or candidate_metrics["state_hash"] != baseline_metrics["state_hash"]
+        ),
         "observation_count_conserved": (
             candidate_metrics["observation_count"] == baseline_metrics["observation_count"]
         ),
@@ -1755,7 +2307,7 @@ def run_final_combined_replay(
     constraints: Sequence[Mapping[str, Any]],
     output_dir: str | Path,
 ) -> dict[str, Any]:
-    """Apply disjoint accepted constraints to the complete new run, without labels."""
+    """Apply accepted identity constraints, then guarded label-only pilots."""
 
     from conceptgraph.revision.constraints import ReplayMode
     from conceptgraph.revision.dependency_graph import TypedDependencyGraph
@@ -1768,13 +2320,26 @@ def run_final_combined_replay(
     provenance = ProvenanceIndex(experiment_root, validate=True)
     engine = SparseCounterfactualReplayEngine(provenance)
     baseline = engine.replay_global(mode=ReplayMode.NATURAL_REPLAY)
-    if constraints:
-        candidate = engine.replay_global(
+    identity_constraints = [
+        raw for raw in constraints if str(raw.get("type") or "").upper() != "RELABEL"
+    ]
+    semantic_constraints = [
+        raw for raw in constraints if str(raw.get("type") or "").upper() == "RELABEL"
+    ]
+    if identity_constraints:
+        candidate_before_semantics = engine.replay_global(
             mode=ReplayMode.PERSISTENT_SPARSE_CONSTRAINT_REPLAY,
-            constraints=constraints,
+            constraints=identity_constraints,
         )
     else:
-        candidate = baseline
+        candidate_before_semantics = baseline
+    if semantic_constraints:
+        candidate, semantic_reports = _apply_semantic_relabels(
+            candidate_before_semantics, semantic_constraints
+        )
+    else:
+        candidate = candidate_before_semantics
+        semantic_reports = []
     graph = TypedDependencyGraph(provenance)
     closure_obs: set[str] = set()
     closure_entities: set[str] = set()
@@ -1783,7 +2348,7 @@ def run_final_combined_replay(
     closure_edges: set[str] = set()
     starts: list[int] = []
     ends: list[int] = []
-    for constraint in constraints:
+    for constraint in identity_constraints:
         anchor = str(constraint.get("applies_at_event_uid") or "")
         if anchor not in provenance.events:
             continue
@@ -1808,6 +2373,21 @@ def run_final_combined_replay(
         closure_edges.update(closure.edge_uids)
         starts.append(closure.start_sequence)
         ends.append(closure.end_sequence)
+    for constraint in semantic_constraints:
+        entity_uid = str(constraint.get("entity_uid") or "")
+        if entity_uid:
+            closure_entities.add(entity_uid)
+        for state in (baseline, candidate_before_semantics):
+            row = _object_row(state, entity_uid)
+            closure_obs.update(
+                str(value) for value in (row or {}).get("member_observation_uids") or ()
+            )
+        anchor = str(constraint.get("applies_at_event_uid") or "")
+        if anchor in provenance.events:
+            closure_events.add(anchor)
+            sequence = provenance.sequence(provenance.get_event(anchor))
+            starts.append(sequence)
+            ends.append(provenance.max_sequence)
     closure_mapping = {
         "obs_uids": sorted(closure_obs),
         "entity_uids": sorted(closure_entities),
@@ -1825,11 +2405,34 @@ def run_final_combined_replay(
     )
     baseline_metrics = scene_health_metrics(baseline)
     candidate_metrics = scene_health_metrics(candidate)
-    metric_gate = final_scene_metric_gate(baseline_metrics, candidate_metrics)
+    metric_gate = final_scene_metric_gate(
+        baseline_metrics,
+        candidate_metrics,
+        require_partition_change=bool(identity_constraints),
+    )
+    semantic_gate = _semantic_relabel_gate(
+        before_state=candidate_before_semantics,
+        after_state=candidate,
+        constraints=semantic_constraints,
+        reports=semantic_reports,
+    )
+    requested_change_observed = bool(
+        (
+            identity_constraints
+            and baseline_metrics["state_hash"] != candidate_metrics["state_hash"]
+        )
+        or (
+            semantic_constraints
+            and _semantic_state_hash(candidate_before_semantics)
+            != _semantic_state_hash(candidate)
+        )
+    )
     activated = bool(
         constraints
         and verification["pass"]
         and all(metric_gate.values())
+        and semantic_gate["pass"]
+        and requested_change_observed
     )
     baseline_path = destination / "versions" / "v0_baseline" / "state.json"
     candidate_path = destination / "versions" / "v1_repaired" / "state.json"
@@ -1842,14 +2445,22 @@ def run_final_combined_replay(
         "safe_boundary": "scene_end",
         "production_global_map_mutated": False,
         "rollback_path": str(baseline_path),
+        "semantic_label_pilot": bool(semantic_constraints),
+        "semantic_accuracy_validated": False,
     }
     write_json(destination / "active_version.json", pointer)
     result = {
         "schema_version": "0.1.0",
         "constraint_count": len(constraints),
+        "identity_constraint_count": len(identity_constraints),
+        "semantic_constraint_count": len(semantic_constraints),
         "activated_repaired_version": activated,
         "verification": verification,
         "metric_gate": metric_gate,
+        "semantic_gate": semantic_gate,
+        "semantic_relabel_reports": semantic_reports,
+        "requested_change_observed": requested_change_observed,
+        "semantic_accuracy_validated": False,
         "baseline_metrics": baseline_metrics,
         "candidate_metrics": candidate_metrics,
         "metric_delta": {

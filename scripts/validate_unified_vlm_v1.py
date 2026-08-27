@@ -30,7 +30,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
-PROMPT_VERSION = "ali_my_unified_v1_2_identity_partition"
+PROMPT_VERSION = "ali_my_unified_v1_3_semantic_label"
 ALIAS_ORDER = ("A", "E0", "E1", "E2")
 ALIAS_COLORS = {
     "A": (255, 212, 0),
@@ -97,12 +97,20 @@ class PreparedCase:
 
 
 def read_jsonl(path: Path) -> Iterable[dict[str, Any]]:
-    with path.open("r", encoding="utf-8") as handle:
-        for line in handle:
-            if line.strip():
-                value = json.loads(line)
-                if isinstance(value, dict):
-                    yield value
+    """Read a stable snapshot and ignore a writer's trailing partial record."""
+
+    snapshot_size = path.stat().st_size
+    with path.open("rb") as handle:
+        payload = handle.read(snapshot_size)
+    complete_end = payload.rfind(b"\n")
+    if complete_end < 0:
+        return
+    for raw_line in payload[: complete_end + 1].splitlines():
+        if not raw_line.strip():
+            continue
+        value = json.loads(raw_line.decode("utf-8"))
+        if isinstance(value, dict):
+            yield value
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -149,8 +157,9 @@ def safe_error(exc: BaseException) -> str:
 class FrozenRun:
     """Read-only index over online provenance.  Forbidden final artifacts are never opened."""
 
-    def __init__(self, experiment_root: Path) -> None:
+    def __init__(self, experiment_root: Path, *, online_subdir: str = "online_mvp") -> None:
         self.root = experiment_root.resolve()
+        self.online_root = self.root / online_subdir
         evidence = self.root / "evidence"
         self.observations = {row["obs_uid"]: row for row in read_jsonl(evidence / "observations.jsonl")}
         self.frames = {int(row["frame_idx"]): row for row in read_jsonl(evidence / "frames.jsonl")}
@@ -165,12 +174,15 @@ class FrozenRun:
         for row in self.versions.values():
             self.versions_by_object[str(row["object_uid"])].append(row)
         self.issue_events: dict[str, list[dict[str, Any]]] = defaultdict(list)
-        for row in read_jsonl(self.root / "online_mvp" / "online_events.jsonl"):
+        for row in read_jsonl(self.online_root / "online_events.jsonl"):
             if row.get("type") == "ISSUE_UPSERT" and row.get("ticket_uid") and row.get("issue"):
                 self.issue_events[str(row["ticket_uid"])].append(row)
-        tickets_path = self.root / "online_mvp" / "tickets.json"
-        ticket_payload = json.loads(tickets_path.read_text(encoding="utf-8"))
-        self.tickets = {str(row["ticket_uid"]): row for row in ticket_payload.get("tickets") or []}
+        tickets_path = self.online_root / "tickets.json"
+        if tickets_path.is_file():
+            ticket_payload = json.loads(tickets_path.read_text(encoding="utf-8"))
+            self.tickets = {str(row["ticket_uid"]): row for row in ticket_payload.get("tickets") or []}
+        else:
+            self.tickets = {}
         self._mask_cache: dict[str, np.ndarray] = {}
         self._rgb_cache: dict[int, np.ndarray] = {}
 
@@ -489,7 +501,7 @@ def action_candidates(decision: str, aliases: Mapping[str, Mapping[str, Any]], a
             "id": f"H{next_id}", "axis": "SEMANTIC_LABEL", "action": "RELABEL_ENTITY",
             "parameters": {"entity": "E0", "from_label": "L0", "to_label": item["id"]},
             "label_text": {"from": current_label, "to": item["text"]},
-            "executable": False, "mode": "SHADOW_ONLY",
+            "executable": True, "mode": "SEMANTIC_PILOT",
         })
         next_id += 1
     values.append({"id": "DEFER", "axis": "NONE", "action": "REQUEST_MORE_EVIDENCE"})
@@ -714,7 +726,7 @@ def build_incident_text(
         "",
         "SEMANTIC LABEL HYPOTHESES",
         json.dumps(semantic, indent=2, ensure_ascii=False, sort_keys=True),
-        "These are finite machine hypotheses. If none fits, choose DEFER; any new label may only be written to suggested_label_for_logging.",
+        "These are finite machine hypotheses. For a RELABEL candidate, copy its label_text.to exactly into suggested_label_for_logging. For H0 or an identity candidate, that field must be null. If none fits, choose DEFER; an unlisted label may only be logged in that field with DEFER.",
         "",
         "ACTION CANDIDATES",
         json.dumps(candidates, indent=2, ensure_ascii=False, sort_keys=True),
@@ -726,6 +738,8 @@ def final_rules_text(schema: Mapping[str, Any]) -> str:
 - First test identity and mask purity. Only then test the stable semantic label.
 - Prefer an identity candidate when mixed/split instances explain the apparent label problem.
 - RELABEL requires a coherent entity and visible positive support from at least two complementary images.
+- For RELABEL, copy the selected candidate's label_text.to exactly into suggested_label_for_logging; this is the guarded label that will be tested in shadow replay.
+- For H0 or any identity candidate, suggested_label_for_logging must be null.
 - Never use the artificial A/E0/E1/E2 overlay hue, or a color difference caused by that hue, as evidence.
 - H0 means sufficient evidence supports no change; DEFER means insufficient evidence or no valid listed action.
 - Select exactly one candidate and return JSON only.
@@ -829,7 +843,7 @@ def synthesize_postprocess_merge_packet(
 
 
 def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> PreparedCase:
-    source_dir = run.root / "online_mvp" / "vlm" / ticket_uid
+    source_dir = run.online_root / "vlm" / ticket_uid
     manifest_path = source_dir / "evidence" / "packet_manifest.json"
     synthetic_source: str | None = None
     association_override: dict[str, Any] | None = None
@@ -1186,6 +1200,13 @@ def validate_output(value: Any, candidates: tuple[dict[str, Any], ...]) -> list[
     evidence = value.get("evidence_ids")
     if not isinstance(evidence, list) or not 1 <= len(evidence) <= 3 or len(evidence) != len(set(evidence)) or any(item not in {"I1", "I2", "I3"} for item in evidence):
         errors.append("evidence_ids must contain 1-3 unique IDs from I1/I2/I3")
+    if (
+        selected in by_id
+        and by_id[selected].get("axis") == "SEMANTIC_LABEL"
+        and isinstance(evidence, list)
+        and len(set(evidence)) < 2
+    ):
+        errors.append("semantic relabel requires at least two distinct evidence images")
     for key, limit in (("reason", 320), ("counterevidence", 240)):
         item = value.get(key)
         if not isinstance(item, str) or not item or len(item) > limit:
@@ -1196,8 +1217,28 @@ def validate_output(value: Any, candidates: tuple[dict[str, Any], ...]) -> list[
     suggestion = value.get("suggested_label_for_logging")
     if suggestion is not None and (not isinstance(suggestion, str) or len(suggestion) > 80):
         errors.append("suggested_label_for_logging must be null or a string up to 80 characters")
-    if selected != "DEFER" and suggestion is not None:
-        errors.append("suggested_label_for_logging must be null unless selected_candidate is DEFER")
+    selected_row = by_id.get(str(selected), {})
+    if selected_row.get("axis") == "SEMANTIC_LABEL":
+        label_text = selected_row.get("label_text")
+        expected_label = (
+            str(label_text.get("to") or "").strip()
+            if isinstance(label_text, Mapping)
+            else ""
+        )
+        if not expected_label:
+            errors.append("semantic candidate is missing label_text.to")
+        elif not isinstance(suggestion, str) or not suggestion.strip():
+            errors.append(
+                "semantic relabel must copy label_text.to into suggested_label_for_logging"
+            )
+        elif suggestion.strip() != expected_label:
+            errors.append(
+                "semantic relabel suggested_label_for_logging must exactly match label_text.to"
+            )
+    elif selected != "DEFER" and suggestion is not None:
+        errors.append(
+            "suggested_label_for_logging must be null for H0 and identity candidates"
+        )
     return errors
 
 
@@ -1323,7 +1364,7 @@ def candidate_description(candidate: Mapping[str, Any] | None, manifest: Mapping
         entity = str(parameters.get("entity"))
         old_label = labels.get(str(parameters.get("from_label")), str(parameters.get("from_label")))
         new_label = labels.get(str(parameters.get("to_label")), str(parameters.get("to_label")))
-        detail = f"仅 shadow：{entity} 从 {old_label} 改为 {new_label}"
+        detail = f"语义试验：{entity} 从 {old_label} 改为 {new_label}"
     else:
         detail = html.escape(json.dumps(parameters, ensure_ascii=False, sort_keys=True))
     return f"{candidate_id} / {action}：{detail}"
