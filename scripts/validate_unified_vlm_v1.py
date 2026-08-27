@@ -30,7 +30,7 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 
-PROMPT_VERSION = "ali_my_unified_v1"
+PROMPT_VERSION = "ali_my_unified_v1_1_overlay_guard"
 ALIAS_ORDER = ("A", "E0", "E1", "E2")
 ALIAS_COLORS = {
     "A": (255, 212, 0),
@@ -49,11 +49,21 @@ NEEDED_EVIDENCE = (
     "insufficient_provenance",
 )
 
+OVERLAY_COLOR_WARNING = (
+    "A/yellow, E0/cyan, E1/magenta, and E2/green are artificial mask-overlay hues, "
+    "not physical object colors. The translucent fill changes the visible RGB pixels. "
+    "Never use an overlay hue or a hue difference caused by overlays as identity, material, "
+    "or semantic evidence. Infer real color/material only from untinted RGB cues; if those "
+    "cues are unavailable, treat color/material as unknown."
+)
+
 SYSTEM_PROMPT = """You are the conservative visual diagnosis module of an open-vocabulary 3D mapping system.
 
 You will receive exactly three separately identified images: I1_DECISION, I2_DETAIL, and I3_DIVERSE. Each image is immediately preceded by its own IMAGE_SPEC. Bind every image only to that IMAGE_SPEC and do not infer missing metadata.
 
 The translucent colored overlays are the post-processed 2D masks actually accepted by the mapper at the frozen decision snapshot. They are visual pointers, not ground truth. They are not raw proposals and not future end-of-run membership. Inspect both the original RGB pixels inside the overlay and the surrounding scene.
+
+CRITICAL OVERLAY-COLOR RULE: A/yellow, E0/cyan, E1/magenta, and E2/green are artificial mask-overlay hues, not physical object colors. The translucent fill changes visible pixels. Never describe an object as yellow/cyan/teal/magenta/green because of an overlay, and never use an overlay hue or an overlay-caused color difference as identity, material, or semantic evidence. Infer real color/material only from untinted RGB cues; if unavailable, treat color/material as unknown.
 
 Aliases are fixed: A/yellow is the incident anchor observation; E0/cyan is its current owner; E1/magenta and E2/green are competing entities. Colors and aliases do not indicate correctness or confidence. If an alias is not listed as visible in an IMAGE_SPEC, treat it as unobserved in that frame, not absent from the world.
 
@@ -145,6 +155,11 @@ class FrozenRun:
         self.observations = {row["obs_uid"]: row for row in read_jsonl(evidence / "observations.jsonl")}
         self.frames = {int(row["frame_idx"]): row for row in read_jsonl(evidence / "frames.jsonl")}
         self.associations = {row["event_uid"]: row for row in read_jsonl(evidence / "associations.jsonl")}
+        self.mapping_merges = {
+            row["event_uid"]: row
+            for row in read_jsonl(evidence / "mapping_events.jsonl")
+            if row.get("event_type") == "OBJECT_MERGE"
+        }
         self.versions = {row["object_version_uid"]: row for row in read_jsonl(evidence / "object_versions.jsonl")}
         self.versions_by_object: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for row in self.versions.values():
@@ -153,6 +168,9 @@ class FrozenRun:
         for row in read_jsonl(self.root / "online_mvp" / "online_events.jsonl"):
             if row.get("type") == "ISSUE_UPSERT" and row.get("ticket_uid") and row.get("issue"):
                 self.issue_events[str(row["ticket_uid"])].append(row)
+        tickets_path = self.root / "online_mvp" / "tickets.json"
+        ticket_payload = json.loads(tickets_path.read_text(encoding="utf-8"))
+        self.tickets = {str(row["ticket_uid"]): row for row in ticket_payload.get("tickets") or []}
         self._mask_cache: dict[str, np.ndarray] = {}
         self._rgb_cache: dict[int, np.ndarray] = {}
 
@@ -432,6 +450,13 @@ def action_candidates(decision: str, aliases: Mapping[str, Mapping[str, Any]], a
                     "parameters": {"entities": ["A", alias]}, "executable": True,
                 })
                 next_id += 1
+    elif decision == "POSTPROCESS_MERGE":
+        values.append({
+            "id": f"H{next_id}", "axis": "IDENTITY", "action": "SEPARATE_MEMBER_GROUPS",
+            "parameters": {"groups": [["A", "E1"], ["E0"]]}, "executable": True,
+            "meaning": "undo the erroneous overlap merge while preserving the two pre-merge member groups",
+        })
+        next_id += 1
     else:
         for alias in ("E1", "E2"):
             if alias in aliases and aliases[alias].get("object_uid") != aliases.get("E0", {}).get("object_uid"):
@@ -495,6 +520,94 @@ def finding_text(issue: Mapping[str, Any]) -> tuple[str, str, str]:
     return source, axis, message[:500]
 
 
+def numeric_or_none(value: Any) -> float | None:
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def compact_label_evidence(rows: Iterable[Mapping[str, Any]]) -> list[dict[str, Any]]:
+    counts = Counter(normalize_label(row.get("class_name")) for row in rows)
+    counts.pop("", None)
+    return [
+        {"label_hypothesis": label, "accepted_observation_count": int(count)}
+        for label, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:6]
+    ]
+
+
+def build_input_summary(
+    issue: Mapping[str, Any],
+    anchor: Mapping[str, Any],
+    anchor_uid: str,
+    aliases: Mapping[str, Mapping[str, Any]],
+    alias_rows: Mapping[str, list[dict[str, Any]]],
+    association: Mapping[str, Any],
+    freeze_frame: int,
+    freeze_sequence: int,
+) -> dict[str, Any]:
+    source, axis, message = finding_text(issue)
+    object_to_alias = {
+        str(row.get("object_uid")): alias
+        for alias, row in aliases.items()
+        if row.get("object_uid")
+    }
+    entities = {}
+    for alias in ("E0", "E1", "E2"):
+        row = aliases.get(alias)
+        if not row:
+            continue
+        support = alias_rows.get(alias) or []
+        entities[alias] = {
+            "object_uid": row.get("object_uid"),
+            "stable_label_hypothesis": normalize_label(row.get("class_name")) or "unknown",
+            "accepted_support_count": len(support),
+            "accepted_view_label_evidence": compact_label_evidence(support),
+        }
+    top_candidates = []
+    for rank, candidate in enumerate((association.get("top_candidates") or [])[:3], 1):
+        object_uid = str(candidate.get("object_uid") or "")
+        alias = object_to_alias.get(object_uid, "unlisted")
+        top_candidates.append({
+            "rank": rank,
+            "alias": alias,
+            "object_uid": object_uid,
+            "stable_label_hypothesis": (entities.get(alias) or {}).get("stable_label_hypothesis", "unknown"),
+            "spatial_score": numeric_or_none(candidate.get("spatial_score")),
+            "visual_score": numeric_or_none(candidate.get("visual_score")),
+            "aggregate_score": numeric_or_none(candidate.get("aggregate_score")),
+        })
+    return {
+        "mask_overlay_warning": OVERLAY_COLOR_WARNING,
+        "freeze": {"frame": freeze_frame, "sequence": freeze_sequence},
+        "finding": {
+            "family": issue.get("family"),
+            "source": source,
+            "suspected_axis": axis,
+            "message": message,
+            "raw_signals": issue.get("raw_signals") or {},
+        },
+        "anchor": {
+            "alias": "A",
+            "observation_uid": anchor_uid,
+            "detected_label_hypothesis": normalize_label(anchor.get("class_name")) or "unknown",
+            "detector_confidence": numeric_or_none(anchor.get("confidence")),
+            "current_owner_alias": "E0",
+        },
+        "entities": entities,
+        "association": {
+            "decision": association.get("decision"),
+            "top1_score": numeric_or_none(association.get("top1_score")),
+            "top2_score": numeric_or_none(association.get("top2_score")),
+            "margin": numeric_or_none(association.get("margin")),
+            "similarity_threshold": numeric_or_none(association.get("sim_threshold")),
+            "similarity_evidence_valid": association.get("similarity_evidence_valid"),
+            "top_candidates": top_candidates,
+        },
+    }
+
+
 def overlay_details(view: Mapping[str, Any]) -> list[dict[str, Any]]:
     details = []
     for alias in ALIAS_ORDER:
@@ -534,6 +647,7 @@ def image_spec_text(image_id: str, view: Mapping[str, Any], snapshot_seq: int, e
         "visible_aliases": list(view["visible_aliases"]),
         "overlay_details": overlay_details(view),
         "mask_semantics": "every shown overlay is an accepted post-processed mask at this frozen snapshot; it is a visual pointer, not ground truth, and is neither a raw proposal nor future membership",
+        "overlay_color_rule": OVERLAY_COLOR_WARNING,
         "absence_rule": "aliases not listed above are unobserved in this frame, not proven absent",
         "intended_use": intended,
     }
@@ -553,6 +667,7 @@ def build_incident_text(
     current_label: str,
     alternatives: list[dict[str, Any]],
     candidates: list[dict[str, Any]],
+    input_summary: Mapping[str, Any],
 ) -> str:
     source, axis, message = finding_text(issue)
     entities = {alias: row.get("object_uid") for alias, row in aliases.items()}
@@ -568,11 +683,21 @@ def build_incident_text(
         f"finding_message: {message}",
         "Important: the finding only explains why this case was opened; it is not a correct diagnosis.",
         "",
+        "CRITICAL MASK-OVERLAY WARNING",
+        OVERLAY_COLOR_WARNING,
+        "",
         "CURRENT STATE",
         f"A is observation {anchor_uid}.",
         f"A is currently assigned to E0={entities.get('E0', 'none')}.",
         f"E1={entities.get('E1', 'none')}; E2={entities.get('E2', 'none')}.",
         f"E0 current stable label is L0=\"{current_label}\". L0 is a machine-maintained hypothesis, not ground truth.",
+        "",
+        "COMPACT MACHINE EVIDENCE (all labels and scores are hypotheses, not facts)",
+        json.dumps({
+            "anchor": input_summary.get("anchor"),
+            "entities": input_summary.get("entities"),
+            "association": input_summary.get("association"),
+        }, indent=2, ensure_ascii=False, sort_keys=True),
         "",
         "SEMANTIC LABEL HYPOTHESES",
         json.dumps(semantic, indent=2, ensure_ascii=False, sort_keys=True),
@@ -588,6 +713,7 @@ def final_rules_text(schema: Mapping[str, Any]) -> str:
 - First test identity and mask purity. Only then test the stable semantic label.
 - Prefer an identity candidate when mixed/split instances explain the apparent label problem.
 - RELABEL requires a coherent entity and visible positive support from at least two complementary images.
+- Never use the artificial A/E0/E1/E2 overlay hue, or a color difference caused by that hue, as evidence.
 - H0 means sufficient evidence supports no change; DEFER means insufficient evidence or no valid listed action.
 - Select exactly one candidate and return JSON only.
 
@@ -595,16 +721,113 @@ OUTPUT SCHEMA
 """ + json.dumps(schema, indent=2, ensure_ascii=False, sort_keys=True)
 
 
+def synthesize_postprocess_merge_packet(
+    run: FrozenRun,
+    ticket_uid: str,
+) -> tuple[dict[str, Any], dict[str, Any], str]:
+    ticket = run.tickets.get(ticket_uid)
+    if not ticket:
+        raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "ticket is absent from the online ticket ledger")
+    issues = [
+        issue for issue in ticket.get("issues") or []
+        if issue.get("family") == "POSTPROCESS_MERGE_CONFLICT"
+        and str(issue.get("anchor_event_uid")) in run.mapping_merges
+    ]
+    if not issues:
+        raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "no frozen postprocess merge event is available")
+    issue = min(issues, key=lambda row: int(row.get("detected_sequence", 10**12)))
+    merge = run.mapping_merges[str(issue["anchor_event_uid"])]
+    freeze_frame = int(issue["detected_frame"])
+    freeze_sequence = int(issue["detected_sequence"])
+    source_uid = str(merge.get("source_object_uid") or "")
+    target_uid = str(merge.get("target_object_uid") or "")
+    input_versions = {
+        str(value).split("@", 1)[0]: str(value)
+        for value in merge.get("input_object_version_uids") or []
+    }
+    source_version_uid = input_versions.get(source_uid)
+    target_version_uid = input_versions.get(target_uid)
+    source_version = run.versions.get(str(source_version_uid))
+    target_version = run.versions.get(str(target_version_uid))
+    if not source_version or not target_version:
+        raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "pre-merge object versions are unavailable")
+    source_rows = accepted_rows_for_version(run, source_version, freeze_frame)
+    if not source_rows:
+        raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "pre-merge source has no accepted observation mask")
+
+    def anchor_rank(row: Mapping[str, Any]) -> tuple[float, float, float, int]:
+        try:
+            area = float(run.load_mask(row).sum())
+        except (FileNotFoundError, ValueError, PreflightDefer):
+            area = 0.0
+        confidence = numeric_or_none(row.get("confidence")) or 0.0
+        non_boundary = 1.0 - float(row.get("boundary_touch_ratio") or 0.0)
+        frame = frame_index(row.get("frame_uid") or row.get("obs_uid"))
+        return area, confidence, non_boundary, frame
+
+    anchor = max(source_rows, key=anchor_rank)
+    anchor_uid = str(anchor["obs_uid"])
+    reason = merge.get("reason") or {}
+    association = {
+        "event_uid": str(merge["event_uid"]),
+        "event_sequence": freeze_sequence,
+        "frame_uid": merge.get("frame_uid"),
+        "obs_uid": anchor_uid,
+        "decision": "POSTPROCESS_MERGE",
+        "target_object_uid": target_uid,
+        "top1_score": None,
+        "top2_score": None,
+        "margin": None,
+        "sim_threshold": None,
+        "similarity_evidence_valid": True,
+        "top_candidates": [
+            {
+                "object_uid": target_uid,
+                "spatial_score": numeric_or_none(reason.get("overlap_ratio")),
+                "visual_score": numeric_or_none(reason.get("visual_similarity")),
+                "aggregate_score": None,
+            },
+            {
+                "object_uid": source_uid,
+                "spatial_score": None,
+                "visual_score": None,
+                "aggregate_score": None,
+            },
+        ],
+        "postprocess_reason": reason,
+    }
+    synthetic_source = f"online_mapping_event:{merge['event_uid']}"
+    manifest = {
+        "freeze_frame": freeze_frame,
+        "freeze_sequence": freeze_sequence,
+        "issue_uid": str(issue["issue_uid"]),
+        "anchor_event_uid": str(merge["event_uid"]),
+        "anchor_obs_uid": anchor_uid,
+        "alias_version_uids": {
+            "CURRENT_ENTITY_CONTEXT": target_version_uid,
+            "CANDIDATE_1_CONTEXT": source_version_uid,
+        },
+        "images": [],
+        "synthetic_online_adapter": "postprocess merge event -> pre-merge immutable member groups",
+        "incident_view_reason": "clearest accepted source-group observation available before the postprocess merge event",
+        "merge_event_frame": freeze_frame,
+    }
+    return manifest, association, synthetic_source
+
+
 def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> PreparedCase:
     source_dir = run.root / "online_mvp" / "vlm" / ticket_uid
     manifest_path = source_dir / "evidence" / "packet_manifest.json"
-    if not manifest_path.is_file():
-        raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", f"missing {manifest_path}")
-    old_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    synthetic_source: str | None = None
+    association_override: dict[str, Any] | None = None
+    if manifest_path.is_file():
+        old_manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    else:
+        old_manifest, association_override, synthetic_source = synthesize_postprocess_merge_packet(run, ticket_uid)
     freeze_frame = int(old_manifest["freeze_frame"])
     freeze_sequence = int(old_manifest["freeze_sequence"])
     issue_uid = str(old_manifest["issue_uid"])
-    association = run.associations.get(str(old_manifest["anchor_event_uid"]))
+    association = association_override or run.associations.get(str(old_manifest["anchor_event_uid"]))
     if not association or int(association.get("event_sequence", 10**12)) > freeze_sequence:
         raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "anchor association is missing or after cutoff")
     anchor_uid = str(association.get("obs_uid") or "")
@@ -636,14 +859,36 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
         if alias in aliases:
             rows = accepted_rows_for_version(run, aliases[alias], freeze_frame)
             alias_rows[alias] = [row for row in rows if str(row["obs_uid"]) != anchor_uid]
-    # Detect incompatible alias snapshots instead of silently painting one accepted mask twice.
+    # A historical candidate version can share observations with another alias after an
+    # online merge. Exclude those rows from every competing alias: this preserves frozen
+    # provenance without painting the same accepted mask as two different entities.
     owners: dict[str, list[str]] = defaultdict(list)
     for alias in ("E0", "E1", "E2"):
         for row in alias_rows.get(alias, ()):
             owners[str(row["obs_uid"])].append(alias)
     overlaps = {uid: values for uid, values in owners.items() if len(values) > 1}
+    overlap_resolution: dict[str, str] = {}
     if overlaps:
-        raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", f"alias snapshots overlap on {len(overlaps)} observations")
+        # The frozen packet may explicitly bind a selected observation to exactly
+        # one context alias. Use that decision-time binding when unambiguous;
+        # otherwise exclude the shared row from every alias.
+        explicit_bindings: dict[str, set[str]] = defaultdict(set)
+        for image in old_manifest.get("images") or ():
+            alias = old_to_new.get(str(image.get("context_alias") or ""))
+            obs_key = str(image.get("obs_key") or "")
+            if not alias or not obs_key:
+                continue
+            matches = [uid for uid in overlaps if uid.endswith(obs_key)]
+            for uid in matches:
+                explicit_bindings[uid].add(alias)
+        for uid, owner_aliases in overlaps.items():
+            preferred = explicit_bindings.get(uid, set()).intersection(owner_aliases)
+            overlap_resolution[uid] = next(iter(preferred)) if len(preferred) == 1 else "EXCLUDED_AMBIGUOUS"
+        for alias in ("E0", "E1", "E2"):
+            alias_rows[alias] = [
+                row for row in alias_rows.get(alias, ())
+                if str(row["obs_uid"]) not in overlaps or overlap_resolution.get(str(row["obs_uid"])) == alias
+            ]
 
     by_frame: dict[int, dict[str, list[dict[str, Any]]]] = defaultdict(lambda: defaultdict(list))
     for alias, rows in alias_rows.items():
@@ -665,6 +910,56 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
             continue
         if view["eligible"]:
             pool.append(view)
+    view_selection_mode = "strict_multi_alias_accepted_view"
+    if len(pool) < 2:
+        # Small or historically merged objects can lose all unique multi-alias
+        # support after conservative overlap handling. The original frozen packet
+        # already records an explicit context-alias binding for selected accepted
+        # observations. Rebuild single-alias detail crops from those immutable rows;
+        # this stays within the same freeze and does not read the old VLM response.
+        suffix_to_rows: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for row in run.observations.values():
+            match = re.search(r"(f\d+_r\d+)$", str(row.get("obs_uid") or ""))
+            if match:
+                suffix_to_rows[match.group(1)].append(row)
+        fallback_by_frame: dict[int, dict[str, Any]] = {}
+        for image in old_manifest.get("images") or ():
+            alias = old_to_new.get(str(image.get("context_alias") or ""))
+            obs_key = str(image.get("obs_key") or "")
+            if not alias or alias not in aliases or not obs_key:
+                continue
+            matches = suffix_to_rows.get(obs_key) or []
+            if len(matches) != 1:
+                continue
+            row = matches[0]
+            frame = frame_index(row.get("frame_uid") or row.get("obs_uid"))
+            if (
+                frame == incident_frame
+                or frame > freeze_frame
+                or frame not in run.frames
+                or run.frames[frame].get("pose") is None
+                or row.get("status") != "kept"
+                or not row.get("processed_mask_ref")
+            ):
+                continue
+            try:
+                view = build_view_record(run, frame, {alias: [row]}, relevant_entities)
+            except (FileNotFoundError, ValueError, PreflightDefer):
+                continue
+            if (
+                float(view["target_mask_short_side_px"]) < 64.0
+                or float(view["quality_terms"]["exposure_quality"]) < 0.15
+                or float(view["quality_terms"]["non_occlusion"]) < 0.20
+            ):
+                continue
+            view["packet_context_alias"] = alias
+            view["packet_source_obs_uid"] = str(row["obs_uid"])
+            previous = fallback_by_frame.get(frame)
+            if previous is None or float(view["quality"]) > float(previous["quality"]):
+                fallback_by_frame[frame] = view
+        if len(fallback_by_frame) >= 2:
+            pool = list(fallback_by_frame.values())
+            view_selection_mode = "frozen_packet_single_alias_detail_fallback"
     if len(pool) < 2:
         raise PreflightDefer("DEFER_INSUFFICIENT_VIEWS", f"only {len(pool) + 1} unique qualified accepted views")
     i2 = max(pool, key=lambda item: (float(item["quality"]), -int(item["frame"])))
@@ -711,9 +1006,26 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
     candidates = action_candidates(str(association.get("decision") or ""), aliases, alternatives, current_label)
     schema = output_schema([str(item["id"]) for item in candidates])
     snapshot_id = f"{ticket_uid}:f{freeze_frame}:s{freeze_sequence}"
-    incident = build_incident_text(ticket_uid, snapshot_id, freeze_sequence, issue, anchor_uid, aliases, current_label, alternatives, candidates)
-    spec1 = image_spec_text("I1", i1, freeze_sequence, {})
-    spec2 = image_spec_text("I2", i2, freeze_sequence, {"quality_score": round(float(i2["quality"]), 6), "quality_terms": i2["quality_terms"]})
+    input_summary = build_input_summary(
+        issue, anchor, anchor_uid, aliases, alias_rows, association, freeze_frame, freeze_sequence,
+    )
+    incident = build_incident_text(
+        ticket_uid, snapshot_id, freeze_sequence, issue, anchor_uid, aliases,
+        current_label, alternatives, candidates, input_summary,
+    )
+    spec1_extra = {}
+    if synthetic_source:
+        spec1_extra = {
+            "selection_reason": old_manifest.get("incident_view_reason"),
+            "postprocess_event_frame": old_manifest.get("merge_event_frame"),
+            "postprocess_event_source": synthetic_source,
+        }
+    spec1 = image_spec_text("I1", i1, freeze_sequence, spec1_extra)
+    spec2 = image_spec_text("I2", i2, freeze_sequence, {
+        "view_selection_mode": view_selection_mode,
+        "quality_score": round(float(i2["quality"]), 6),
+        "quality_terms": i2["quality_terms"],
+    })
     spec3 = image_spec_text("I3", i3, freeze_sequence, {
         "view_difference": {
             "baseline_to_I1_m": round(float(i3["baseline_to_i1_m"]), 4),
@@ -721,6 +1033,7 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
             "minimum_pose_diversity_to_I1_I2": round(float(i3["pose_diversity_min_to_i1_i2"]), 6),
         },
         "newly_covered_aliases": list(i3["newly_covered_aliases"]) or ["none"],
+        "view_selection_mode": view_selection_mode,
         "quality_score": round(float(i3["quality"]), 6),
         "diverse_score": round(float(i3["diverse_score"]), 6),
     })
@@ -767,13 +1080,19 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
             user_review.append(f"[{item['image_id']} IMAGE: {record['file']} sha256={record['sha256']}]")
     (case_dir / "user_prompt_interleaved.txt").write_text("\n\n".join(user_review) + "\n", encoding="utf-8")
 
-    used_rows = {str(row["obs_uid"]): row for rows in alias_rows.values() for row in rows}
+    used_rows = {
+        str(row["obs_uid"]): row
+        for view in (i1, i2, i3)
+        for rows in view["alias_rows"].values()
+        for row in rows
+    }
     used_versions = {alias: str(row["object_version_uid"]) for alias, row in aliases.items()}
     case_manifest = {
         "schema_version": "ali_my_unified_validation/1.0",
         "ticket_uid": ticket_uid,
         "source_online_experiment": str(run.root),
-        "source_frozen_packet": str(manifest_path),
+        "source_frozen_packet": synthetic_source or str(manifest_path),
+        "online_adapter": old_manifest.get("synthetic_online_adapter"),
         "prompt_version": PROMPT_VERSION,
         "freeze_frame": freeze_frame,
         "freeze_sequence": freeze_sequence,
@@ -782,6 +1101,8 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
         "issue_uid": issue_uid,
         "issue_family": issue.get("family"),
         "association_decision": association.get("decision"),
+        "view_selection_mode": view_selection_mode,
+        "input_summary": input_summary,
         "aliases": {
             alias: {"object_uid": row.get("object_uid"), "object_version_uid": row.get("object_version_uid"), "stable_label_hypothesis": row.get("class_name")}
             for alias, row in aliases.items()
@@ -803,6 +1124,12 @@ def prepare_case(run: FrozenRun, ticket_uid: str, output_root: Path) -> Prepared
             "final_membership_read": False,
             "old_vlm_response_read": False,
             "old_compilation_read": False,
+            "shared_alias_observations_detected": sorted(overlaps),
+            "shared_alias_observations_excluded": sorted(
+                uid for uid, resolution in overlap_resolution.items() if resolution == "EXCLUDED_AMBIGUOUS"
+            ),
+            "shared_alias_observation_count": len(overlaps),
+            "shared_alias_observation_resolution": overlap_resolution,
         },
     }
     write_json(case_dir / "case_manifest.json", case_manifest)
@@ -924,51 +1251,246 @@ def call_vlm(case: PreparedCase, api_key: str, base_url: str, model: str, timeou
     return {"ticket_uid": case.ticket_uid, **failure}
 
 
-def case_review_html(case_dir: Path) -> None:
+def json_block(value: Any) -> str:
+    return html.escape(json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True))
+
+
+def fmt_number(value: Any, digits: int = 3) -> str:
+    number = numeric_or_none(value)
+    return "-" if number is None else f"{number:.{digits}f}"
+
+
+def alias_label(manifest: Mapping[str, Any], alias: str) -> str:
+    summary = manifest.get("input_summary") or {}
+    if alias == "A":
+        return str((summary.get("anchor") or {}).get("detected_label_hypothesis") or "unknown")
+    return str(((summary.get("entities") or {}).get(alias) or {}).get("stable_label_hypothesis") or "unknown")
+
+
+def candidate_description(candidate: Mapping[str, Any] | None, manifest: Mapping[str, Any]) -> str:
+    if not candidate:
+        return "未知候选"
+    candidate_id = str(candidate.get("id") or "-")
+    action = str(candidate.get("action") or "-")
+    parameters = candidate.get("parameters") or {}
+    labels = {str(item.get("id")): str(item.get("text")) for item in manifest.get("semantic_label_hypotheses") or []}
+    if action == "NO_OP":
+        detail = "保持当前 identity 与稳定标签"
+    elif action == "REQUEST_MORE_EVIDENCE":
+        detail = "证据不足或候选表中没有安全动作"
+    elif action == "SAME_INSTANCE":
+        entities = parameters.get("entities") or []
+        detail = "判为同一实例：" + " + ".join(f"{alias}({alias_label(manifest, str(alias))})" for alias in entities)
+    elif action == "MOVE_OBSERVATION":
+        src, dst = str(parameters.get("from")), str(parameters.get("to"))
+        detail = f"把 A({alias_label(manifest, 'A')}) 从 {src}({alias_label(manifest, src)}) 移到 {dst}({alias_label(manifest, dst)})"
+    elif action == "SEPARATE_MEMBER_GROUPS":
+        groups = parameters.get("groups") or []
+        rendered_groups = [
+            " + ".join(f"{alias}({alias_label(manifest, str(alias))})" for alias in group)
+            for group in groups
+        ]
+        detail = "分离成员组：" + " ｜ ".join(rendered_groups)
+    elif action == "RELABEL_ENTITY":
+        entity = str(parameters.get("entity"))
+        old_label = labels.get(str(parameters.get("from_label")), str(parameters.get("from_label")))
+        new_label = labels.get(str(parameters.get("to_label")), str(parameters.get("to_label")))
+        detail = f"仅 shadow：{entity} 从 {old_label} 改为 {new_label}"
+    else:
+        detail = html.escape(json.dumps(parameters, ensure_ascii=False, sort_keys=True))
+    return f"{candidate_id} / {action}：{detail}"
+
+
+def posthoc_verdict(output: Mapping[str, Any], candidate: Mapping[str, Any] | None, metadata: Mapping[str, Any]) -> str:
+    expected = set(str(value) for value in metadata.get("acceptable_actions") or [])
+    if not expected or not output:
+        return "未设置事后动作参考；请人工评判"
+    action = str((candidate or {}).get("action") or "")
+    if action in expected:
+        return "与事后参考动作族一致"
+    if output.get("selected_candidate") == "DEFER":
+        return "未识别错误：选择了证据不足"
+    return f"与事后参考不一致（参考：{', '.join(sorted(expected))}）"
+
+
+def overlay_color_audit(output: Mapping[str, Any]) -> tuple[list[str], str]:
+    text = " ".join(str(output.get(key) or "") for key in ("reason", "counterevidence")).lower()
+    found = sorted({term for term in ("yellow", "cyan", "teal", "magenta", "green") if re.search(rf"\b{term}\b", text)})
+    if not found:
+        return [], "未发现输出使用蒙版色词"
+    return found, "输出含蒙版色词，必须人工检查是否把 overlay 颜色误当成物体证据"
+
+
+def case_review_html(case_dir: Path, review_metadata: Mapping[str, Any] | None = None) -> None:
+    review_metadata = review_metadata or {}
     manifest = json.loads((case_dir / "case_manifest.json").read_text(encoding="utf-8"))
     request = json.loads((case_dir / "actual_request_redacted.json").read_text(encoding="utf-8"))
     validation = json.loads((case_dir / "validation.json").read_text(encoding="utf-8")) if (case_dir / "validation.json").is_file() else {"status": "PREPARED_ONLY"}
-    output = json.loads((case_dir / "vlm_output.json").read_text(encoding="utf-8")) if (case_dir / "vlm_output.json").is_file() else None
+    output = json.loads((case_dir / "vlm_output.json").read_text(encoding="utf-8")) if (case_dir / "vlm_output.json").is_file() else {}
     candidates = json.loads((case_dir / "action_candidates.json").read_text(encoding="utf-8"))
-    def block(value: Any) -> str:
-        return html.escape(json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True))
+    by_id = {str(item.get("id")): item for item in candidates}
+    selected = by_id.get(str(output.get("selected_candidate")))
+    summary = manifest.get("input_summary") or {}
+    finding = summary.get("finding") or {}
+    anchor = summary.get("anchor") or {}
+    entities = summary.get("entities") or {}
+    association = summary.get("association") or {}
+
+    alias_rows = []
+    for alias in ("A", "E0", "E1", "E2"):
+        if alias == "A":
+            label = anchor.get("detected_label_hypothesis", "unknown")
+            support = "1（incident observation）"
+            label_evidence = f'{label} @ confidence {fmt_number(anchor.get("detector_confidence"))}'
+            object_uid = anchor.get("observation_uid", "-")
+        elif alias in entities:
+            entity = entities[alias]
+            label = entity.get("stable_label_hypothesis", "unknown")
+            support = str(entity.get("accepted_support_count", 0))
+            label_evidence = ", ".join(
+                f'{item.get("label_hypothesis")}×{item.get("accepted_observation_count")}'
+                for item in entity.get("accepted_view_label_evidence") or []
+            ) or "-"
+            object_uid = entity.get("object_uid", "-")
+        else:
+            continue
+        alias_rows.append(
+            f"<tr><td><strong>{html.escape(alias)}</strong></td><td>{html.escape(str(label))}</td>"
+            f"<td>{html.escape(str(support))}</td><td>{html.escape(label_evidence)}</td>"
+            f"<td class=uid>{html.escape(str(object_uid))}</td></tr>"
+        )
+
+    score_rows = "".join(
+        "<tr>" + "".join([
+            f'<td>{html.escape(str(item.get("rank")))}</td>',
+            f'<td>{html.escape(str(item.get("alias")))}</td>',
+            f'<td>{html.escape(str(item.get("stable_label_hypothesis")))}</td>',
+            f'<td>{fmt_number(item.get("spatial_score"))}</td>',
+            f'<td>{fmt_number(item.get("visual_score"))}</td>',
+            f'<td>{fmt_number(item.get("aggregate_score"))}</td>',
+        ]) + "</tr>"
+        for item in association.get("top_candidates") or []
+    ) or '<tr><td colspan="6">无可用候选分数</td></tr>'
+
+    candidate_rows = "".join(
+        f'<tr><td><strong>{html.escape(str(item.get("id")))}</strong></td><td>{html.escape(str(item.get("axis")))}</td>'
+        f'<td>{html.escape(candidate_description(item, manifest))}</td><td>{"是" if item.get("executable") else "否"}</td></tr>'
+        for item in candidates
+    )
+
     images = "".join(
-        f'<figure><img src="{name}" alt="{image_id}"><figcaption>{image_id}: frame {manifest["images"][image_id]["frame"]}; visible {html.escape(str(manifest["images"][image_id]["visible_aliases"]))}</figcaption></figure>'
+        f'<figure><img src="{name}" alt="{image_id}"><figcaption><strong>{image_id}</strong> · frame {manifest["images"][image_id]["frame"]}<br>'
+        + "；".join(
+            f'{html.escape(alias)} = {html.escape(alias_label(manifest, alias))}'
+            for alias in manifest["images"][image_id]["visible_aliases"]
+        )
+        + "</figcaption></figure>"
         for image_id, name in (("I1", "I1_DECISION.jpg"), ("I2", "I2_DETAIL.jpg"), ("I3", "I3_DIVERSE.jpg"))
     )
+
+    color_terms, color_audit = overlay_color_audit(output)
+    output_reason = html.escape(str(output.get("reason") or "尚未调用 VLM"))
+    output_counter = html.escape(str(output.get("counterevidence") or "-"))
+    needed = ", ".join(str(value) for value in output.get("needed_evidence") or []) or "无"
+    verdict = posthoc_verdict(output, selected, review_metadata)
+    group = str(review_metadata.get("sample_group") or "未分组")
+    selection_basis = str(review_metadata.get("selection_basis") or "无事后参考；只展示在线冻结输入与 VLM 输出")
+    expected_note = str(review_metadata.get("expected_diagnosis") or "-")
+    output_card_class = "ok" if verdict.startswith("与事后") else "warn" if output else "muted"
+    raw_link = ' · <a href="vlm_raw_response.json">API 原始响应</a>' if (case_dir / "vlm_raw_response.json").is_file() else ""
+
     page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>{html.escape(case_dir.name)}</title>
-<style>body{{font:15px/1.55 system-ui;margin:28px;max-width:1500px}}.images{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}figure{{margin:0}}img{{width:100%;height:auto;border:1px solid #bbb}}pre{{white-space:pre-wrap;word-break:break-word;background:#f5f5f5;padding:14px;border-radius:7px}}.valid{{color:#087a29}}@media(max-width:900px){{.images{{grid-template-columns:1fr}}}}</style></head><body>
-<h1>{html.escape(case_dir.name)}</h1><p>状态：<strong class="valid">{html.escape(str(validation.get("status")))}</strong>。三张图均来自冻结在线快照的 accepted processed mask。</p>
+<style>
+body{{font:15px/1.55 system-ui;margin:26px auto;padding:0 22px;max-width:1540px;color:#18212b}}h1{{margin-bottom:4px}}h2{{margin-top:30px}}table{{border-collapse:collapse;width:100%;margin:10px 0 18px}}th,td{{border:1px solid #cbd2d9;padding:8px;text-align:left;vertical-align:top}}th{{background:#eef2f5}}.images{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}}figure{{margin:0;background:#f6f8fa;border:1px solid #cbd2d9}}img{{width:100%;height:auto;display:block}}figcaption{{padding:8px}}pre{{white-space:pre-wrap;word-break:break-word;background:#f5f5f5;padding:14px;border-radius:7px;max-height:700px;overflow:auto}}.warning{{background:#fff0f0;border:2px solid #d11;padding:12px 14px;border-radius:7px;font-weight:650}}.card{{border:1px solid #aab5c0;border-left:6px solid #697b8c;padding:12px 16px;border-radius:6px;background:#fafbfc}}.card.ok{{border-left-color:#16853c;background:#f0fff4}}.card.warn{{border-left-color:#d47a00;background:#fff8e8}}.muted{{color:#596773}}.uid{{font:12px/1.4 ui-monospace,monospace;word-break:break-all}}.chips span{{display:inline-block;background:#e8eef5;border-radius:999px;padding:2px 8px;margin-right:5px}}details{{margin:12px 0}}@media(max-width:950px){{.images{{grid-template-columns:1fr}}}}
+</style></head><body>
+<h1>{html.escape(case_dir.name)}</h1>
+<p class="chips"><span>{html.escape(group)}</span><span>状态 {html.escape(str(validation.get("status")))}</span><span>freeze f{manifest.get("freeze_frame")}/s{manifest.get("freeze_sequence")}</span></p>
+<div class="warning">重要：图中的 A / E0 / E1 / E2 是人工 mask 蒙版。黄色、青色、品红色、绿色不是物体真实颜色，也不能用蒙版造成的色差判断是否同一物体。</div>
+
+<h2>1. VLM 实际输入：文字与数据</h2>
+<table><tbody>
+<tr><th>问题类型</th><td>{html.escape(str(finding.get("family") or manifest.get("issue_family")))}</td><th>关联决策</th><td>{html.escape(str(association.get("decision") or manifest.get("association_decision")))}</td></tr>
+<tr><th>扫描触发信息</th><td colspan="3">{html.escape(str(finding.get("message") or "-"))}</td></tr>
+<tr><th>数值概览</th><td colspan="3">top1={fmt_number(association.get("top1_score"))}；top2={fmt_number(association.get("top2_score"))}；margin={fmt_number(association.get("margin"))}；threshold={fmt_number(association.get("similarity_threshold"))}</td></tr>
+</tbody></table>
+<h3>Alias、label 与 accepted observation 证据</h3>
+<table><thead><tr><th>Alias</th><th>当前机器 label</th><th>支持观测数</th><th>历史 accepted-view label 计数</th><th>不可变 UID</th></tr></thead><tbody>{''.join(alias_rows)}</tbody></table>
+<h3>在线关联候选分数</h3>
+<table><thead><tr><th>Rank</th><th>Alias</th><th>机器 label</th><th>Spatial</th><th>Visual</th><th>Aggregate</th></tr></thead><tbody>{score_rows}</tbody></table>
+<h3>有限动作表（VLM 只能选其中一个 ID）</h3>
+<table><thead><tr><th>ID</th><th>轴</th><th>动作含义</th><th>可执行</th></tr></thead><tbody>{candidate_rows}</tbody></table>
+
+<h2>2. VLM 实际输入：三张冻结在线图片</h2>
+<p>I1 是检测出问题的精确帧；I2 是清晰细节；I3 是不同位姿视图。图下注明该帧可见 alias 及其机器 label。</p>
 <div class="images">{images}</div>
-<h2>VLM 实际输出</h2><pre>{block(output)}</pre>
-<h2>解析校验与延迟</h2><pre>{block(validation)}</pre>
-<h2>候选动作（VLM 只能选择 ID）</h2><pre>{block(candidates)}</pre>
-<h2>冻结与防未来泄露审计</h2><pre>{block(manifest["cutoff_audit"])}</pre>
-<details open><summary><strong>实际发送请求（图片 base64 已替换为文件名和 hash）</strong></summary><pre>{block(request)}</pre></details>
-<p><a href="user_prompt_interleaved.txt">逐图交错 User Prompt</a> · <a href="system_prompt.txt">System Prompt</a> · <a href="vlm_raw_response.json">API 原始响应</a></p>
+
+<h2>3. VLM 输出解读</h2>
+<div class="card {output_card_class}">
+<p><strong>最终选择：</strong>{html.escape(candidate_description(selected, manifest) if output else '尚未调用')}</p>
+<p><strong>置信度 / 引用图片：</strong>{fmt_number(output.get("confidence_diagnostic"), 2)} / {html.escape(', '.join(output.get("evidence_ids") or []) or '-')}</p>
+<p><strong>简短理由：</strong>{output_reason}</p>
+<p><strong>反证：</strong>{output_counter}</p>
+<p><strong>仍需证据：</strong>{html.escape(needed)}</p>
+<p><strong>事后参考对照：</strong>{html.escape(verdict)}。参考说明：{html.escape(expected_note)}</p>
+<p><strong>蒙版色词审计：</strong>{html.escape(color_audit)}{('（' + html.escape(', '.join(color_terms)) + '）') if color_terms else ''}</p>
+</div>
+<p class="muted">样本筛选依据：{html.escape(selection_basis)}。该事后说明只写入审阅 HTML，未进入 VLM request；原始 request 可在下方核对。</p>
+
+<details><summary><strong>原始 VLM JSON 输出</strong></summary><pre>{json_block(output or None)}</pre></details>
+<details><summary><strong>解析校验、延迟与 token</strong></summary><pre>{json_block(validation)}</pre></details>
+<details><summary><strong>冻结与防未来泄露审计</strong></summary><pre>{json_block(manifest["cutoff_audit"])}</pre></details>
+<details><summary><strong>实际发送请求（图片 base64 已替换为文件名和 hash）</strong></summary><pre>{json_block(request)}</pre></details>
+<p><a href="user_prompt_interleaved.txt">逐图交错 User Prompt</a> · <a href="system_prompt.txt">System Prompt</a>{raw_link}</p>
 </body></html>"""
     (case_dir / "review.html").write_text(page, encoding="utf-8")
 
 
-def root_review_html(output_root: Path, results: list[dict[str, Any]], elapsed: float) -> None:
+def root_review_html(
+    output_root: Path,
+    results: list[dict[str, Any]],
+    elapsed: float,
+    review_metadata: Mapping[str, Mapping[str, Any]] | None = None,
+) -> None:
+    review_metadata = review_metadata or {}
     rows = []
     for item in sorted(results, key=lambda value: value["ticket_uid"]):
+        ticket = str(item["ticket_uid"])
         output = item.get("output") or {}
+        case_dir = output_root / ticket
+        manifest_path = case_dir / "case_manifest.json"
+        if manifest_path.is_file():
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            candidates = json.loads((case_dir / "action_candidates.json").read_text(encoding="utf-8"))
+            selected = {str(row.get("id")): row for row in candidates}.get(str(output.get("selected_candidate")))
+            context = f'A={alias_label(manifest, "A")} → E0={alias_label(manifest, "E0")}；{manifest.get("issue_family")}'
+            action = candidate_description(selected, manifest) if output else "-"
+            verdict = posthoc_verdict(output, selected, review_metadata.get(ticket) or {})
+            link = f'<a href="{html.escape(ticket)}/review.html">{html.escape(ticket)}</a>'
+        else:
+            context = str(item.get("detail") or item.get("error") or "-")
+            action = "未调用"
+            verdict = "输入资格检查未通过"
+            link = html.escape(ticket)
         rows.append(
             "<tr>" + "".join([
-                f'<td><a href="{html.escape(item["ticket_uid"])}/review.html">{html.escape(item["ticket_uid"])}</a></td>',
+                f"<td>{link}</td>",
+                f'<td>{html.escape(str((review_metadata.get(ticket) or {}).get("sample_group") or "-"))}</td>',
+                f'<td>{html.escape(context)}</td>',
                 f'<td>{html.escape(str(item.get("status")))}</td>',
-                f'<td>{html.escape(str(output.get("selected_candidate", "-")))}</td>',
-                f'<td>{html.escape(str(output.get("decision_axis", "-")))}</td>',
+                f'<td>{html.escape(action)}</td>',
+                f'<td>{fmt_number(output.get("confidence_diagnostic"), 2)}</td>',
+                f'<td>{html.escape(verdict)}</td>',
                 f'<td>{html.escape(str(output.get("reason", item.get("detail", item.get("error", "-")))))}</td>',
                 f'<td>{float(item.get("elapsed_seconds", 0.0)):.2f}s</td>',
             ]) + "</tr>"
         )
-    page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>ali-my unified VLM V1 validation</title>
-<style>body{{font:15px/1.5 system-ui;margin:30px;max-width:1500px}}table{{border-collapse:collapse;width:100%}}th,td{{border:1px solid #bbb;padding:8px;text-align:left;vertical-align:top}}th{{background:#eee}}code{{background:#eee;padding:2px 4px}}</style></head><body>
-<h1>ali-my unified VLM V1：在线冻结证据验证</h1><p>本轮只验证 VLM 输入与输出，不做 replay 或地图修改。总墙钟时间 {elapsed:.2f}s。</p>
-<table><thead><tr><th>Case</th><th>校验状态</th><th>选择</th><th>轴</th><th>简短理由/错误</th><th>API 延迟</th></tr></thead><tbody>{''.join(rows)}</tbody></table>
-<p>点击每个 case 可查看三张实际输入图、完整交错提示词、有限候选、VLM 原始输出和 cutoff 审计。</p>
+    page = f"""<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>ali-my unified VLM validation</title>
+<style>body{{font:15px/1.5 system-ui;margin:28px auto;padding:0 20px;max-width:1700px}}.table-wrap{{overflow-x:auto}}table{{border-collapse:collapse;width:100%;min-width:1675px}}th,td{{border:1px solid #bbc4cc;padding:8px;text-align:left;vertical-align:top}}th{{background:#eaf0f4}}th:nth-child(1),td:nth-child(1){{min-width:190px}}th:nth-child(2),td:nth-child(2){{min-width:110px}}th:nth-child(3),td:nth-child(3){{min-width:260px}}th:nth-child(4),td:nth-child(4){{min-width:65px}}th:nth-child(5),td:nth-child(5){{min-width:340px}}th:nth-child(6),td:nth-child(6){{min-width:70px}}th:nth-child(7),td:nth-child(7){{min-width:150px}}th:nth-child(8),td:nth-child(8){{min-width:420px}}th:nth-child(9),td:nth-child(9){{min-width:70px}}.warning{{background:#fff0f0;border:2px solid #d11;padding:12px;border-radius:7px}}code{{background:#eee;padding:2px 4px}}</style></head><body>
+<h1>ali-my unified VLM：在线冻结证据验证</h1>
+<p>本轮只验证 VLM 输入与输出，不做 replay 或地图修改。总墙钟时间 {elapsed:.2f}s。</p>
+<div class="warning"><strong>统一提示词规则：</strong>A/E0/E1/E2 是 mask 蒙版，蒙版色不是物体真实颜色，不能用其色差做 identity 或 semantic 判断。</div>
+<div class="table-wrap"><table><thead><tr><th>Case</th><th>组别</th><th>输入标签/问题</th><th>校验</th><th>VLM 选择与动作</th><th>置信度</th><th>事后对照</th><th>理由</th><th>延迟</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>
+<p>点击 case 可先看完整文字/数值输入，再看三张图片和精简输出解读；原始 JSON、请求与 cutoff 审计均折叠保留。</p>
 </body></html>"""
     (output_root / "index.html").write_text(page, encoding="utf-8")
 
@@ -983,6 +1505,11 @@ def main() -> int:
     parser.add_argument("--api-key-env-prefix", default="ALI_VLM_API_KEY_")
     parser.add_argument("--timeout-seconds", type=float, default=300.0)
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument(
+        "--review-metadata",
+        type=Path,
+        help="Optional post-hoc sample-group/expected-action notes. Loaded only after all VLM calls and never added to a request.",
+    )
     args = parser.parse_args()
     started = time.monotonic()
     args.output_root.mkdir(parents=True, exist_ok=False)
@@ -1002,7 +1529,6 @@ def main() -> int:
     if args.prepare_only:
         for case in prepared:
             write_json(case.case_dir / "validation.json", {"status": "PREPARED_ONLY", "vlm_called": False})
-            case_review_html(case.case_dir)
             results.append({"ticket_uid": case.ticket_uid, "status": "PREPARED_ONLY"})
     else:
         keys = [os.environ.get(f"{args.api_key_env_prefix}{index}", "") for index in range(1, len(prepared) + 1)]
@@ -1015,8 +1541,26 @@ def main() -> int:
             }
             for future in as_completed(futures):
                 results.append(future.result())
-        for case in prepared:
-            case_review_html(case.case_dir)
+
+    # Post-hoc review references are intentionally loaded only after preparation and
+    # every API call. They can annotate HTML but cannot influence images, prompts,
+    # candidates, request bodies, or model outputs.
+    review_metadata: dict[str, Mapping[str, Any]] = {}
+    if args.review_metadata:
+        review_payload = json.loads(args.review_metadata.read_text(encoding="utf-8"))
+        if not isinstance(review_payload, dict) or review_payload.get("excluded_from_vlm_request") is not True:
+            raise ValueError("review metadata must declare excluded_from_vlm_request=true")
+        raw_cases = review_payload.get("cases") or {}
+        if not isinstance(raw_cases, dict):
+            raise ValueError("review metadata cases must be an object")
+        review_metadata = {str(key): value for key, value in raw_cases.items() if isinstance(value, Mapping)}
+        write_json(args.output_root / "posthoc_review_metadata.json", {
+            **review_payload,
+            "loaded_after_all_vlm_calls": True,
+            "request_inclusion": False,
+        })
+    for case in prepared:
+        case_review_html(case.case_dir, review_metadata.get(case.ticket_uid))
     elapsed = time.monotonic() - started
     summary = {
         "schema_version": "ali_my_unified_validation_run/1.0",
@@ -1031,9 +1575,11 @@ def main() -> int:
         "total_wall_seconds": elapsed,
         "results": sorted(results, key=lambda value: value["ticket_uid"]),
         "scope": "VLM evidence and judgment only; no replay, constraint execution, or map mutation",
+        "posthoc_review_metadata_loaded_after_vlm_calls": bool(args.review_metadata),
+        "posthoc_review_metadata_in_vlm_request": False,
     }
     write_json(args.output_root / "run_summary.json", summary)
-    root_review_html(args.output_root, results, elapsed)
+    root_review_html(args.output_root, results, elapsed, review_metadata)
     print(json.dumps({"output_root": str(args.output_root), "prepared": len(prepared), "results": results, "wall_seconds": elapsed}, ensure_ascii=False))
     return 0
 
