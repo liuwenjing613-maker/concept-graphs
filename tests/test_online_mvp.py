@@ -115,6 +115,7 @@ def test_scanner_builds_object_group_ticket_and_task_priority(tmp_path: Path) ->
         "confidence": 0.9,
         "class_name": "chair",
         "bbox_2d": [0, 0, 10, 10],
+        "processed_mask_ref": {"path": "mask.npz"},
     }
     association = {
         "event_uid": "event-assoc-1",
@@ -129,6 +130,7 @@ def test_scanner_builds_object_group_ticket_and_task_priority(tmp_path: Path) ->
         "target_object_uid": "object-new",
         "target_object_version_before": None,
         "target_object_version_after": "object-new@v1",
+        "mapping_event_uid": "event-map-1",
         "object_uids_before": ["object-a"],
         "candidate_object_version_uids": ["object-a@v1"],
         "top_candidates": [{"object_uid": "object-a", "aggregate_score": 1.15}],
@@ -208,11 +210,13 @@ def test_priority_is_lexicographic_not_weighted() -> None:
     )
     first = store.upsert(blocking)
     second = store.upsert(broad)
-    first.task_blocking = True
-    first.affected_lineage_uids = ("la",)
-    first.affected_event_count = 1
-    second.affected_lineage_uids = tuple(f"l{index}" for index in range(100))
-    second.affected_event_count = 1000
+    first.error_tier = 3
+    first.impact_tier = 1
+    first.pool_since_frame = 10
+    second.error_tier = 1
+    second.impact_tier = 3
+    second.task_blocking = True
+    second.pool_since_frame = 0
     assert store.ordered(current_frame=100)[0].ticket_uid == first.ticket_uid
 
 

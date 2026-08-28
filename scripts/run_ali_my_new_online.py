@@ -28,18 +28,16 @@ from conceptgraph.revision.online_mvp import (
     TaskContext,
     TicketStore,
     append_jsonl,
-    compile_unified_vlm_response,
-    freeze_watermarked_view,
-    run_final_combined_replay,
-    run_shadow_validation,
     write_json,
 )
-from scripts.validate_unified_vlm_v1 import (
+from scripts.validate_unified_vlm_v2 import (
     PROMPT_VERSION as UNIFIED_VLM_PROMPT_VERSION,
     FrozenRun,
     PreflightDefer,
     call_vlm,
     prepare_case,
+    write_case_html,
+    write_root_html,
 )
 
 
@@ -95,11 +93,12 @@ def _run_unified_vlm(
     base_url: str,
     model: str,
     timeout: float,
+    prepare_only: bool = False,
 ) -> dict[str, Any]:
-    """Prepare three frozen views, then make at most one strict VLM call."""
+    """Prepare event/current/diagnostic views, then make one strict V2 call."""
 
     prepare_started = time.monotonic()
-    case_root = output_root / "vlm_unified"
+    case_root = output_root / "vlm_object_state_v2"
     try:
         run = FrozenRun(experiment_root, online_subdir=output_root.name)
         case = prepare_case(run, packet.ticket_uid, case_root)
@@ -130,10 +129,31 @@ def _run_unified_vlm(
         return failure
 
     prepare_elapsed = time.monotonic() - prepare_started
+    if prepare_only:
+        validation = {
+            "status": "PREPARED_ONLY",
+            "vlm_called": False,
+            "prepare_elapsed_seconds": prepare_elapsed,
+            "prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        }
+        write_json(case.case_dir / "validation.json", validation)
+        write_case_html(case.case_dir)
+        return {
+            "ticket_uid": packet.ticket_uid,
+            "status": "PREPARED_ONLY",
+            "output": None,
+            "available_identity_targets": list(case.available_identity_targets),
+            "available_semantic_targets": list(case.available_semantic_targets),
+            "case_dir": str(case.case_dir),
+            "prepare_elapsed_seconds": prepare_elapsed,
+            "api_call_attempted": False,
+            "prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        }
     result = call_vlm(case, api_key, base_url, model, timeout)
     result.update(
         {
-            "candidates": [dict(value) for value in case.candidates],
+            "available_identity_targets": list(case.available_identity_targets),
+            "available_semantic_targets": list(case.available_semantic_targets),
             "allowed_image_ids": ["I1", "I2", "I3"],
             "case_dir": str(case.case_dir),
             "prepare_elapsed_seconds": prepare_elapsed,
@@ -149,7 +169,8 @@ def _safe_response(response: dict[str, Any]) -> dict[str, Any]:
         "ticket_uid": response.get("ticket_uid"),
         "status": response.get("status"),
         "output": response.get("output"),
-        "candidates": response.get("candidates") or [],
+        "available_identity_targets": response.get("available_identity_targets") or [],
+        "available_semantic_targets": response.get("available_semantic_targets") or [],
         "allowed_image_ids": response.get("allowed_image_ids") or [],
         "model": response.get("model"),
         "response_id": response.get("response_id"),
@@ -211,11 +232,22 @@ def main() -> int:
     parser.add_argument("--base-url", default="https://api.pinaic.com/v1")
     parser.add_argument("--model", default="gpt-5.6-sol")
     parser.add_argument("--max-vlm-tickets", type=int, default=15)
+    parser.add_argument(
+        "--ticket-uid",
+        action="append",
+        default=[],
+        help="optional exact ticket allowlist for frozen validation",
+    )
     parser.add_argument("--max-shadow-tickets", type=int, default=3)
     parser.add_argument("--min-ticket-age-frames", type=int, default=2)
     parser.add_argument("--poll-seconds", type=float, default=0.5)
     parser.add_argument("--task-context", type=Path)
     parser.add_argument("--no-vlm", action="store_true")
+    parser.add_argument(
+        "--prepare-vlm-only",
+        action="store_true",
+        help="build and audit V2 evidence cards without making API calls",
+    )
     args = parser.parse_args()
 
     if args.stride != 10:
@@ -254,7 +286,7 @@ def main() -> int:
     task_context = TaskContext.from_mapping(_read_json(args.task_context))
 
     api_keys: list[str] = []
-    if not args.no_vlm:
+    if not args.no_vlm and not args.prepare_vlm_only:
         for index in range(args.api_key_count):
             value = getpass.getpass(
                 f"API key {index + 1}/{args.api_key_count} (memory only): "
@@ -285,11 +317,15 @@ def main() -> int:
         "api_credential_slots": len(api_keys),
         "api_keys_persisted": False,
         "one_call_per_ticket": True,
+        "prepare_vlm_only": args.prepare_vlm_only,
+        "ticket_uid_allowlist": list(args.ticket_uid),
         "vlm_prompt_version": UNIFIED_VLM_PROMPT_VERSION,
         "vlm_input_image_count": 3,
-        "vlm_output_contract": "candidate_id_only",
-        "compound_partition_policy": "defer_until_multi_constraint_executor",
-        "semantic_policy": "vlm_selected_label_only_pilot_with_optimistic_guard",
+        "vlm_output_contract": "object_state_v2",
+        "vlm_parser_enabled": False,
+        "repair_execution_enabled": False,
+        "compound_partition_policy": "diagnose_and_report_executor_unsupported",
+        "semantic_policy": "declarative_label_target_shadow_diagnosis_only",
         "semantic_accuracy_validated": False,
         "annotations_loaded": False,
         "ground_truth_loaded": False,
@@ -347,55 +383,15 @@ def main() -> int:
     tickets = TicketStore()
     router = EvidenceRouter(experiment_root, max_images=6)
     vlm_executor = ThreadPoolExecutor(max_workers=max(1, len(api_keys)))
-    shadow_executor = ThreadPoolExecutor(max_workers=1)
-    clients = list(api_keys)
+    clients = list(api_keys) or ([""] * args.api_key_count if args.prepare_vlm_only else [])
     slot_futures: dict[int, Future[dict[str, Any]]] = {}
     slot_packets: dict[int, OnlineEvidencePacket] = {}
-    shadow_futures: dict[str, Future[dict[str, Any]]] = {}
-    shadow_compilations: dict[str, dict[str, Any]] = {}
     locked_lineages: set[str] = set()
     dispatched = 0
     api_calls_attempted = 0
-    shadows_started = 0
     latest_committed = -1
-    accepted_results: list[dict[str, Any]] = []
+    diagnosed_results: list[dict[str, Any]] = []
     terminal_vlm_tickets: set[str] = set()
-
-    def submit_shadow(
-        packet: OnlineEvidencePacket,
-        compilation: dict[str, Any],
-    ) -> None:
-        nonlocal shadows_started
-        if shadows_started >= args.max_shadow_tickets:
-            return
-        freeze_root = output_root / "frozen" / (
-            f"{packet.ticket_uid}_f{packet.freeze_frame:06d}"
-        )
-        frozen = freeze_watermarked_view(
-            ledger=ledger,
-            cutoff_frame=packet.freeze_frame,
-            output_root=freeze_root,
-        )
-        shadow_dir = output_root / "shadow" / packet.ticket_uid
-        shadow_futures[packet.ticket_uid] = shadow_executor.submit(
-            run_shadow_validation,
-            frozen_view=frozen,
-            packet=packet,
-            compilation=compilation,
-            output_dir=shadow_dir,
-        )
-        shadow_compilations[packet.ticket_uid] = compilation
-        shadows_started += 1
-        tickets.tickets[packet.ticket_uid].state = "REPLAYING"
-        append_jsonl(
-            live_log,
-            {
-                "type": "SHADOW_STARTED",
-                "ticket_uid": packet.ticket_uid,
-                "freeze_frame": packet.freeze_frame,
-                "freeze_sequence": frozen.max_sequence,
-            },
-        )
 
     try:
         idle_rounds_after_done = 0
@@ -421,14 +417,15 @@ def main() -> int:
                         ledger=ledger,
                         tracker=tracker,
                         task_context=task_context,
-                        stop_sequence=ledger.max_sequence,
+                        stop_sequence=ledger.max_sequence_at_frame(committed_frame),
+                        cutoff_frame=committed_frame,
                     )
                 if committed_frame % 10 == 0:
                     print(
                         "WATERMARK "
-                        f"frame={committed_frame} sequence={ledger.max_sequence} "
+                        f"frame={committed_frame} sequence={ledger.max_sequence_at_frame(committed_frame)} "
                         f"tickets={len(tickets.tickets)} dispatched={dispatched} "
-                        f"shadow={shadows_started}",
+                        "repair=disabled",
                         flush=True,
                     )
 
@@ -439,7 +436,8 @@ def main() -> int:
                     ledger=ledger,
                     tracker=tracker,
                     task_context=task_context,
-                    stop_sequence=ledger.max_sequence,
+                    stop_sequence=ledger.max_sequence_at_frame(latest_committed),
+                    cutoff_frame=latest_committed,
                 )
 
             for slot, future in list(slot_futures.items()):
@@ -455,29 +453,36 @@ def main() -> int:
                         api_calls_attempted += 1
                     response_path = output_root / "vlm" / packet.ticket_uid / "response.json"
                     write_json(response_path, response)
-                    compilation = compile_unified_vlm_response(
-                        packet=packet,
-                        result=response,
-                        ledger=ledger,
-                    )
-                    write_json(
-                        output_root / "vlm" / packet.ticket_uid / "compilation.json",
-                        compilation,
+                    output = response.get("output") or {}
+                    valid = response.get("status") == "VALID"
+                    no_change = bool(
+                        valid
+                        and output.get("identity_target") == "E0"
+                        and output.get("semantic_target") == "L0"
                     )
                     ticket.attempts.append(
                         {
                             "stage": "VLM",
                             "status": response.get("status"),
                             "response_path": str(response_path),
-                            "compilation_stage": compilation.get("stage"),
+                            "output_contract": "object_state_v2",
+                            "parser_status": "DISABLED_FOR_FIRST_VALIDATION",
                         }
                     )
-                    if compilation.get("candidate_constraint"):
-                        submit_shadow(packet, compilation)
-                    else:
-                        ticket.state = "NO_ACTION" if compilation.get("stage") == "NO_OP" else "ABORTED"
-                        terminal_vlm_tickets.add(ticket.ticket_uid)
-                        locked_lineages.difference_update(ticket.primary_lineage_uids)
+                    if valid:
+                        diagnosed_results.append(
+                            {
+                                "ticket_uid": packet.ticket_uid,
+                                "output": output,
+                                "freeze_frame": packet.freeze_frame,
+                                "freeze_sequence": packet.freeze_sequence,
+                            }
+                        )
+                    ticket.state = "NO_ACTION" if no_change else (
+                        "DIAGNOSED" if valid else "ABORTED"
+                    )
+                    terminal_vlm_tickets.add(ticket.ticket_uid)
+                    locked_lineages.difference_update(ticket.primary_lineage_uids)
                     append_jsonl(
                         live_log,
                         {
@@ -485,7 +490,8 @@ def main() -> int:
                             "ticket_uid": packet.ticket_uid,
                             "slot": slot,
                             "vlm_status": response.get("status"),
-                            "compilation_stage": compilation.get("stage"),
+                            "object_state_v2": output if valid else None,
+                            "parser_status": "DISABLED_FOR_FIRST_VALIDATION",
                         },
                     )
                 except Exception as exc:
@@ -508,72 +514,19 @@ def main() -> int:
                         },
                     )
 
-            for ticket_uid, future in list(shadow_futures.items()):
-                if not future.done():
-                    continue
-                del shadow_futures[ticket_uid]
-                ticket = tickets.tickets[ticket_uid]
-                try:
-                    result = future.result()
-                    ticket.state = (
-                        "READY_TO_COMMIT"
-                        if result.get("decision") == "WOULD_COMMIT"
-                        else "ABORTED"
-                    )
-                    ticket.attempts.append(
-                        {
-                            "stage": "SHADOW",
-                            "status": result.get("decision"),
-                            "result_path": str(
-                                output_root / "shadow" / ticket_uid / "shadow_result.json"
-                            ),
-                        }
-                    )
-                    if result.get("decision") == "WOULD_COMMIT":
-                        accepted_results.append(
-                            {
-                                "ticket_uid": ticket_uid,
-                                "result": result,
-                                "compilation": shadow_compilations[ticket_uid],
-                            }
-                        )
-                    append_jsonl(
-                        live_log,
-                        {
-                            "type": "SHADOW_COMPLETED",
-                            "ticket_uid": ticket_uid,
-                            "decision": result.get("decision"),
-                            "reason": result.get("reason"),
-                        },
-                    )
-                except Exception as exc:
-                    ticket.state = "ABORTED"
-                    ticket.attempts.append(
-                        {
-                            "stage": "SHADOW",
-                            "status": "ERROR",
-                            "error": f"{type(exc).__name__}:{exc}",
-                        }
-                    )
-                    append_jsonl(
-                        live_log,
-                        {
-                            "type": "SHADOW_FAILED",
-                            "ticket_uid": ticket_uid,
-                            "error": f"{type(exc).__name__}:{exc}",
-                        },
-                    )
-                terminal_vlm_tickets.add(ticket_uid)
-                locked_lineages.difference_update(ticket.primary_lineage_uids)
-
             if not args.no_vlm and dispatched < args.max_vlm_tickets:
                 free_slots = [index for index in range(len(clients)) if index not in slot_futures]
                 for slot in free_slots:
                     if dispatched >= args.max_vlm_tickets:
                         break
                     selected = None
-                    for ticket in tickets.ordered(current_frame=max(0, latest_committed)):
+                    for ticket in tickets.ordered(
+                        current_frame=max(0, latest_committed),
+                        audit_slot=(dispatched + 1) % 10 == 0,
+                    ):
                         if ticket.ticket_uid in terminal_vlm_tickets:
+                            continue
+                        if args.ticket_uid and ticket.ticket_uid not in set(args.ticket_uid):
                             continue
                         if ticket.dispatch_frame is not None:
                             continue
@@ -581,11 +534,13 @@ def main() -> int:
                             continue
                         if locked_lineages.intersection(ticket.primary_lineage_uids):
                             continue
-                        packet = router.build(
+                        packet = router.build_v2(
                             ticket=ticket,
                             ledger=ledger,
                             freeze_frame=max(0, latest_committed),
-                            freeze_sequence=ledger.max_sequence,
+                            freeze_sequence=ledger.max_sequence_at_frame(
+                                max(0, latest_committed)
+                            ),
                             output_dir=output_root / "vlm" / ticket.ticket_uid / "evidence",
                         )
                         if packet is None:
@@ -609,6 +564,7 @@ def main() -> int:
                         base_url=args.base_url,
                         model=args.model,
                         timeout=300.0,
+                        prepare_only=args.prepare_vlm_only,
                     )
                     dispatched += 1
                     append_jsonl(
@@ -624,7 +580,7 @@ def main() -> int:
                         },
                     )
 
-            active_work = bool(slot_futures or shadow_futures)
+            active_work = bool(slot_futures)
             if mapping_done:
                 if mapping_process is not None and mapping_process.returncode not in (0, None):
                     break
@@ -638,7 +594,6 @@ def main() -> int:
             time.sleep(max(0.05, args.poll_seconds))
     finally:
         vlm_executor.shutdown(wait=True, cancel_futures=False)
-        shadow_executor.shutdown(wait=True, cancel_futures=False)
         if mapping_handle is not None:
             mapping_handle.close()
 
@@ -648,7 +603,8 @@ def main() -> int:
         ledger=ledger,
         tracker=tracker,
         task_context=task_context,
-        stop_sequence=ledger.max_sequence,
+        stop_sequence=ledger.max_sequence_at_frame(max(ledger.frames, default=-1)),
+        cutoff_frame=max(ledger.frames, default=-1),
     )
     write_json(
         output_root / "tickets.json",
@@ -670,62 +626,48 @@ def main() -> int:
         print(json.dumps(failure, ensure_ascii=False), flush=True)
         return 2
 
-    selected_constraints: list[dict[str, Any]] = []
-    used_targets: set[str] = set()
-    used_lineages: set[str] = set()
-    for row in accepted_results:
-        ticket = tickets.tickets[row["ticket_uid"]]
-        constraint = row["compilation"].get("candidate_constraint")
-        if not isinstance(constraint, dict):
-            continue
-        constraint_type = str(constraint.get("type") or "").upper()
-        if constraint_type == "RELABEL":
-            target_key = "semantic:" + str(constraint.get("entity_uid") or "")
-        else:
-            target_key = "observation:" + str(constraint.get("obs_uid") or "")
-        if target_key.endswith(":") or target_key in used_targets:
-            continue
-        if used_lineages.intersection(ticket.primary_lineage_uids):
-            continue
-        selected_constraints.append(constraint)
-        used_targets.add(target_key)
-        used_lineages.update(ticket.primary_lineage_uids)
-
-    final_comparison = run_final_combined_replay(
-        experiment_root=experiment_root,
-        constraints=selected_constraints,
-        output_dir=output_root / "final",
-    )
+    visualization_root = output_root / "vlm_object_state_v2"
+    if visualization_root.is_dir():
+        write_root_html(visualization_root)
+    resolution_counts: dict[str, int] = {}
+    error_tier_counts: dict[str, int] = {}
+    for ticket in tickets.tickets.values():
+        resolution_counts[ticket.resolution_state] = (
+            resolution_counts.get(ticket.resolution_state, 0) + 1
+        )
+        tier = str(ticket.as_dict().get("error_tier_name"))
+        error_tier_counts[tier] = error_tier_counts.get(tier, 0) + 1
+    output_counts: dict[str, int] = {}
+    for row in diagnosed_results:
+        output = row.get("output") or {}
+        key = f"{output.get('identity_target')}+{output.get('semantic_target')}"
+        output_counts[key] = output_counts.get(key, 0) + 1
     summary = {
-        "schema_version": "0.1.0",
+        "schema_version": "ali_my_houxuan_vlm/2.0",
         "status": "COMPLETED",
         "experiment_root": str(experiment_root),
+        "fresh_online_mapping": not bool(args.reuse_experiment_root),
         "processed_committed_frame_count": len(ledger._committed_frames),
         "final_frame": max(ledger._committed_frames, default=-1),
-        "final_event_sequence": ledger.max_sequence,
+        "final_event_sequence": ledger.max_sequence_at_frame(
+            max(ledger._committed_frames, default=-1)
+        ),
         "ticket_count": len(tickets.tickets),
+        "resolution_counts": resolution_counts,
+        "error_tier_counts": error_tier_counts,
         "vlm_dispatched": dispatched,
         "vlm_api_calls_attempted": api_calls_attempted,
+        "vlm_valid_output_count": len(diagnosed_results),
+        "vlm_output_counts": output_counts,
         "vlm_prompt_version": UNIFIED_VLM_PROMPT_VERSION,
-        "vlm_output_contract": "candidate_id_only",
-        "shadow_started": shadows_started,
-        "shadow_would_commit_count": len(accepted_results),
-        "combined_constraint_count": len(selected_constraints),
-        "combined_identity_constraint_count": sum(
-            str(value.get("type") or "").upper() != "RELABEL"
-            for value in selected_constraints
-        ),
-        "combined_semantic_constraint_count": sum(
-            str(value.get("type") or "").upper() == "RELABEL"
-            for value in selected_constraints
-        ),
+        "vlm_output_contract": "object_state_v2",
+        "object_state_parser_enabled": False,
+        "repair_execution_enabled": False,
+        "shadow_started": 0,
+        "combined_constraint_count": 0,
         "semantic_accuracy_validated": False,
-        "activated_repaired_version": final_comparison[
-            "activated_repaired_version"
-        ],
-        "baseline_metrics": final_comparison["baseline_metrics"],
-        "candidate_metrics": final_comparison["candidate_metrics"],
-        "metric_delta": final_comparison["metric_delta"],
+        "activated_repaired_version": False,
+        "visualization_index": str(visualization_root / "index.html"),
         "annotations_loaded": False,
         "ground_truth_loaded": False,
         "api_keys_persisted": False,

@@ -68,6 +68,73 @@ def _normal_label(value: Any) -> str:
     return re.sub(r"[^a-z0-9]+", " ", str(value or "").lower()).strip()
 
 
+TIER_LOW = 1
+TIER_MEDIUM = 2
+TIER_HIGH = 3
+TIER_NAMES = {TIER_LOW: "LOW", TIER_MEDIUM: "MEDIUM", TIER_HIGH: "HIGH"}
+
+SIGNAL_GROUPS = {
+    "AMBIGUOUS_ASSOCIATION": "ASSOCIATION",
+    "NEAR_THRESHOLD_CREATE": "ASSOCIATION",
+    "NEAR_THRESHOLD_ASSOCIATION": "ASSOCIATION",
+    "SEMANTIC_ASSOCIATION_CONFLICT": "SEMANTIC",
+    "SEMANTIC_DRIFT": "SEMANTIC",
+    "GEOMETRY_JUMP": "GEOMETRY",
+    "DUPLICATE_PROPOSAL_RISK": "DUPLICATE",
+    "POSTPROCESS_MERGE_CONFLICT": "POSTPROCESS",
+}
+
+
+def _clip01(value: Any) -> float:
+    number = _finite_float(value)
+    return max(0.0, min(1.0, float(number or 0.0)))
+
+
+def _norm(value: Any, low: float, high: float) -> float:
+    number = _finite_float(value)
+    if number is None or high <= low:
+        return 0.0
+    return _clip01((number - low) / (high - low))
+
+
+def issue_signal_strength(family: str, raw: Mapping[str, Any]) -> float:
+    """Auditable V2 within-family strength, never presented as a probability."""
+
+    family = str(family).upper()
+    if family == "AMBIGUOUS_ASSOCIATION":
+        return _clip01(1.0 - float(raw.get("margin") or 0.0) / 0.12)
+    if family == "NEAR_THRESHOLD_CREATE":
+        top1 = _finite_float(raw.get("top1_score"))
+        threshold = _finite_float(raw.get("sim_threshold"))
+        return _clip01(
+            1.0 - abs(float(top1 or 0.0) - float(threshold or 0.0)) / 0.12
+        )
+    if family == "NEAR_THRESHOLD_ASSOCIATION":
+        top1 = _finite_float(raw.get("top1_score"))
+        threshold = _finite_float(raw.get("sim_threshold"))
+        return _clip01(
+            1.0 - (float(top1 or 0.0) - float(threshold or 0.0)) / 0.12
+        )
+    if family == "SEMANTIC_ASSOCIATION_CONFLICT":
+        confidence = _norm(raw.get("observation_confidence"), 0.45, 1.0)
+        dominant = _norm(raw.get("target_dominant_class_ratio"), 0.70, 1.0)
+        return _clip01(math.sqrt(confidence * dominant))
+    if family == "GEOMETRY_JUMP":
+        ratio = max(1.0, float(_finite_float(raw.get("volume_ratio")) or 1.0))
+        return _clip01(math.log(ratio) / math.log(16.0))
+    if family == "DUPLICATE_PROPOSAL_RISK":
+        return _clip01((float(raw.get("bbox_iou") or 0.0) - 0.90) / 0.10)
+    if family == "SEMANTIC_DRIFT":
+        previous = max(
+            1e-6, float(_finite_float(raw.get("previous_dominant_ratio")) or 0.0)
+        )
+        current = float(_finite_float(raw.get("current_dominant_ratio")) or 0.0)
+        return _clip01(((previous - current) / previous) / 0.5)
+    if family == "POSTPROCESS_MERGE_CONFLICT":
+        return 0.50
+    return 0.0
+
+
 def _bbox_iou(first: Sequence[Any], second: Sequence[Any]) -> float:
     if len(first) != 4 or len(second) != 4:
         return 0.0
@@ -207,6 +274,16 @@ class LiveEvidenceLedger:
         events = [*self.associations.values(), *self.mapping_events.values()]
         return max((int(row.get("event_sequence", -1)) for row in events), default=-1)
 
+    def max_sequence_at_frame(self, cutoff_frame: int) -> int:
+        events = [*self.associations.values(), *self.mapping_events.values()]
+        return max(
+            (
+                int(row.get("event_sequence", -1)) for row in events
+                if frame_index(row.get("frame_uid")) <= int(cutoff_frame)
+            ),
+            default=-1,
+        )
+
     def version_lineage(self, version_uid: Any) -> str | None:
         row = self.object_versions.get(str(version_uid))
         if not row:
@@ -229,6 +306,168 @@ class LiveEvidenceLedger:
             if cutoff_frame is None or frame_index(row.get("frame_uid")) <= cutoff_frame
         ]
         return max(eligible, key=lambda row: int(row.get("version", 0))) if eligible else None
+
+
+class ActiveStateResolver:
+    """Resolve decision-time references to the active graph at one watermark.
+
+    The resolver only reads ledger rows at or before ``(cutoff_frame,
+    cutoff_sequence)``.  It never opens end-of-run membership artifacts.  Native
+    merge redirects are compressed before observation membership is exposed.
+    """
+
+    def __init__(
+        self,
+        ledger: LiveEvidenceLedger,
+        *,
+        cutoff_frame: int,
+        cutoff_sequence: int,
+    ) -> None:
+        self.ledger = ledger
+        self.cutoff_frame = int(cutoff_frame)
+        self.cutoff_sequence = int(cutoff_sequence)
+        self.latest_by_object: dict[str, dict[str, Any]] = {}
+        self.redirects: dict[str, str] = {}
+        self.active_versions: dict[str, dict[str, Any]] = {}
+        self.observation_owners: dict[str, tuple[str, ...]] = {}
+        self._build()
+
+    def _event_sequence(self, event_uid: Any) -> int:
+        uid = str(event_uid or "")
+        row = self.ledger.mapping_events.get(uid) or self.ledger.associations.get(uid)
+        if row is not None:
+            return int(row.get("event_sequence", -1))
+        match = re.search(r"(?:^|_)e(\d+)(?:_|$)", uid)
+        return int(match.group(1)) if match else -1
+
+    def _eligible_version(self, row: Mapping[str, Any]) -> bool:
+        frame = frame_index(row.get("frame_uid"))
+        sequence = self._event_sequence(row.get("trigger_event_uid"))
+        return frame <= self.cutoff_frame and (
+            sequence < 0 or sequence <= self.cutoff_sequence
+        )
+
+    def _eligible_event(self, row: Mapping[str, Any]) -> bool:
+        frame = frame_index(row.get("frame_uid"))
+        return frame <= self.cutoff_frame and int(row.get("event_sequence", -1)) <= self.cutoff_sequence
+
+    def _resolve_redirect(self, object_uid: Any) -> str | None:
+        current = str(object_uid or "")
+        if not current:
+            return None
+        seen: set[str] = set()
+        while current in self.redirects and current not in seen:
+            seen.add(current)
+            current = self.redirects[current]
+        if current in seen:
+            return None
+        for item in seen:
+            self.redirects[item] = current
+        return current
+
+    def _build(self) -> None:
+        eligible_versions = [
+            row for row in self.ledger.object_versions.values() if self._eligible_version(row)
+        ]
+        for row in eligible_versions:
+            object_uid = str(row.get("object_uid") or "")
+            previous = self.latest_by_object.get(object_uid)
+            rank = (
+                self._event_sequence(row.get("trigger_event_uid")),
+                int(row.get("version", 0)),
+                str(row.get("object_version_uid") or ""),
+            )
+            previous_rank = (
+                self._event_sequence(previous.get("trigger_event_uid")),
+                int(previous.get("version", 0)),
+                str(previous.get("object_version_uid") or ""),
+            ) if previous else (-1, -1, "")
+            if rank > previous_rank:
+                self.latest_by_object[object_uid] = row
+
+        merge_events = sorted(
+            (
+                row for row in self.ledger.mapping_events.values()
+                if str(row.get("event_type") or "").upper() == "OBJECT_MERGE"
+                and self._eligible_event(row)
+            ),
+            key=lambda row: (int(row.get("event_sequence", -1)), str(row.get("event_uid"))),
+        )
+        for row in merge_events:
+            source = self._resolve_redirect(row.get("source_object_uid"))
+            target = self._resolve_redirect(row.get("target_object_uid"))
+            if source and target and source != target:
+                self.redirects[source] = target
+
+        for object_uid in tuple(self.latest_by_object):
+            resolved = self._resolve_redirect(object_uid)
+            if not resolved:
+                continue
+            row = self.latest_by_object.get(resolved)
+            if row and str(row.get("status") or "").lower() == "active":
+                self.active_versions[resolved] = row
+
+        owners: dict[str, set[str]] = {}
+        for owner_uid, row in self.active_versions.items():
+            for obs_uid in row.get("member_observation_uids") or ():
+                owners.setdefault(str(obs_uid), set()).add(owner_uid)
+        self.observation_owners = {
+            obs_uid: tuple(sorted(values)) for obs_uid, values in owners.items()
+        }
+
+    def active_object_uid(self, object_uid: Any) -> str | None:
+        resolved = self._resolve_redirect(object_uid)
+        return resolved if resolved in self.active_versions else None
+
+    def active_version_for_object(self, object_uid: Any) -> dict[str, Any] | None:
+        resolved = self.active_object_uid(object_uid)
+        return self.active_versions.get(resolved or "")
+
+    def owner_for_observation(self, obs_uid: Any) -> str | None:
+        owners = self.observation_owners.get(str(obs_uid or ""), ())
+        return owners[0] if len(owners) == 1 else None
+
+    def owner_for_unit(self, obs_uids: Iterable[str]) -> str | None:
+        owners = {self.owner_for_observation(uid) for uid in obs_uids}
+        owners.discard(None)
+        return next(iter(owners)) if len(owners) == 1 else None
+
+    def unit_binding_complete(self, obs_uids: Iterable[str]) -> bool:
+        values = tuple(str(uid) for uid in obs_uids if uid)
+        return bool(values) and all(len(self.observation_owners.get(uid, ())) == 1 for uid in values)
+
+    def has_post_event_update(
+        self,
+        *,
+        event_sequence: int,
+        object_uids: Iterable[str] = (),
+        observation_uids: Iterable[str] = (),
+    ) -> bool:
+        owners = {
+            owner for owner in (self.active_object_uid(uid) for uid in object_uids) if owner
+        }
+        owners.update(
+            owner for owner in (self.owner_for_observation(uid) for uid in observation_uids) if owner
+        )
+        return any(
+            self._event_sequence(self.active_versions[owner].get("trigger_event_uid"))
+            > int(event_sequence)
+            for owner in owners
+            if owner in self.active_versions
+        )
+
+    def snapshot_manifest(self) -> dict[str, Any]:
+        return {
+            "cutoff_frame": self.cutoff_frame,
+            "cutoff_sequence": self.cutoff_sequence,
+            "active_object_count": len(self.active_versions),
+            "bound_observation_count": len(self.observation_owners),
+            "ambiguous_observation_count": sum(
+                len(owners) != 1 for owners in self.observation_owners.values()
+            ),
+            "merge_redirect_count": len(self.redirects),
+            "final_membership_read": False,
+        }
 
 
 @dataclass(frozen=True)
@@ -284,6 +523,10 @@ class SubIssue:
     lineage_uids: tuple[str, ...]
     raw_signals: dict[str, Any]
     evidence_refs: tuple[str, ...] = ()
+    signal_group: str = "UNKNOWN"
+    strength: float = 0.0
+    latest_reconfirmed: bool = False
+    independent_support_count: int = 1
 
     @classmethod
     def build(
@@ -315,6 +558,8 @@ class SubIssue:
             lineage_uids=tuple(sorted(set(str(item) for item in lineage_uids if item))),
             raw_signals=dict(raw_signals),
             evidence_refs=tuple(sorted(set(str(item) for item in evidence_refs if item))),
+            signal_group=SIGNAL_GROUPS.get(str(family).upper(), "UNKNOWN"),
+            strength=issue_signal_strength(str(family), raw_signals),
         )
 
     def as_dict(self) -> dict[str, Any]:
@@ -337,14 +582,37 @@ class ObjectTicket:
     dispatch_frame: int | None = None
     dispatch_sequence: int | None = None
     attempts: list[dict[str, Any]] = field(default_factory=list)
+    repair_contract: dict[str, Any] = field(default_factory=dict)
+    resolution_state: str = "OPEN_UNCERTAIN"
+    resolution_predicate: str = ""
+    resolution_reason: str = "not_yet_refreshed"
+    resolved_by: str | None = None
+    resolved_frame: int | None = None
+    has_post_event_update: bool = False
+    current_owner_uid: str | None = None
+    candidate_current_owner_uids: tuple[str, ...] = ()
+    signal_strength: float = 0.0
+    signal_groups: tuple[str, ...] = ()
+    distinct_signal_frames: int = 0
+    latest_reconfirmed: bool = False
+    error_tier: int = TIER_LOW
+    impact_score: float = 0.0
+    impact_tier: int = TIER_LOW
+    pool_since_frame: int | None = None
+    representative_issue_uid: str | None = None
+    safety_override: bool = False
+    output_contract_version: str = "object_state_v2"
 
     def priority_key(self, current_frame: int) -> tuple[Any, ...]:
-        age = max(0, int(current_frame) - self.first_seen_frame)
+        pool_since = self.pool_since_frame if self.pool_since_frame is not None else current_frame
+        wait_frames = max(0, int(current_frame) - int(pool_since))
         return (
-            -int(self.task_blocking),
-            -len(self.affected_lineage_uids),
-            -int(self.affected_event_count),
-            -age,
+            -int(self.safety_override),
+            -int(self.error_tier),
+            -int(self.impact_tier),
+            -wait_frames,
+            -float(self.signal_strength),
+            -float(self.impact_score),
             self.ticket_uid,
         )
 
@@ -353,12 +621,21 @@ class ObjectTicket:
         value["issues"] = [item.as_dict() for item in self.issues]
         if current_frame is not None:
             value["ticket_age_frames"] = max(0, current_frame - self.first_seen_frame)
+            value["pool_wait_frames"] = (
+                max(0, current_frame - self.pool_since_frame)
+                if self.pool_since_frame is not None
+                else 0
+            )
             value["priority_tuple"] = {
-                "task_blocking": self.task_blocking,
-                "affected_object_count": len(self.affected_lineage_uids),
-                "affected_event_count": self.affected_event_count,
-                "ticket_age_frames": value["ticket_age_frames"],
+                "safety_override": self.safety_override,
+                "error_tier": TIER_NAMES.get(self.error_tier, str(self.error_tier)),
+                "impact_tier": TIER_NAMES.get(self.impact_tier, str(self.impact_tier)),
+                "pool_wait_frames": value["pool_wait_frames"],
+                "signal_strength": self.signal_strength,
+                "impact_score": self.impact_score,
             }
+        value["error_tier_name"] = TIER_NAMES.get(self.error_tier, str(self.error_tier))
+        value["impact_tier_name"] = TIER_NAMES.get(self.impact_tier, str(self.impact_tier))
         return value
 
 
@@ -440,6 +717,274 @@ class TicketStore:
             return tuple("O:" + item for item in issue.object_uids)
         return ("OBS:" + issue.anchor_obs_uid,)
 
+    @staticmethod
+    def _version_members(
+        ledger: LiveEvidenceLedger, version_uid: Any, *, exclude: Iterable[str] = ()
+    ) -> list[str]:
+        row = ledger.object_versions.get(str(version_uid or "")) or {}
+        excluded = set(str(uid) for uid in exclude)
+        return [
+            str(uid) for uid in row.get("member_observation_uids") or ()
+            if str(uid) not in excluded
+        ]
+
+    @classmethod
+    def _build_repair_contract(
+        cls, issue: SubIssue, ledger: LiveEvidenceLedger
+    ) -> dict[str, Any]:
+        family = issue.family.upper()
+        association = ledger.associations.get(issue.anchor_event_uid)
+        mapping = ledger.mapping_events.get(issue.anchor_event_uid)
+        review = [issue.anchor_obs_uid] if issue.anchor_obs_uid else []
+        event_owner = None
+        event_core: list[str] = []
+        candidate_owners: list[str] = []
+        candidate_refs: dict[str, list[str]] = {}
+        semantic_target = None
+        event_result_sequence = int(issue.detected_sequence)
+
+        if association:
+            mapping_event = ledger.mapping_events.get(
+                str(association.get("mapping_event_uid") or "")
+            )
+            if mapping_event:
+                event_result_sequence = max(
+                    event_result_sequence,
+                    int(mapping_event.get("event_sequence", event_result_sequence)),
+                )
+            event_owner = association.get("target_object_uid")
+            before = association.get("target_object_version_before")
+            after = association.get("target_object_version_after")
+            event_core = cls._version_members(
+                ledger, before or after, exclude=review
+            )
+            object_to_version = {
+                str(object_uid): str(version_uid)
+                for object_uid, version_uid in zip(
+                    association.get("object_uids_before") or (),
+                    association.get("candidate_object_version_uids") or (),
+                )
+            }
+            for item in association.get("top_candidates") or ():
+                object_uid = str(item.get("object_uid") or "")
+                if not object_uid or object_uid == str(event_owner or ""):
+                    continue
+                if object_uid not in candidate_owners:
+                    candidate_owners.append(object_uid)
+                    candidate_refs[object_uid] = cls._version_members(
+                        ledger, object_to_version.get(object_uid)
+                    )
+                if len(candidate_owners) >= 2:
+                    break
+        elif mapping and str(mapping.get("event_type") or "").upper() == "OBJECT_MERGE":
+            event_owner = mapping.get("target_object_uid")
+            source_before = mapping.get("source_before") or {}
+            target_before = mapping.get("target_before") or {}
+            review = [str(uid) for uid in source_before.get("member_observation_uids") or ()]
+            event_core = [
+                str(uid) for uid in target_before.get("member_observation_uids") or ()
+            ]
+            source_uid = str(mapping.get("source_object_uid") or "")
+            if source_uid:
+                candidate_owners = [source_uid]
+                candidate_refs[source_uid] = list(review)
+        else:
+            current_version = next(
+                (
+                    row for row in ledger.object_versions.values()
+                    if str(row.get("trigger_event_uid") or "") == issue.anchor_event_uid
+                ),
+                None,
+            )
+            if current_version:
+                event_owner = current_version.get("object_uid")
+                parents = current_version.get("parent_version_uids") or ()
+                event_core = cls._version_members(
+                    ledger, parents[0] if parents else None, exclude=review
+                )
+
+        if family in {"NEAR_THRESHOLD_CREATE", "DUPLICATE_PROPOSAL_RISK"}:
+            predicate = "JOIN_CANDIDATE"
+        elif family in {"SEMANTIC_ASSOCIATION_CONFLICT", "SEMANTIC_DRIFT"}:
+            predicate = "ADOPT_LABEL"
+            semantic_target = _normal_label(
+                issue.raw_signals.get("observation_class")
+                or issue.raw_signals.get("previous_class")
+            ) or None
+        else:
+            predicate = "SEPARATE_FROM_CURRENT"
+
+        return {
+            "review_unit_obs_uids": sorted(set(review)),
+            "event_owner_uid": str(event_owner or "") or None,
+            "event_owner_core_obs_uids": sorted(set(event_core)),
+            "candidate_owner_uids": candidate_owners,
+            "candidate_reference_obs_uids": candidate_refs,
+            "repair_predicate": predicate,
+            "semantic_target_label": semantic_target,
+            "event_result_sequence": event_result_sequence,
+            "contract_built_from_event_uid": issue.anchor_event_uid,
+            "executor_support": "SINGLE_OBSERVATION" if len(set(review)) == 1 else "UNSUPPORTED_MULTI_OBSERVATION",
+        }
+
+    @staticmethod
+    def _event_evidence_complete(
+        contract: Mapping[str, Any], ledger: LiveEvidenceLedger
+    ) -> bool:
+        review = [str(uid) for uid in contract.get("review_unit_obs_uids") or ()]
+        if not review:
+            return False
+        for uid in review:
+            row = ledger.observations.get(uid)
+            if not row or row.get("status") != "kept" or not row.get("processed_mask_ref"):
+                return False
+            if frame_index(row.get("frame_uid") or uid) not in ledger.frames:
+                return False
+        return True
+
+    @staticmethod
+    def _label_support(
+        *,
+        version: Mapping[str, Any],
+        target_label: str,
+        ledger: LiveEvidenceLedger,
+        event_frame: int,
+    ) -> tuple[int, float, bool]:
+        labels: list[tuple[str, int]] = []
+        for uid in version.get("member_observation_uids") or ():
+            row = ledger.observations.get(str(uid))
+            if not row or row.get("status") != "kept":
+                continue
+            labels.append(
+                (
+                    _normal_label(row.get("class_name")),
+                    frame_index(row.get("frame_uid") or uid),
+                )
+            )
+        support = sum(label == target_label for label, _ in labels)
+        dominant = support / max(1, len(labels))
+        post_event = any(
+            label == target_label and frame > event_frame for label, frame in labels
+        )
+        return support, dominant, post_event
+
+    @classmethod
+    def _resolution(
+        cls,
+        *,
+        issue: SubIssue,
+        contract: Mapping[str, Any],
+        resolver: ActiveStateResolver,
+        ledger: LiveEvidenceLedger,
+    ) -> dict[str, Any]:
+        predicate = str(contract.get("repair_predicate") or "")
+        review = tuple(str(uid) for uid in contract.get("review_unit_obs_uids") or ())
+        core = tuple(str(uid) for uid in contract.get("event_owner_core_obs_uids") or ())
+        candidate_refs = contract.get("candidate_reference_obs_uids") or {}
+        current_owner = resolver.owner_for_unit(review)
+        candidate_owners = tuple(
+            sorted(
+                {
+                    owner
+                    for refs in candidate_refs.values()
+                    for owner in [resolver.owner_for_unit(refs)]
+                    if owner
+                }
+            )
+        )
+        relevant_objects = [
+            str(contract.get("event_owner_uid") or ""),
+            *[str(uid) for uid in contract.get("candidate_owner_uids") or ()],
+        ]
+        has_post = resolver.has_post_event_update(
+            event_sequence=int(
+                contract.get("event_result_sequence", issue.detected_sequence)
+            ),
+            object_uids=relevant_objects,
+            observation_uids=review,
+        )
+        complete = cls._event_evidence_complete(contract, ledger)
+        can_evaluate = False
+        predicate_true = False
+        reason = "predicate_binding_incomplete"
+        details: dict[str, Any] = {}
+
+        if predicate == "JOIN_CANDIDATE":
+            can_evaluate = resolver.unit_binding_complete(review) and bool(candidate_owners)
+            predicate_true = bool(
+                can_evaluate and current_owner in set(candidate_owners)
+            )
+            reason = "review_unit_joined_recorded_candidate" if predicate_true else "review_unit_still_separate_from_recorded_candidates"
+        elif predicate == "SEPARATE_FROM_CURRENT":
+            core_owner = resolver.owner_for_unit(core)
+            can_evaluate = resolver.unit_binding_complete(review) and resolver.unit_binding_complete(core)
+            predicate_true = bool(
+                can_evaluate and current_owner and core_owner and current_owner != core_owner
+            )
+            details["event_owner_core_current_owner_uid"] = core_owner
+            reason = "review_unit_separated_from_event_owner_core" if predicate_true else "review_unit_still_with_event_owner_core"
+        elif predicate == "ADOPT_LABEL":
+            target = _normal_label(contract.get("semantic_target_label"))
+            version = resolver.active_versions.get(current_owner or "")
+            can_evaluate = bool(current_owner and version and target)
+            support = 0
+            dominant = 0.0
+            post_label_support = False
+            if can_evaluate and version:
+                support, dominant, post_label_support = cls._label_support(
+                    version=version,
+                    target_label=target,
+                    ledger=ledger,
+                    event_frame=issue.detected_frame,
+                )
+                predicate_true = bool(
+                    _normal_label(version.get("class_name")) == target
+                    and support >= 2
+                    and dominant >= 0.70
+                    and post_label_support
+                )
+            details.update(
+                {
+                    "semantic_target_label": target or None,
+                    "semantic_support_count": support,
+                    "semantic_dominant_ratio": dominant,
+                    "semantic_post_event_support": post_label_support,
+                }
+            )
+            reason = "explicit_target_label_adopted_with_support" if predicate_true else "explicit_target_label_not_yet_adopted"
+
+        if not complete:
+            state = "INVALID_EVIDENCE"
+            reason = "event_rgb_anchor_or_processed_mask_irrecoverable"
+        elif not has_post:
+            state = "OPEN_UNCERTAIN"
+            reason = "no_post_event_update_use_event_result_as_latest_known_state"
+        elif predicate_true:
+            state = "AUTO_RESOLVED"
+        elif can_evaluate:
+            state = "OPEN"
+        else:
+            state = "OPEN_UNCERTAIN"
+        return {
+            "resolution_state": state,
+            "resolution_predicate": predicate,
+            "current_owner_uid": current_owner,
+            "candidate_current_owner_uids": candidate_owners,
+            "has_post_event_update": has_post,
+            "can_evaluate_predicate": can_evaluate,
+            "predicate_is_true": predicate_true,
+            "resolution_reason": reason,
+            **details,
+        }
+
+    @staticmethod
+    def _p95_cap(values: Iterable[int]) -> int:
+        ordered = sorted(max(0, int(value)) for value in values)
+        if not ordered:
+            return 1
+        index = min(len(ordered) - 1, max(0, math.ceil(0.95 * len(ordered)) - 1))
+        return max(1, ordered[index])
+
     def upsert(self, issue: SubIssue) -> ObjectTicket:
         scope = self._scope(issue)
         ticket_uid = stable_uid("ticket_", {"scope": scope})
@@ -467,11 +1012,22 @@ class TicketStore:
         tracker: LiveDependencyTracker,
         task_context: TaskContext,
         stop_sequence: int,
+        cutoff_frame: int | None = None,
     ) -> None:
+        review_frame = (
+            max(ledger.frames, default=-1) if cutoff_frame is None else int(cutoff_frame)
+        )
+        resolver = ActiveStateResolver(
+            ledger,
+            cutoff_frame=review_frame,
+            cutoff_sequence=stop_sequence,
+        )
         for ticket in self.tickets.values():
             if not ticket.issues:
                 continue
             root = ticket.issues[0]
+            if not ticket.repair_contract:
+                ticket.repair_contract = self._build_repair_contract(root, ledger)
             closure = tracker.closure(
                 ledger=ledger,
                 anchor_event_uid=root.anchor_event_uid,
@@ -487,12 +1043,114 @@ class TicketStore:
                 objects=ticket.primary_object_uids,
             )
 
-    def ordered(self, *, current_frame: int, states: Iterable[str] = ("WAIT_EVIDENCE", "READY")) -> list[ObjectTicket]:
-        allowed = set(states)
-        return sorted(
-            (ticket for ticket in self.tickets.values() if ticket.state in allowed),
-            key=lambda ticket: ticket.priority_key(current_frame),
+            resolution = self._resolution(
+                issue=root,
+                contract=ticket.repair_contract,
+                resolver=resolver,
+                ledger=ledger,
+            )
+            ticket.resolution_state = str(resolution["resolution_state"])
+            ticket.resolution_predicate = str(resolution["resolution_predicate"])
+            ticket.resolution_reason = str(resolution["resolution_reason"])
+            ticket.has_post_event_update = bool(resolution["has_post_event_update"])
+            ticket.current_owner_uid = resolution.get("current_owner_uid")
+            ticket.candidate_current_owner_uids = tuple(
+                resolution.get("candidate_current_owner_uids") or ()
+            )
+            if ticket.resolution_state == "AUTO_RESOLVED":
+                ticket.resolved_by = ticket.resolution_predicate
+                ticket.resolved_frame = review_frame
+
+            reconfirmed = bool(
+                ticket.has_post_event_update
+                and resolution.get("can_evaluate_predicate")
+                and not resolution.get("predicate_is_true")
+            )
+            ticket.issues = [
+                replace(issue, latest_reconfirmed=reconfirmed)
+                for issue in ticket.issues
+            ]
+            ticket.signal_groups = tuple(
+                sorted({issue.signal_group for issue in ticket.issues if issue.signal_group != "UNKNOWN"})
+            )
+            ticket.distinct_signal_frames = len(
+                {issue.detected_frame for issue in ticket.issues}
+            )
+            representative = max(
+                ticket.issues,
+                key=lambda issue: (
+                    int(issue.latest_reconfirmed),
+                    float(issue.strength),
+                    len(ticket.signal_groups),
+                    -int(issue.detected_sequence),
+                    issue.issue_uid,
+                ),
+            )
+            ticket.representative_issue_uid = representative.issue_uid
+            ticket.signal_strength = float(representative.strength)
+            ticket.latest_reconfirmed = bool(representative.latest_reconfirmed)
+            strong = ticket.signal_strength >= 0.70
+            corroborated = len(ticket.signal_groups) >= 2
+            persistent = ticket.distinct_signal_frames >= 2
+            if ticket.latest_reconfirmed and (strong or corroborated or persistent):
+                ticket.error_tier = TIER_HIGH
+            elif ticket.latest_reconfirmed or strong or corroborated or persistent:
+                ticket.error_tier = TIER_MEDIUM
+            else:
+                ticket.error_tier = TIER_LOW
+            if (
+                ticket.resolution_state in {"OPEN", "OPEN_UNCERTAIN"}
+                and ticket.pool_since_frame is None
+                and self._event_evidence_complete(ticket.repair_contract, ledger)
+            ):
+                ticket.pool_since_frame = review_frame
+
+        event_cap = self._p95_cap(
+            ticket.affected_event_count for ticket in self.tickets.values()
         )
+        lineage_cap = self._p95_cap(
+            len(ticket.affected_lineage_uids) for ticket in self.tickets.values()
+        )
+        for ticket in self.tickets.values():
+            event_score = min(
+                1.0, math.log1p(ticket.affected_event_count) / math.log1p(event_cap)
+            )
+            lineage_score = min(
+                1.0, math.log1p(len(ticket.affected_lineage_uids)) / math.log1p(lineage_cap)
+            )
+            ticket.impact_score = float(0.60 * event_score + 0.40 * lineage_score)
+            if ticket.impact_score >= 0.67:
+                tier = TIER_HIGH
+            elif ticket.impact_score >= 0.33:
+                tier = TIER_MEDIUM
+            else:
+                tier = TIER_LOW
+            ticket.impact_tier = min(TIER_HIGH, tier + int(ticket.task_blocking))
+
+    def ordered(
+        self,
+        *,
+        current_frame: int,
+        states: Iterable[str] = ("WAIT_EVIDENCE", "READY"),
+        audit_slot: bool = False,
+    ) -> list[ObjectTicket]:
+        allowed = set(states)
+        values = [
+            ticket for ticket in self.tickets.values()
+            if ticket.state in allowed
+            and ticket.resolution_state in {"OPEN", "OPEN_UNCERTAIN"}
+            and ticket.pool_since_frame is not None
+        ]
+        if audit_slot:
+            return sorted(
+                values,
+                key=lambda ticket: (
+                    -int(ticket.safety_override),
+                    int(ticket.pool_since_frame or current_frame),
+                    ticket.ticket_uid,
+                ),
+            )
+        return sorted(values, key=lambda ticket: ticket.priority_key(current_frame))
 
 
 @dataclass(frozen=True)
@@ -633,8 +1291,25 @@ class OnlineScanner:
         for current in ledger.by_frame["object_versions.jsonl"].get(frame, ()):
             object_uid = str(current["object_uid"])
             lineage = str(current.get("lineage_uid") or object_uid)
-            history = ledger.versions_for_object.get(object_uid, ())
-            previous = history[-2] if len(history) >= 2 and history[-1] is current else None
+            history = sorted(
+                (
+                    row for row in ledger.versions_for_object.get(object_uid, ())
+                    if frame_index(row.get("frame_uid")) <= frame
+                ),
+                key=lambda row: (
+                    frame_index(row.get("frame_uid")),
+                    int(row.get("version", 0)),
+                ),
+            )
+            current_index = next(
+                (
+                    index for index, row in enumerate(history)
+                    if str(row.get("object_version_uid"))
+                    == str(current.get("object_version_uid"))
+                ),
+                -1,
+            )
+            previous = history[current_index - 1] if current_index > 0 else None
             trigger = str(current.get("trigger_event_uid") or "")
             sequence = int(
                 (ledger.mapping_events.get(trigger) or ledger.associations.get(trigger) or {}).get(
@@ -688,6 +1363,8 @@ class OnlineScanner:
                             raw_signals={
                                 "previous_dominant_ratio": previous_ratio,
                                 "current_dominant_ratio": current_ratio,
+                                "previous_class": previous.get("class_name"),
+                                "current_class": current.get("class_name"),
                                 "class_histogram": current.get("class_histogram") or {},
                             },
                             evidence_refs=(trigger,),
@@ -951,6 +1628,125 @@ class EvidenceRouter:
         except (FileNotFoundError, KeyError, OSError, ValueError):
             return False
         return True
+
+    def build_v2(
+        self,
+        *,
+        ticket: ObjectTicket,
+        ledger: LiveEvidenceLedger,
+        freeze_frame: int,
+        freeze_sequence: int,
+        output_dir: str | Path,
+    ) -> OnlineEvidencePacket | None:
+        """Bind one OPEN V2 ticket to active E aliases without rendering images."""
+
+        if ticket.resolution_state not in {"OPEN", "OPEN_UNCERTAIN"}:
+            return None
+        issue = next(
+            (
+                item for item in ticket.issues
+                if item.issue_uid == ticket.representative_issue_uid
+            ),
+            None,
+        )
+        if issue is None:
+            return None
+        event = ledger.associations.get(issue.anchor_event_uid)
+        mapping = ledger.mapping_events.get(issue.anchor_event_uid)
+        if event is None and mapping is None:
+            return None
+        contract = dict(ticket.repair_contract)
+        review = tuple(str(uid) for uid in contract.get("review_unit_obs_uids") or ())
+        if not review or not self._event_evidence_complete(contract, ledger):
+            return None
+
+        resolver = ActiveStateResolver(
+            ledger,
+            cutoff_frame=freeze_frame,
+            cutoff_sequence=freeze_sequence,
+        )
+        current_owner = resolver.owner_for_unit(review)
+        current_version = resolver.active_versions.get(current_owner or "")
+        if current_version is None:
+            return None
+        alias_versions = {"E0": str(current_version["object_version_uid"])}
+        candidate_alias_observation_uids: dict[str, list[str]] = {}
+        seen_owners = {str(current_owner)}
+        candidate_refs = contract.get("candidate_reference_obs_uids") or {}
+        for refs in candidate_refs.values():
+            owner = resolver.owner_for_unit(refs)
+            version = resolver.active_versions.get(owner or "")
+            if version is None or str(owner) in seen_owners:
+                continue
+            alias = f"E{len(alias_versions)}"
+            if alias not in {"E1", "E2"}:
+                break
+            alias_versions[alias] = str(version["object_version_uid"])
+            candidate_alias_observation_uids[alias] = [str(uid) for uid in refs]
+            seen_owners.add(str(owner))
+
+        association = dict(event or {})
+        if not association and mapping:
+            association = {
+                "event_uid": mapping.get("event_uid"),
+                "event_sequence": mapping.get("event_sequence"),
+                "frame_uid": mapping.get("frame_uid"),
+                "obs_uid": review[0],
+                "decision": "POSTPROCESS_MERGE",
+                "target_object_uid": mapping.get("target_object_uid"),
+            }
+        packet_manifest = {
+            "schema_version": "ali_my_object_state_packet/2.0",
+            "output_contract_version": "object_state_v2",
+            "ticket_uid": ticket.ticket_uid,
+            "issue_uid": issue.issue_uid,
+            "issue": issue.as_dict(),
+            "freeze_frame": int(freeze_frame),
+            "freeze_sequence": int(freeze_sequence),
+            "anchor_event_uid": issue.anchor_event_uid,
+            "review_unit_obs_uids": list(review),
+            "repair_contract": contract,
+            "resolution": {
+                "state": ticket.resolution_state,
+                "predicate": ticket.resolution_predicate,
+                "reason": ticket.resolution_reason,
+                "has_post_event_update": ticket.has_post_event_update,
+                "current_owner_uid": ticket.current_owner_uid,
+                "candidate_current_owner_uids": list(ticket.candidate_current_owner_uids),
+            },
+            "ranking": {
+                "error_tier": TIER_NAMES.get(ticket.error_tier),
+                "impact_tier": TIER_NAMES.get(ticket.impact_tier),
+                "signal_strength": ticket.signal_strength,
+                "impact_score": ticket.impact_score,
+                "pool_since_frame": ticket.pool_since_frame,
+            },
+            "alias_version_uids": alias_versions,
+            "candidate_alias_observation_uids": candidate_alias_observation_uids,
+            "active_snapshot": resolver.snapshot_manifest(),
+            "oracle_fields_included": False,
+            "end_of_run_membership_read": False,
+        }
+        destination = Path(output_dir)
+        destination.mkdir(parents=True, exist_ok=True)
+        write_json(destination / "packet_manifest.json", packet_manifest)
+        return OnlineEvidencePacket(
+            ticket_uid=ticket.ticket_uid,
+            issue_uid=issue.issue_uid,
+            freeze_frame=int(freeze_frame),
+            freeze_sequence=int(freeze_sequence),
+            evidence=None,
+            association=association,
+            alias_version_uids=alias_versions,
+            allowed_image_ids=("I1", "I2", "I3"),
+            packet_manifest=packet_manifest,
+        )
+
+    @staticmethod
+    def _event_evidence_complete(
+        contract: Mapping[str, Any], ledger: LiveEvidenceLedger
+    ) -> bool:
+        return TicketStore._event_evidence_complete(contract, ledger)
 
     def build(
         self,
