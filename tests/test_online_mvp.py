@@ -155,7 +155,14 @@ def test_scanner_builds_object_group_ticket_and_task_priority(tmp_path: Path) ->
         "member_observation_uids": [_obs(1)],
     }
     for index in range(3):
-        _append(evidence / "frames.jsonl", {"frame_uid": _frame(index), "frame_idx": index})
+        _append(
+            evidence / "frames.jsonl",
+            {
+                "frame_uid": _frame(index),
+                "frame_idx": index,
+                "rgb_path": f"rgb/{index}.jpg",
+            },
+        )
     _append(evidence / "object_versions.jsonl", version)
     _append(evidence / "observations.jsonl", observation)
     _append(evidence / "associations.jsonl", association)

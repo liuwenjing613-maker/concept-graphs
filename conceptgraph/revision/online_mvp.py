@@ -18,6 +18,7 @@ import os
 import pickle
 import re
 import time
+from collections import Counter
 from dataclasses import asdict, dataclass, field, replace
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
@@ -72,6 +73,16 @@ TIER_LOW = 1
 TIER_MEDIUM = 2
 TIER_HIGH = 3
 TIER_NAMES = {TIER_LOW: "LOW", TIER_MEDIUM: "MEDIUM", TIER_HIGH: "HIGH"}
+
+ROUTING_NO_UPDATE = "NO_UPDATE"
+ROUTING_PERSISTENT = "PERSISTENT"
+ROUTING_CHANGED_UNSTABLE = "CHANGED_UNSTABLE"
+ROUTING_LIKELY_RESOLVED = "LIKELY_RESOLVED"
+ROUTING_UNKNOWN = "UNKNOWN"
+
+POOL_MAIN = "MAIN_POOL"
+POOL_AUDIT = "AUDIT_POOL"
+POOL_UNREVIEWABLE = "UNREVIEWABLE"
 
 SIGNAL_GROUPS = {
     "AMBIGUOUS_ASSOCIATION": "ASSOCIATION",
@@ -566,6 +577,18 @@ class SubIssue:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class ReviewContext:
+    anchor_obs_uid: str
+    primary_core_obs_uids: tuple[str, ...]
+    alternative_core_obs_uids: tuple[str, ...]
+    event_frame_id: int
+    event_sequence: int
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
 @dataclass
 class ObjectTicket:
     ticket_uid: str
@@ -600,6 +623,20 @@ class ObjectTicket:
     impact_tier: int = TIER_LOW
     pool_since_frame: int | None = None
     representative_issue_uid: str | None = None
+    review_issue_uid: str | None = None
+    review_context: dict[str, Any] = field(default_factory=dict)
+    event_snapshot: dict[str, Any] = field(default_factory=dict)
+    event_signature: dict[str, Any] = field(default_factory=dict)
+    event_update_token: tuple[tuple[str, str, str], ...] = ()
+    state_history: list[dict[str, Any]] = field(default_factory=list)
+    routing_state: str = ROUTING_UNKNOWN
+    routing_reason: str = "not_yet_refreshed"
+    routing_destination: str = POOL_MAIN
+    pool_location: str = POOL_MAIN
+    routing_mode: str = "shadow"
+    relevant_update_count: int = 0
+    stable_changed_count: int = 0
+    routing_events: list[dict[str, Any]] = field(default_factory=list)
     safety_override: bool = False
     output_contract_version: str = "object_state_v2"
 
@@ -607,12 +644,9 @@ class ObjectTicket:
         pool_since = self.pool_since_frame if self.pool_since_frame is not None else current_frame
         wait_frames = max(0, int(current_frame) - int(pool_since))
         return (
-            -int(self.safety_override),
             -int(self.error_tier),
             -int(self.impact_tier),
             -wait_frames,
-            -float(self.signal_strength),
-            -float(self.impact_score),
             self.ticket_uid,
         )
 
@@ -716,6 +750,266 @@ class TicketStore:
         if issue.object_uids:
             return tuple("O:" + item for item in issue.object_uids)
         return ("OBS:" + issue.anchor_obs_uid,)
+
+    @staticmethod
+    def select_review_issue(ticket: ObjectTicket) -> SubIssue:
+        return max(
+            ticket.issues,
+            key=lambda issue: (
+                float(issue.strength),
+                int(issue.detected_frame),
+                issue.issue_uid,
+            ),
+        )
+
+    @staticmethod
+    def _ordered_core(
+        obs_uids: Iterable[str],
+        ledger: LiveEvidenceLedger,
+        *,
+        exclude: Iterable[str] = (),
+        limit: int = 5,
+    ) -> tuple[str, ...]:
+        excluded = {str(uid) for uid in exclude}
+        unique = {
+            str(uid)
+            for uid in obs_uids
+            if uid and str(uid) not in excluded and str(uid) in ledger.observations
+        }
+        return tuple(
+            sorted(
+                unique,
+                key=lambda uid: (
+                    frame_index(ledger.observations[uid].get("frame_uid") or uid),
+                    uid,
+                ),
+            )[:limit]
+        )
+
+    @classmethod
+    def build_review_context(
+        cls,
+        issue: SubIssue,
+        contract: Mapping[str, Any],
+        ledger: LiveEvidenceLedger,
+    ) -> ReviewContext:
+        review = [
+            str(uid)
+            for uid in contract.get("review_unit_obs_uids") or ()
+            if str(uid) in ledger.observations
+        ]
+        anchor = str(issue.anchor_obs_uid or "")
+        if anchor not in ledger.observations:
+            if not review:
+                anchor = ""
+            else:
+                anchor = max(
+                    review,
+                    key=lambda uid: (
+                        frame_index(ledger.observations[uid].get("frame_uid") or uid),
+                        uid,
+                    ),
+                )
+        primary = cls._ordered_core(
+            contract.get("event_owner_core_obs_uids") or (),
+            ledger,
+            exclude=(anchor,),
+        )
+        alternative: tuple[str, ...] = ()
+        candidate_refs = contract.get("candidate_reference_obs_uids") or {}
+        for owner_uid in contract.get("candidate_owner_uids") or ():
+            refs = candidate_refs.get(str(owner_uid)) or ()
+            candidate_core = cls._ordered_core(
+                refs,
+                ledger,
+                exclude=(anchor,),
+            )
+            if candidate_core:
+                alternative = candidate_core
+                break
+        event = (
+            ledger.associations.get(issue.anchor_event_uid)
+            or ledger.mapping_events.get(issue.anchor_event_uid)
+            or {}
+        )
+        event_frame = frame_index(event.get("frame_uid"))
+        if event_frame < 0:
+            event_frame = int(issue.detected_frame)
+        return ReviewContext(
+            anchor_obs_uid=anchor,
+            primary_core_obs_uids=primary,
+            alternative_core_obs_uids=alternative,
+            event_frame_id=event_frame,
+            event_sequence=int(
+                contract.get("event_result_sequence", issue.detected_sequence)
+            ),
+        )
+
+    @staticmethod
+    def resolve_group_owner(
+        obs_uids: Iterable[str],
+        resolver: ActiveStateResolver,
+    ) -> str | None:
+        core = tuple(str(uid) for uid in obs_uids if uid)
+        if not core:
+            return None
+        mapped = [
+            owners[0]
+            for uid in core
+            for owners in [resolver.observation_owners.get(uid, ())]
+            if len(owners) == 1
+        ]
+        if not mapped:
+            return None
+        counts = Counter(mapped)
+        owner, count = counts.most_common(1)[0]
+        required = len(core) // 2 + 1
+        if count < required:
+            return None
+        if sum(value == count for value in counts.values()) > 1:
+            return None
+        return owner
+
+    @classmethod
+    def build_state_snapshot(
+        cls,
+        context: ReviewContext,
+        resolver: ActiveStateResolver,
+        *,
+        frame_id: int,
+        event_signature: Mapping[str, Any] | None = None,
+        event_update_token: tuple[tuple[str, str, str], ...] = (),
+    ) -> dict[str, Any]:
+        anchor_owners = resolver.observation_owners.get(context.anchor_obs_uid, ())
+        owners: dict[str, str | None] = {
+            "A": anchor_owners[0] if len(anchor_owners) == 1 else None,
+        }
+        groups = {
+            "R0": context.primary_core_obs_uids,
+            "R1": context.alternative_core_obs_uids,
+        }
+        for role, obs_uids in groups.items():
+            if obs_uids:
+                owners[role] = cls.resolve_group_owner(obs_uids, resolver)
+
+        relations: dict[str, str] = {}
+        comparable = bool(context.anchor_obs_uid and owners.get("A"))
+        for left, right in (("A", "R0"), ("A", "R1"), ("R0", "R1")):
+            if left not in owners or right not in owners:
+                continue
+            first, second = owners.get(left), owners.get(right)
+            key = f"{left}_{right}"
+            if not first or not second:
+                relations[key] = "UNKNOWN"
+                comparable = False
+            else:
+                relations[key] = "SAME" if first == second else "DIFFERENT"
+
+        signature: dict[str, Any] = {"relations": relations}
+        anchor_owner = owners.get("A")
+        anchor_version = resolver.active_versions.get(anchor_owner or "")
+        anchor_label = _normal_label(
+            anchor_version.get("class_name") if anchor_version else None
+        )
+        if anchor_label:
+            signature["anchor_owner_label"] = anchor_label
+
+        required = dict(event_signature or {})
+        required_relations = required.get("relations") or {}
+        for key in required_relations:
+            if relations.get(key) in {None, "UNKNOWN"}:
+                comparable = False
+        if "anchor_owner_label" in required and not anchor_label:
+            comparable = False
+
+        token_parts: list[tuple[str, str, str]] = []
+        update_observable = bool(context.anchor_obs_uid)
+        for role in ("A", "R0", "R1"):
+            if role not in owners:
+                continue
+            owner = owners.get(role)
+            version = resolver.active_versions.get(owner or "")
+            if not owner or version is None:
+                update_observable = False
+                continue
+            token_parts.append(
+                (role, owner, str(version.get("object_version_uid") or ""))
+            )
+        update_token = tuple(sorted(token_parts)) if update_observable else ()
+        has_relevant_update = bool(
+            update_observable
+            and event_update_token
+            and update_token != event_update_token
+        )
+        return {
+            "frame_id": int(frame_id),
+            "owners": owners,
+            "signature": signature,
+            "update_token": update_token,
+            "update_observable": update_observable,
+            "has_relevant_update": has_relevant_update,
+            "comparable": comparable,
+        }
+
+    @staticmethod
+    def _classify_routing_state(
+        ticket: ObjectTicket,
+        snapshot: Mapping[str, Any],
+    ) -> tuple[str, str, int]:
+        if (
+            not ticket.event_snapshot.get("update_observable")
+            or not ticket.event_snapshot.get("comparable")
+            or not snapshot.get("update_observable")
+        ):
+            return ROUTING_UNKNOWN, "STATE_OWNER_OR_EVENT_UNOBSERVABLE", 0
+        if not snapshot.get("has_relevant_update"):
+            return ROUTING_NO_UPDATE, "NO_RELEVANT_OBJECT_VERSION_UPDATE", 0
+        if not snapshot.get("comparable"):
+            return ROUTING_UNKNOWN, "CURRENT_SIGNATURE_NOT_COMPARABLE", 0
+        signature = snapshot.get("signature") or {}
+        if signature == ticket.event_signature:
+            return ROUTING_PERSISTENT, "UPDATED_BUT_SIGNATURE_UNCHANGED", 0
+
+        run: list[dict[str, Any]] = []
+        for item in reversed(ticket.state_history):
+            if not item.get("comparable") or item.get("signature") != signature:
+                break
+            run.append(item)
+        stable_count = len(run)
+        first_frame = min(
+            (int(item.get("frame_id", snapshot.get("frame_id", -1))) for item in run),
+            default=int(snapshot.get("frame_id", -1)),
+        )
+        no_retrigger = int(ticket.last_seen_frame) < first_frame
+        if stable_count >= 2 and no_retrigger:
+            return (
+                ROUTING_LIKELY_RESOLVED,
+                "CHANGED_SIGNATURE_STABLE_ACROSS_RELEVANT_UPDATES",
+                stable_count,
+            )
+        reason = (
+            "CHANGED_SIGNATURE_RETRIGGERED"
+            if stable_count >= 2 and not no_retrigger
+            else "CHANGED_SIGNATURE_NOT_STABLE"
+        )
+        return ROUTING_CHANGED_UNSTABLE, reason, stable_count
+
+    @staticmethod
+    def _anchor_evidence_recoverable(
+        context: ReviewContext,
+        ledger: LiveEvidenceLedger,
+    ) -> bool:
+        observation = ledger.observations.get(context.anchor_obs_uid)
+        if (
+            not observation
+            or observation.get("status") != "kept"
+            or not observation.get("processed_mask_ref")
+        ):
+            return False
+        frame = ledger.frames.get(
+            frame_index(observation.get("frame_uid") or context.anchor_obs_uid)
+        )
+        return bool(frame and (frame.get("rgb_ref") or frame.get("rgb_path")))
 
     @staticmethod
     def _version_members(
@@ -1013,7 +1307,10 @@ class TicketStore:
         task_context: TaskContext,
         stop_sequence: int,
         cutoff_frame: int | None = None,
+        routing_mode: str = "shadow",
     ) -> None:
+        if routing_mode not in {"shadow", "active"}:
+            raise ValueError(f"unsupported routing mode: {routing_mode}")
         review_frame = (
             max(ledger.frames, default=-1) if cutoff_frame is None else int(cutoff_frame)
         )
@@ -1025,13 +1322,64 @@ class TicketStore:
         for ticket in self.tickets.values():
             if not ticket.issues:
                 continue
-            root = ticket.issues[0]
-            if not ticket.repair_contract:
-                ticket.repair_contract = self._build_repair_contract(root, ledger)
+            review_issue = self.select_review_issue(ticket)
+            previous_review_uid = ticket.review_issue_uid
+            review_changed = previous_review_uid != review_issue.issue_uid
+            if review_changed:
+                ticket.review_issue_uid = review_issue.issue_uid
+                ticket.representative_issue_uid = review_issue.issue_uid
+                ticket.repair_contract = self._build_repair_contract(
+                    review_issue, ledger
+                )
+                context = self.build_review_context(
+                    review_issue, ticket.repair_contract, ledger
+                )
+                ticket.review_context = context.as_dict()
+                event_resolver = ActiveStateResolver(
+                    ledger,
+                    cutoff_frame=context.event_frame_id,
+                    cutoff_sequence=context.event_sequence,
+                )
+                event_snapshot = self.build_state_snapshot(
+                    context,
+                    event_resolver,
+                    frame_id=context.event_frame_id,
+                )
+                ticket.event_snapshot = event_snapshot
+                ticket.event_signature = dict(event_snapshot["signature"])
+                ticket.event_update_token = tuple(event_snapshot["update_token"])
+                ticket.state_history = []
+                ticket.relevant_update_count = 0
+                ticket.stable_changed_count = 0
+                ticket.routing_events.append(
+                    {
+                        "type": (
+                            "REVIEW_ANCHOR_SELECTED"
+                            if previous_review_uid is None
+                            else "REVIEW_ANCHOR_CHANGED"
+                        ),
+                        "frame_id": review_frame,
+                        "previous_review_issue_uid": previous_review_uid,
+                        "review_issue_uid": review_issue.issue_uid,
+                        "event_signature": ticket.event_signature,
+                    }
+                )
+            else:
+                context = ReviewContext(
+                    anchor_obs_uid=str(ticket.review_context["anchor_obs_uid"]),
+                    primary_core_obs_uids=tuple(
+                        ticket.review_context.get("primary_core_obs_uids") or ()
+                    ),
+                    alternative_core_obs_uids=tuple(
+                        ticket.review_context.get("alternative_core_obs_uids") or ()
+                    ),
+                    event_frame_id=int(ticket.review_context["event_frame_id"]),
+                    event_sequence=int(ticket.review_context["event_sequence"]),
+                )
             closure = tracker.closure(
                 ledger=ledger,
-                anchor_event_uid=root.anchor_event_uid,
-                anchor_sequence=root.detected_sequence,
+                anchor_event_uid=review_issue.anchor_event_uid,
+                anchor_sequence=review_issue.detected_sequence,
                 seed_lineages=ticket.primary_lineage_uids,
                 stop_sequence=stop_sequence,
             )
@@ -1043,31 +1391,109 @@ class TicketStore:
                 objects=ticket.primary_object_uids,
             )
 
-            resolution = self._resolution(
-                issue=root,
-                contract=ticket.repair_contract,
+            current_snapshot = self.build_state_snapshot(
+                context,
                 resolver=resolver,
-                ledger=ledger,
+                frame_id=review_frame,
+                event_signature=ticket.event_signature,
+                event_update_token=ticket.event_update_token,
             )
-            ticket.resolution_state = str(resolution["resolution_state"])
-            ticket.resolution_predicate = str(resolution["resolution_predicate"])
-            ticket.resolution_reason = str(resolution["resolution_reason"])
-            ticket.has_post_event_update = bool(resolution["has_post_event_update"])
-            ticket.current_owner_uid = resolution.get("current_owner_uid")
+            previous_token = (
+                tuple(ticket.state_history[-1].get("update_token") or ())
+                if ticket.state_history
+                else ()
+            )
+            token_changed = bool(
+                current_snapshot["has_relevant_update"]
+                and current_snapshot["update_token"] != previous_token
+            )
+            if token_changed:
+                ticket.state_history.append(dict(current_snapshot))
+                ticket.routing_events.append(
+                    {
+                        "type": "STATE_SNAPSHOT",
+                        "frame_id": review_frame,
+                        "review_issue_uid": review_issue.issue_uid,
+                        "signature": current_snapshot["signature"],
+                        "update_token": current_snapshot["update_token"],
+                        "comparable": current_snapshot["comparable"],
+                    }
+                )
+            ticket.relevant_update_count = len(ticket.state_history)
+            previous_routing = ticket.routing_state
+            routing_state, routing_reason, stable_count = (
+                self._classify_routing_state(ticket, current_snapshot)
+            )
+            ticket.routing_state = routing_state
+            ticket.routing_reason = routing_reason
+            ticket.stable_changed_count = stable_count
+            ticket.routing_mode = routing_mode
+            ticket.latest_reconfirmed = routing_state == ROUTING_PERSISTENT
+            ticket.has_post_event_update = bool(
+                current_snapshot["has_relevant_update"]
+            )
+            ticket.current_owner_uid = current_snapshot["owners"].get("A")
+            alternative_owner = current_snapshot["owners"].get("R1")
             ticket.candidate_current_owner_uids = tuple(
-                resolution.get("candidate_current_owner_uids") or ()
+                [alternative_owner]
+                if alternative_owner
+                and alternative_owner != ticket.current_owner_uid
+                else ()
             )
-            if ticket.resolution_state == "AUTO_RESOLVED":
-                ticket.resolved_by = ticket.resolution_predicate
-                ticket.resolved_frame = review_frame
+            ticket.resolution_predicate = "STATE_SIGNATURE_COMPARISON"
+            ticket.resolution_reason = routing_reason
+            ticket.resolved_by = None
+            ticket.resolved_frame = None
 
-            reconfirmed = bool(
-                ticket.has_post_event_update
-                and resolution.get("can_evaluate_predicate")
-                and not resolution.get("predicate_is_true")
-            )
+            recoverable = self._anchor_evidence_recoverable(context, ledger)
+            if not recoverable:
+                ticket.routing_destination = POOL_UNREVIEWABLE
+                ticket.pool_location = POOL_UNREVIEWABLE
+                ticket.resolution_state = "INVALID_EVIDENCE"
+                ticket.pool_since_frame = None
+            else:
+                ticket.routing_destination = (
+                    POOL_AUDIT
+                    if routing_state == ROUTING_LIKELY_RESOLVED
+                    else POOL_MAIN
+                )
+                ticket.pool_location = (
+                    POOL_MAIN
+                    if routing_mode == "shadow"
+                    and ticket.routing_destination == POOL_AUDIT
+                    else ticket.routing_destination
+                )
+                ticket.resolution_state = (
+                    "OPEN_UNCERTAIN"
+                    if routing_state in {ROUTING_NO_UPDATE, ROUTING_UNKNOWN}
+                    else "OPEN"
+                )
+                if ticket.pool_since_frame is None:
+                    ticket.pool_since_frame = review_frame
+
+            if review_changed or previous_routing != routing_state or token_changed:
+                ticket.routing_events.append(
+                    {
+                        "type": "ROUTING_DECIDED",
+                        "frame_id": review_frame,
+                        "review_issue_uid": review_issue.issue_uid,
+                        "routing_state": routing_state,
+                        "routing_destination": ticket.routing_destination,
+                        "pool_location": ticket.pool_location,
+                        "reason_code": routing_reason,
+                        "event_signature": ticket.event_signature,
+                        "current_signature": current_snapshot["signature"],
+                        "relevant_update_count": ticket.relevant_update_count,
+                        "stable_changed_count": stable_count,
+                        "last_issue_frame": ticket.last_seen_frame,
+                    }
+                )
+
             ticket.issues = [
-                replace(issue, latest_reconfirmed=reconfirmed)
+                replace(
+                    issue,
+                    latest_reconfirmed=ticket.latest_reconfirmed,
+                )
                 for issue in ticket.issues
             ]
             ticket.signal_groups = tuple(
@@ -1076,34 +1502,21 @@ class TicketStore:
             ticket.distinct_signal_frames = len(
                 {issue.detected_frame for issue in ticket.issues}
             )
-            representative = max(
-                ticket.issues,
-                key=lambda issue: (
-                    int(issue.latest_reconfirmed),
-                    float(issue.strength),
-                    len(ticket.signal_groups),
-                    -int(issue.detected_sequence),
-                    issue.issue_uid,
-                ),
+            ticket.representative_issue_uid = review_issue.issue_uid
+            ticket.signal_strength = max(
+                float(issue.strength) for issue in ticket.issues
             )
-            ticket.representative_issue_uid = representative.issue_uid
-            ticket.signal_strength = float(representative.strength)
-            ticket.latest_reconfirmed = bool(representative.latest_reconfirmed)
             strong = ticket.signal_strength >= 0.70
-            corroborated = len(ticket.signal_groups) >= 2
-            persistent = ticket.distinct_signal_frames >= 2
-            if ticket.latest_reconfirmed and (strong or corroborated or persistent):
+            corroborated = (
+                len(ticket.signal_groups) >= 2
+                or ticket.distinct_signal_frames >= 2
+            )
+            if ticket.latest_reconfirmed and (strong or corroborated):
                 ticket.error_tier = TIER_HIGH
-            elif ticket.latest_reconfirmed or strong or corroborated or persistent:
+            elif ticket.latest_reconfirmed or strong or corroborated:
                 ticket.error_tier = TIER_MEDIUM
             else:
                 ticket.error_tier = TIER_LOW
-            if (
-                ticket.resolution_state in {"OPEN", "OPEN_UNCERTAIN"}
-                and ticket.pool_since_frame is None
-                and self._event_evidence_complete(ticket.repair_contract, ledger)
-            ):
-                ticket.pool_since_frame = review_frame
 
         event_cap = self._p95_cap(
             ticket.affected_event_count for ticket in self.tickets.values()
@@ -1138,14 +1551,13 @@ class TicketStore:
         values = [
             ticket for ticket in self.tickets.values()
             if ticket.state in allowed
-            and ticket.resolution_state in {"OPEN", "OPEN_UNCERTAIN"}
+            and ticket.pool_location == (POOL_AUDIT if audit_slot else POOL_MAIN)
             and ticket.pool_since_frame is not None
         ]
         if audit_slot:
             return sorted(
                 values,
                 key=lambda ticket: (
-                    -int(ticket.safety_override),
                     int(ticket.pool_since_frame or current_frame),
                     ticket.ticket_uid,
                 ),
@@ -1638,14 +2050,14 @@ class EvidenceRouter:
         freeze_sequence: int,
         output_dir: str | Path,
     ) -> OnlineEvidencePacket | None:
-        """Bind one OPEN V2 ticket to active E aliases without rendering images."""
+        """Bind one routed V2 ticket to active E aliases without rendering images."""
 
-        if ticket.resolution_state not in {"OPEN", "OPEN_UNCERTAIN"}:
+        if ticket.pool_location not in {POOL_MAIN, POOL_AUDIT}:
             return None
         issue = next(
             (
                 item for item in ticket.issues
-                if item.issue_uid == ticket.representative_issue_uid
+                if item.issue_uid == ticket.review_issue_uid
             ),
             None,
         )
@@ -1666,24 +2078,55 @@ class EvidenceRouter:
             cutoff_sequence=freeze_sequence,
         )
         current_owner = resolver.owner_for_unit(review)
-        current_version = resolver.active_versions.get(current_owner or "")
-        if current_version is None:
+        primary_owner = resolver.active_object_uid(contract.get("event_owner_uid"))
+        if primary_owner is None:
+            primary_core = tuple(
+                str(uid)
+                for uid in ticket.review_context.get("primary_core_obs_uids") or ()
+            )
+            primary_owner = TicketStore.resolve_group_owner(primary_core, resolver)
+        if primary_owner is None:
+            primary_owner = current_owner
+        primary_version = resolver.active_versions.get(primary_owner or "")
+        if primary_version is None:
             return None
-        alias_versions = {"E0": str(current_version["object_version_uid"])}
+        alias_versions = {"E0": str(primary_version["object_version_uid"])}
+        alias_owner_uids = {"E0": str(primary_owner)}
         candidate_alias_observation_uids: dict[str, list[str]] = {}
-        seen_owners = {str(current_owner)}
+        seen_owners = {str(primary_owner)}
         candidate_refs = contract.get("candidate_reference_obs_uids") or {}
-        for refs in candidate_refs.values():
-            owner = resolver.owner_for_unit(refs)
+        ordered_candidates: list[tuple[str, Iterable[str]]] = []
+        if current_owner and str(current_owner) != str(primary_owner):
+            ordered_candidates.append((str(current_owner), review))
+        for candidate_uid in contract.get("candidate_owner_uids") or ():
+            refs = candidate_refs.get(str(candidate_uid)) or ()
+            ordered_candidates.append((str(candidate_uid), refs))
+        for candidate_uid, refs in ordered_candidates:
+            owner = TicketStore.resolve_group_owner(refs, resolver)
+            if owner is None:
+                owner = resolver.active_object_uid(candidate_uid)
             version = resolver.active_versions.get(owner or "")
             if version is None or str(owner) in seen_owners:
                 continue
-            alias = f"E{len(alias_versions)}"
-            if alias not in {"E1", "E2"}:
-                break
-            alias_versions[alias] = str(version["object_version_uid"])
-            candidate_alias_observation_uids[alias] = [str(uid) for uid in refs]
+            alias_versions["E1"] = str(version["object_version_uid"])
+            alias_owner_uids["E1"] = str(owner)
+            candidate_alias_observation_uids["E1"] = [str(uid) for uid in refs]
             seen_owners.add(str(owner))
+            break
+
+        if current_owner == primary_owner:
+            current_assignment = "E0"
+        elif current_owner and current_owner == alias_owner_uids.get("E1"):
+            current_assignment = "E1"
+        else:
+            current_assignment = "UNKNOWN"
+        event_result_sequence = int(
+            contract.get("event_result_sequence", issue.detected_sequence)
+        )
+        newer_state_available = bool(
+            resolver._event_sequence(primary_version.get("trigger_event_uid"))
+            > event_result_sequence
+        )
 
         association = dict(event or {})
         if not association and mapping:
@@ -1700,6 +2143,7 @@ class EvidenceRouter:
             "output_contract_version": "object_state_v2",
             "ticket_uid": ticket.ticket_uid,
             "issue_uid": issue.issue_uid,
+            "review_issue_uid": issue.issue_uid,
             "issue": issue.as_dict(),
             "freeze_frame": int(freeze_frame),
             "freeze_sequence": int(freeze_sequence),
@@ -1714,6 +2158,21 @@ class EvidenceRouter:
                 "current_owner_uid": ticket.current_owner_uid,
                 "candidate_current_owner_uids": list(ticket.candidate_current_owner_uids),
             },
+            "routing": {
+                "mode": ticket.routing_mode,
+                "state": ticket.routing_state,
+                "reason": ticket.routing_reason,
+                "destination": ticket.routing_destination,
+                "pool_location": ticket.pool_location,
+                "event_signature": ticket.event_signature,
+                "current_signature": (
+                    ticket.state_history[-1].get("signature")
+                    if ticket.state_history
+                    else ticket.event_signature
+                ),
+                "relevant_update_count": ticket.relevant_update_count,
+                "stable_changed_count": ticket.stable_changed_count,
+            },
             "ranking": {
                 "error_tier": TIER_NAMES.get(ticket.error_tier),
                 "impact_tier": TIER_NAMES.get(ticket.impact_tier),
@@ -1722,7 +2181,10 @@ class EvidenceRouter:
                 "pool_since_frame": ticket.pool_since_frame,
             },
             "alias_version_uids": alias_versions,
+            "alias_owner_uids": alias_owner_uids,
             "candidate_alias_observation_uids": candidate_alias_observation_uids,
+            "current_assignment": current_assignment,
+            "newer_state_available": newer_state_available,
             "active_snapshot": resolver.snapshot_manifest(),
             "oracle_fields_included": False,
             "end_of_run_membership_read": False,

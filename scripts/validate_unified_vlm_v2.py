@@ -23,7 +23,6 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 from scripts.validate_unified_vlm_v1 import (
-    ALIAS_COLORS,
     FrozenRun,
     PreflightDefer,
     bbox_from_mask,
@@ -32,7 +31,6 @@ from scripts.validate_unified_vlm_v1 import (
     frame_index,
     get_font,
     normalize_label,
-    pose_difference,
     safe_error,
     sha256_file,
     sharpness_score,
@@ -40,7 +38,12 @@ from scripts.validate_unified_vlm_v1 import (
 )
 
 
-PROMPT_VERSION = "ali_my_object_state_v2_20260828"
+PROMPT_VERSION = "ali_my_object_state_v2_v3_7_20260829"
+ALIAS_COLORS = {
+    "A": (235, 52, 64),
+    "E0": (42, 111, 230),
+    "E1": (38, 166, 91),
+}
 MISSING_EVIDENCE = (
     "NONE",
     "EVENT_EVIDENCE_UNCLEAR",
@@ -51,29 +54,55 @@ MISSING_EVIDENCE = (
     "COMPOUND_STATE_REQUIRED",
 )
 
-SYSTEM_PROMPT = """You are reviewing the current object state of one online 3D mapping case.
-The trigger is only a machine hypothesis, not proof of an error.
+SYSTEM_PROMPT = """You are reviewing one object association in an online 3D map.
 
-Use exactly I1_EVENT, I2_CURRENT, and I3_DIAGNOSTIC with their IMAGE_SPEC.
-Overlay colors are artificial pointers and are never physical object colors.
-Every overlay is an accepted processed mask from the stated RGB frame, not
-ground truth, a raw proposal, or future end-of-run membership.
+A is the observation being reviewed.
+E0 is the current map entity that owns A, shown again in its latest available
+state.
+E1 is the strongest alternative map entity, when one is available. E0 and E1
+are map identities, so they can be duplicate representations of one physical
+object; do not assume they are physically distinct merely because both exist.
 
-First decide which physical entity review unit A should belong to now: E0, an
-available E1/E2, SEPARATE, or UNRESOLVED. Only if identity_target is E0,
-decide whether current label L0 or one listed alternative best describes E0.
-If identity changes, output semantic_target=NOT_EVALUATED.
+I1 shows the assignment event. Red marks A. When separate E0 evidence is
+available, blue marks E0. If I1 has two panels, the left panel shows A and the
+right panel shows E0; the panels may come from different saved frames. The case
+description states explicitly when only A is available.
 
-I1 shows A and E0 in the same RGB frame. A may be a partial observation of
-the larger E0 entity. Never choose SEPARATE merely because A covers only one
-part of E0 or because the two masks have different apparent sizes.
-If I1 is marked LOW_RESOLUTION, it remains diagnostic evidence, but prefer
-UNRESOLVED over a structural identity change unless I2/I3 independently make
-that change clear.
+I2 shows the best available view of the latest E0.
 
-Describe a target state only. Do not propose an action, merge command,
-constraint, candidate ID, or confidence score. Use UNRESOLVED when the three
-images do not establish the state. Return only JSON matching the schema."""
+I3 shows E1 in green. If no valid E1 exists, I3 shows wider scene context around
+A or E0 instead.
+
+Mask colors are annotations only. They are not the physical colors of objects
+and are not ground truth.
+
+In a same-frame I1, compare the red A and blue E0 contours directly. If they
+trace the same visible object surface or one contour is simply the visible
+subregion of the other, choose E0. Do not infer two objects from two annotation
+colors, a small boundary offset, or a partial crop.
+
+Observation masks can cover only a visible fragment or subregion of one object,
+while E0 can cover more of that same object in the same or a later view. Mask
+containment, partial overlap, or different mask extent alone does not make A a
+separate physical object. Choose SEPARATE only when the evidence clearly shows
+two distinct physical instances.
+
+Choose the map entity that should own A. Choose E1 when A matches the recorded
+alternative and E0 is a duplicate/fragment map identity that should be
+consolidated into E1. Choose E0 when A belongs with E0 and E1 is a different
+physical instance. Choose SEPARATE only when A is distinct from all displayed
+entities; choose UNRESOLVED when the supplied evidence cannot distinguish the
+valid owners.
+Only when A belongs to E0, choose the best semantic label for E0.
+For every non-E0 identity_target (E1, SEPARATE, or UNRESOLVED), semantic_target
+MUST be NOT_APPLICABLE. Never assign an L-label to A, E1, or a new/separate
+entity; the L-label candidates are exclusively possible replacement labels for
+the existing E0.
+
+If identity_target is E0, E1, or SEPARATE, missing_evidence must be NONE. If
+required evidence is missing, use identity_target UNRESOLVED instead.
+
+Return only JSON that matches the schema supplied by the caller."""
 
 
 @dataclass(frozen=True)
@@ -107,12 +136,29 @@ def _expanded_bbox(mask: np.ndarray, margin: float) -> tuple[int, int, int, int]
     width, height = x1 - x0, y1 - y0
     mx = max(8, round(width * margin))
     my = max(8, round(height * margin))
-    return (
-        max(0, x0 - mx),
-        max(0, y0 - my),
-        min(mask.shape[1], x1 + mx),
-        min(mask.shape[0], y1 + my),
-    )
+    left = max(0, x0 - mx)
+    top = max(0, y0 - my)
+    right = min(mask.shape[1], x1 + mx)
+    bottom = min(mask.shape[0], y1 + my)
+
+    # Extremely thin masks otherwise produce ribbon-like crops that hide the
+    # object and scene context. Keep at least 42% of each source dimension;
+    # this changes only the crop, never the real mask or evidence frame.
+    min_width = min(mask.shape[1], max(1, round(mask.shape[1] * 0.42)))
+    min_height = min(mask.shape[0], max(1, round(mask.shape[0] * 0.42)))
+
+    def expand_axis(low: int, high: int, limit: int, minimum: int) -> tuple[int, int]:
+        if high - low >= minimum:
+            return low, high
+        center = (low + high) / 2.0
+        low = max(0, round(center - minimum / 2.0))
+        high = min(limit, low + minimum)
+        low = max(0, high - minimum)
+        return low, high
+
+    left, right = expand_axis(left, right, mask.shape[1], min_width)
+    top, bottom = expand_axis(top, bottom, mask.shape[0], min_height)
+    return left, top, right, bottom
 
 
 def _view(
@@ -125,7 +171,7 @@ def _view(
     rgb = run.load_rgb(frame)
     masks: dict[str, np.ndarray] = {}
     normalized_rows: dict[str, list[dict[str, Any]]] = {}
-    for alias in ("A", "E0", "E1", "E2"):
+    for alias in ("A", "E0", "E1"):
         rows = [dict(row) for row in alias_rows.get(alias, ())]
         if not rows:
             continue
@@ -195,7 +241,7 @@ def _view(
         "masks": masks,
         "crop_box": crop_box,
         "margin": float(margin),
-        "visible_aliases": tuple(alias for alias in ("A", "E0", "E1", "E2") if alias in masks),
+        "visible_aliases": tuple(alias for alias in ("A", "E0", "E1") if alias in masks),
         "quality": float(quality),
         "quality_terms": {
             "mask_area_score": area_score,
@@ -213,8 +259,11 @@ def _view(
 def _render_image(run: FrozenRun, view: Mapping[str, Any], role: str) -> Image.Image:
     rgb = run.load_rgb(int(view["frame"]))
     array = rgb.copy()
-    fill_alpha = {"A": 0.30, "E0": 0.12, "E1": 0.14, "E2": 0.14}
-    for alias in ("E2", "E1", "E0", "A"):
+    # Preserve the real texture/color for VLM identity comparison.  The thick,
+    # distinct outlines carry alias identity; fills are only a light aid for
+    # locating the mask and must not make a white object look physically red.
+    fill_alpha = {"A": 0.10, "E0": 0.08, "E1": 0.08}
+    for alias in ("E1", "E0", "A"):
         mask = view["masks"].get(alias)
         if mask is None:
             continue
@@ -224,7 +273,7 @@ def _render_image(run: FrozenRun, view: Mapping[str, Any], role: str) -> Image.I
             (1.0 - alpha) * array[mask].astype(np.float32) + alpha * color, 0, 255
         ).astype(np.uint8)
     canvas = Image.fromarray(array)
-    for alias in ("E2", "E1", "E0", "A"):
+    for alias in ("E1", "E0", "A"):
         mask = view["masks"].get(alias)
         if mask is None:
             continue
@@ -310,12 +359,12 @@ def _shared_event_frame(
 def _candidate_event_context(
     packet: Mapping[str, Any], observations: Mapping[str, Mapping[str, Any]]
 ) -> list[tuple[str, dict[str, Any]]]:
-    """Use only resolver-bound E1/E2 aliases; never enumerate raw candidates."""
+    """Use only the resolver-bound distinct E1; never enumerate raw candidates."""
 
     available = set((packet.get("alias_version_uids") or {}).keys())
     alias_refs = packet.get("candidate_alias_observation_uids") or {}
     sources: list[tuple[str, dict[str, Any]]] = []
-    for alias in ("E1", "E2"):
+    for alias in ("E1",):
         if alias not in available:
             continue
         for uid in alias_refs.get(alias) or ():
@@ -345,6 +394,71 @@ def _save_image(image: Image.Image, path: Path) -> dict[str, Any]:
     }
 
 
+def _dual_panel(
+    left: Image.Image,
+    right: Image.Image,
+    *,
+    title: str = "I1 - Assignment event | Left: A | Right: E0 | Different saved frames",
+) -> Image.Image:
+    """Place real A/E0 views from different frames side by side."""
+
+    gap = 8
+    target_height = max(left.height, right.height)
+
+    def fit(image: Image.Image) -> Image.Image:
+        if image.height == target_height:
+            return image
+        scale = target_height / max(1, image.height)
+        return image.resize(
+            (max(1, round(image.width * scale)), target_height),
+            Image.Resampling.LANCZOS,
+        )
+
+    left, right = fit(left), fit(right)
+    font = get_font(14)
+    probe = ImageDraw.Draw(left)
+    box = probe.textbbox((0, 0), title, font=font)
+    header = box[3] - box[1] + 10
+    width = max(left.width + gap + right.width, box[2] - box[0] + 12)
+    canvas = Image.new("RGB", (width, target_height + header), (18, 18, 18))
+    canvas.paste(left, (0, header))
+    canvas.paste(right, (left.width + gap, header))
+    ImageDraw.Draw(canvas).text((6, 5), title, fill=(255, 255, 255), font=font)
+    return canvas
+
+
+def _best_event_row_view(
+    run: FrozenRun,
+    rows: Iterable[Mapping[str, Any]],
+    alias: str,
+    *,
+    trigger_frame: int,
+    margin: float,
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    candidates = []
+    for row in rows:
+        try:
+            view = _view(
+                run,
+                frame_index(row.get("frame_uid") or row.get("obs_uid")),
+                {alias: [row]},
+                margin=margin,
+            )
+        except (FileNotFoundError, ValueError, PreflightDefer):
+            continue
+        candidates.append((view, dict(row)))
+    return max(
+        candidates,
+        key=lambda item: (
+            -abs(item[0]["frame"] - int(trigger_frame)),
+            item[0]["quality"],
+            item[0]["target_mask_short_side_px"],
+            -item[0]["frame"],
+        ),
+        default=None,
+    )
+
+
 def _best_row_view(
     run: FrozenRun,
     rows: Iterable[Mapping[str, Any]],
@@ -367,8 +481,8 @@ def _best_row_view(
     return max(
         candidates,
         key=lambda item: (
-            int(item[0]["eligible"]),
             item[0]["quality"],
+            item[0]["target_mask_short_side_px"],
             -item[0]["frame"],
         ),
         default=None,
@@ -394,6 +508,45 @@ def _semantic_labels(
             sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:3], 1
         )
     ]
+
+
+def _review_question(
+    issue_family: str,
+    issue: Mapping[str, Any],
+    contract: Mapping[str, Any],
+    *,
+    has_e1: bool,
+) -> str:
+    """Describe the suspected event without presenting it as ground truth."""
+
+    predicate = str(contract.get("repair_predicate") or "")
+    decision = str((issue.get("raw_signals") or {}).get("decision") or "")
+    if predicate == "JOIN_CANDIDATE" and has_e1:
+        event = "created/kept E0" if decision == "CREATE_OBJECT" else "assigned A to E0"
+        return (
+            f"The online mapper {event} while E1 was a recorded existing candidate. "
+            "This is only a suspicion, not ground truth. Use the images to decide "
+            "whether A should remain with E0 or be consolidated into E1. If A, E0, "
+            "and E1 depict the same physical instance, choose the pre-existing E1 "
+            "instead of retaining duplicate E0; if E1 is a different instance, keep E0."
+        )
+    if predicate == "SEPARATE_FROM_CURRENT":
+        return (
+            "The coarse prefilter selected A→E0 for neutral identity review; this does "
+            "not imply that the assignment is wrong. Decide from the images whether A "
+            "belongs to E0, E1 when available, or is separate. In a same-frame I1, "
+            "overlapping red/blue contours on the same physical surface support E0."
+        )
+    if predicate == "ADOPT_LABEL" or "SEMANTIC" in issue_family:
+        return (
+            "E0's current semantic label is under review. First verify that A belongs "
+            "to E0; only then select the best listed label for E0."
+        )
+    return (
+        "The current assignment A→E0 was selected by the coarse prefilter for review. "
+        "Treat that suspicion as context rather than ground truth and decide from the "
+        "supplied evidence."
+    )
 
 
 def output_schema(
@@ -448,10 +601,10 @@ def validate_output(
     if semantic not in set(available_semantic_targets):
         errors.append("semantic_target is unavailable in this frozen case")
     if identity == "E0":
-        if semantic == "NOT_EVALUATED":
+        if semantic == "NOT_APPLICABLE":
             errors.append("identity_target E0 requires semantic evaluation")
-    elif semantic != "NOT_EVALUATED":
-        errors.append("non-E0 identity requires semantic_target NOT_EVALUATED")
+    elif semantic != "NOT_APPLICABLE":
+        errors.append("non-E0 identity requires semantic_target NOT_APPLICABLE")
     evidence = value.get("evidence_ids")
     if (
         not isinstance(evidence, list)
@@ -482,9 +635,14 @@ def _spec(image_id: str, role: str, metadata: Mapping[str, Any]) -> str:
 
 
 def prepare_case(
-    run: FrozenRun, ticket_uid: str, output_root: Path
+    run: FrozenRun,
+    ticket_uid: str,
+    output_root: Path,
+    *,
+    packet_root: Path | None = None,
 ) -> PreparedObjectStateCase:
-    packet_path = run.online_root / "vlm" / ticket_uid / "evidence" / "packet_manifest.json"
+    packet_base = packet_root.resolve() if packet_root is not None else run.online_root
+    packet_path = packet_base / "vlm" / ticket_uid / "evidence" / "packet_manifest.json"
     if not packet_path.is_file():
         raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "V2 packet manifest missing")
     packet = json.loads(packet_path.read_text(encoding="utf-8"))
@@ -493,6 +651,7 @@ def prepare_case(
     freeze_frame = int(packet["freeze_frame"])
     freeze_sequence = int(packet["freeze_sequence"])
     issue = packet["issue"]
+    issue_family = str(issue.get("issue_type") or issue.get("family") or "UNKNOWN")
     contract = packet["repair_contract"]
     trigger_frame = int(issue["detected_frame"])
     review_uids = [str(uid) for uid in contract.get("review_unit_obs_uids") or ()]
@@ -515,62 +674,110 @@ def prepare_case(
     e0_context_rows = [
         row for row in e0_rows if str(row["obs_uid"]) not in review_uid_set
     ]
-    i1_frame = _shared_event_frame(anchor_rows, e0_context_rows, trigger_frame)
-    if i1_frame is None:
-        raise PreflightDefer(
-            "DEFER_EVENT_PAIR_UNAVAILABLE",
-            "I1 requires accepted A and E0 masks in the same event frame",
-        )
-    frame_anchor_rows = [
-        row for row in anchor_rows
-        if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame
-    ]
-    frame_e0_rows = [
-        row for row in e0_rows
-        if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame
-    ]
-    anchor = min(frame_anchor_rows, key=lambda row: str(row["obs_uid"]))
-    event_alias_rows: dict[str, list[dict[str, Any]]] = {
-        "A": frame_anchor_rows,
-        "E0": frame_e0_rows,
+    core_uid_set = {
+        str(uid) for uid in contract.get("event_owner_core_obs_uids") or ()
     }
-    context_sources = _candidate_event_context(packet, run.observations)
-    for alias, row in context_sources:
-        if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame:
-            event_alias_rows.setdefault(alias, []).append(row)
-    i1 = _view(run, i1_frame, event_alias_rows, margin=0.35)
-    if not {"A", "E0"}.issubset(i1["visible_aliases"]):
-        raise PreflightDefer(
-            "DEFER_EVENT_PAIR_UNAVAILABLE",
-            "I1 could not render both A and E0 from accepted same-frame masks",
-        )
-    i1_quality_status = "PASS" if i1["eligible"] else "LOW_RESOLUTION"
-    primary_image = _render_image(
-        run,
-        i1,
-        "I1" if i1["eligible"] else "I1 LOW-RES",
+    postprocess_core_rows = [
+        run.observations[uid]
+        for uid in core_uid_set
+        if uid in run.observations
+        and run.observations[uid].get("status") == "kept"
+        and run.observations[uid].get("processed_mask_ref")
+    ]
+    use_postprocess_source_panel = bool(
+        issue_family == "POSTPROCESS_MERGE_CONFLICT" and postprocess_core_rows
+    )
+    i1_frame = (
+        None
+        if use_postprocess_source_panel
+        else _shared_event_frame(anchor_rows, e0_context_rows, trigger_frame)
     )
     dual_panel = False
+    if i1_frame is not None:
+        frame_anchor_rows = [
+            row for row in anchor_rows
+            if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame
+        ]
+        frame_e0_rows = [
+            row for row in e0_rows
+            if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame
+        ]
+        anchor = min(frame_anchor_rows, key=lambda row: str(row["obs_uid"]))
+        i1 = _view(
+            run,
+            i1_frame,
+            {"A": frame_anchor_rows, "E0": frame_e0_rows},
+            margin=0.35,
+        )
+        primary_image = _render_image(run, i1, "I1 - Assignment event")
+        i1_layout = "same_frame"
+        i1_frames = [i1_frame]
+        i1_visible_aliases = list(i1["visible_aliases"])
+    else:
+        selected_anchor = (
+            _best_row_view(run, anchor_rows, "A", margin=0.35)
+            if use_postprocess_source_panel
+            else _best_event_row_view(
+                run,
+                anchor_rows,
+                "A",
+                trigger_frame=trigger_frame,
+                margin=0.35,
+            )
+        )
+        if selected_anchor is None:
+            raise PreflightDefer(
+                "DEFER_MISSING_DECISION_PROVENANCE",
+                "A event RGB or processed mask cannot be recovered",
+            )
+        i1, anchor = selected_anchor
+        i1_frame = int(i1["frame"])
+        selected_event_e0 = (
+            _best_row_view(run, postprocess_core_rows, "E0", margin=0.35)
+            if use_postprocess_source_panel
+            else _best_event_row_view(
+                run,
+                e0_context_rows or e0_rows,
+                "E0",
+                trigger_frame=trigger_frame,
+                margin=0.35,
+            )
+        )
+        if selected_event_e0 is None:
+            primary_image = _render_image(
+                run, i1, "I1 - Assignment event | A-only event view"
+            )
+            i1_layout = "a_only"
+            i1_frames = [i1_frame]
+            i1_visible_aliases = ["A"]
+        else:
+            e0_event_view, _ = selected_event_e0
+            primary_image = _dual_panel(
+                _render_image(run, i1, "A source unit"),
+                _render_image(run, e0_event_view, "E0 source core"),
+                title=(
+                    "I1 - Pre-merge source comparison | Left: A | Right: E0 core"
+                    if use_postprocess_source_panel
+                    else "I1 - Assignment event | Left: A | Right: E0 | Different saved frames"
+                ),
+            )
+            dual_panel = True
+            i1_layout = "dual_panel"
+            i1_frames = [i1_frame, int(e0_event_view["frame"])]
+            i1_visible_aliases = ["A", "E0"]
+    i1_small_view = bool(i1["target_mask_short_side_px"] < 96)
+    i1_quality_status = "IMAGE_DEGRADED" if i1_small_view else "PASS"
 
     anchor_uid = str(anchor["obs_uid"])
-    post_non_anchor = [
-        row for row in e0_rows
-        if str(row["obs_uid"]) != anchor_uid
-        and frame_index(row.get("frame_uid") or row["obs_uid"]) > trigger_frame
-    ]
-    historical_non_anchor = [row for row in e0_rows if str(row["obs_uid"]) != anchor_uid]
-    i2_pool = post_non_anchor or historical_non_anchor or [anchor]
+    i2_pool = [row for row in e0_rows if str(row["obs_uid"]) != anchor_uid] or e0_rows
     selected_i2 = _best_row_view(run, i2_pool, "E0", margin=0.25)
-    if not selected_i2:
-        raise PreflightDefer("DEFER_CURRENT_OBJECT_UNCLEAR", "no renderable E0 member view")
-    i2, i2_row = selected_i2
-    if not i2["eligible"]:
-        raise PreflightDefer(
-            "DEFER_CURRENT_OBJECT_UNCLEAR",
-            "best active E0 member view is below the 96px/visibility gate",
-        )
+    i2_e0_visible = selected_i2 is not None
+    if selected_i2 is None:
+        i2, i2_row = i1, anchor
+    else:
+        i2, i2_row = selected_i2
+    i2_small_view = bool(i2["target_mask_short_side_px"] < 96)
 
-    issue_family = str(issue.get("family") or "")
     i3_mode = "WIDER_CONTEXT"
     i3 = None
     i3_row = None
@@ -578,125 +785,146 @@ def prepare_case(
         selected_e1 = _best_row_view(
             run, _accepted_rows(run, versions["E1"], freeze_frame), "E1", margin=0.25
         )
-        if selected_e1 and selected_e1[0]["eligible"]:
+        if selected_e1:
             i3, i3_row = selected_e1
             i3_mode = "LIVE_E1"
-    if i3 is None and issue_family in {"SEMANTIC_ASSOCIATION_CONFLICT", "SEMANTIC_DRIFT"}:
-        diverse = []
-        for row in e0_rows:
-            if str(row["obs_uid"]) == str(i2_row["obs_uid"]):
-                continue
-            selected = _best_row_view(run, [row], "E0", margin=0.25)
-            if not selected:
-                continue
-            _, _, pose_score = pose_difference(
-                run.frames[selected[0]["frame"]], run.frames[i2["frame"]]
-            )
-            diverse.append((0.65 * selected[0]["quality"] + 0.35 * pose_score, selected))
-        if diverse:
-            _, (i3, i3_row) = max(diverse, key=lambda item: item[0])
-            i3_mode = "SEMANTIC_DIVERSE_E0"
     if i3 is None:
-        i3_row = anchor if i1["target_mask_short_side_px"] >= i2["target_mask_short_side_px"] else i2_row
-        alias = "A" if str(i3_row["obs_uid"]) == anchor_uid else "E0"
+        wide_frame = frame_index(anchor.get("frame_uid") or anchor_uid)
+        wide_e0_rows = [
+            row for row in e0_rows
+            if frame_index(row.get("frame_uid") or row["obs_uid"]) == wide_frame
+        ]
+        aliases: dict[str, list[dict[str, Any]]] = {"A": [anchor]}
+        if wide_e0_rows:
+            aliases["E0"] = wide_e0_rows
+        i3_row = anchor
         i3 = _view(
             run,
-            frame_index(i3_row.get("frame_uid") or i3_row["obs_uid"]),
-            {alias: [i3_row]},
-            margin=0.45,
+            wide_frame,
+            aliases,
+            margin=0.25,
         )
 
     case_dir = output_root / ticket_uid
     case_dir.mkdir(parents=True, exist_ok=True)
     images = {
         "I1": _save_image(primary_image, case_dir / "I1_EVENT.jpg"),
-        "I2": _save_image(_render_image(run, i2, "I2"), case_dir / "I2_CURRENT.jpg"),
-        "I3": _save_image(_render_image(run, i3, "I3"), case_dir / "I3_DIAGNOSTIC.jpg"),
+        "I2": _save_image(
+            _render_image(
+                run,
+                i2,
+                "I2 - Current E0" if i2_e0_visible else "I2 - Current E0 unavailable | A context",
+            ),
+            case_dir / "I2_CURRENT.jpg",
+        ),
+        "I3": _save_image(
+            _render_image(
+                run,
+                i3,
+                "I3 - Alternative E1" if i3_mode == "LIVE_E1" else "I3 - Wider scene context",
+            ),
+            case_dir / "I3_DIAGNOSTIC.jpg",
+        ),
     }
 
     current_label = normalize_label(versions["E0"].get("class_name")) or "unknown"
     alternatives = _semantic_labels([anchor, *e0_rows], current_label)
     identity_targets = tuple(
         ["E0"]
-        + [alias for alias in ("E1", "E2") if versions.get(alias)]
+        + (["E1"] if versions.get("E1") and i3_mode == "LIVE_E1" else [])
         + ["SEPARATE", "UNRESOLVED"]
     )
     semantic_targets = tuple(
-        ["L0"] + [row["id"] for row in alternatives] + ["UNRESOLVED", "NOT_EVALUATED"]
+        ["L0"] + [row["id"] for row in alternatives] + ["UNRESOLVED", "NOT_APPLICABLE"]
     )
     schema = output_schema(identity_targets, semantic_targets)
-    input_summary = {
-        "trigger_family": issue_family,
-        "trigger_is_machine_hypothesis": True,
-        "trigger_frame": trigger_frame,
-        "review_frame": freeze_frame,
-        "review_unit": "A",
-        "current_owner": "E0",
-        "available_identity_targets": list(identity_targets),
-        "has_post_event_update": bool(packet.get("resolution", {}).get("has_post_event_update")),
-        "i1_quality_status": i1_quality_status,
-        "constraint_policy": (
-            "ELIGIBLE_AFTER_VALIDATION"
-            if i1_quality_status == "PASS"
-            else "DIAGNOSTIC_ONLY_NO_STRUCTURAL_CONSTRAINT"
+    label_candidates = {"L0": current_label}
+    label_candidates.update({str(row["id"]): str(row["text"]) for row in alternatives})
+    image_descriptions = {
+        "I1": (
+            "A and E0 are shown in one saved frame."
+            if i1_layout == "same_frame"
+            else (
+                (
+                    "Pre-merge source A is on the left and E0 core is on the right in two real saved frames."
+                    if use_postprocess_source_panel
+                    else "A is on the left and E0 is on the right in two real saved frames."
+                )
+                if i1_layout == "dual_panel"
+                else "Only A event evidence is available; no separate E0 event view was recovered."
+            )
         ),
-        "current_label": {"id": "L0", "text": current_label},
-        "alternative_labels": alternatives,
-        "labels_use_only_review_unit_and_e0": True,
+        "I2": (
+            "Best available real view of the latest E0."
+            if i2_e0_visible
+            else "No renderable E0 view was recovered; A context is shown as an explicit fallback."
+        ),
+        "I3": (
+            "Strongest alternative map entity E1 is shown in green."
+            if i3_mode == "LIVE_E1"
+            else "No valid distinct E1 is available; wider scene context around A/E0 is shown."
+        ),
     }
-    incident_text = "CURRENT REVIEW STATE\n" + json.dumps(
+    degraded_images = []
+    if i1_small_view:
+        degraded_images.append("I1")
+    if i2_small_view or not i2_e0_visible:
+        degraded_images.append("I2")
+    if i3_mode == "LIVE_E1" and i3["target_mask_short_side_px"] < 96:
+        degraded_images.append("I3")
+    review_question = _review_question(
+        issue_family,
+        issue,
+        contract,
+        has_e1=bool(versions.get("E1") and i3_mode == "LIVE_E1"),
+    )
+    input_summary = {
+        "issue_family": issue_family,
+        "review_question": review_question,
+        "current_assignment": str(packet.get("current_assignment") or "UNKNOWN"),
+        "newer_state_available": bool(packet.get("newer_state_available")),
+        "allowed_identity_targets": list(identity_targets),
+        "allowed_semantic_targets": list(semantic_targets),
+        "label_candidates": label_candidates,
+        "images": image_descriptions,
+        "degraded_images": degraded_images,
+    }
+    incident_text = "CASE_FACTS\n" + json.dumps(
         input_summary, indent=2, ensure_ascii=False, sort_keys=True
     )
     specs = {
         "I1": _spec(
             "I1",
-            "EVENT_EVIDENCE",
+            "ASSIGNMENT_EVENT",
             {
-                "frame": i1_frame,
-                "visible_aliases": list(i1["visible_aliases"]),
-                "mask_source": "processed_mask_ref",
-                "dual_panel": dual_panel,
-                "quality_status": i1_quality_status,
-                "target_mask_short_side_px": round(i1["target_mask_short_side_px"], 3),
-                "structural_constraint_eligible": i1_quality_status == "PASS",
-                "selection_reason": "same-frame accepted A and event-time E0 masks in one union crop",
+                "description": image_descriptions["I1"],
+                "layout": i1_layout,
+                "image_warning": i1_quality_status if i1_small_view else "NONE",
             },
         ),
         "I2": _spec(
             "I2",
-            "CURRENT_OBJECT",
+            "LATEST_E0",
             {
-                "frame": i2["frame"],
-                "object_version_uid": versions["E0"]["object_version_uid"],
-                "member_obs_uid": i2_row["obs_uid"],
-                "visible_aliases": ["E0"],
-                "mask_source": "processed_mask_ref",
-                "post_event": i2["frame"] > trigger_frame,
-                "reuses_anchor": str(i2_row["obs_uid"]) == anchor_uid,
-                "quality_score": round(i2["quality"], 6),
+                "description": image_descriptions["I2"],
+                "newer_state_available": bool(packet.get("newer_state_available")),
+                "image_warning": "IMAGE_DEGRADED" if i2_small_view else "NONE",
             },
         ),
         "I3": _spec(
             "I3",
-            "DIAGNOSTIC",
+            "ALTERNATIVE_E1" if i3_mode == "LIVE_E1" else "WIDER_CONTEXT",
             {
-                "frame": i3["frame"],
-                "routing_mode": i3_mode,
-                "member_obs_uid": i3_row["obs_uid"],
-                "visible_aliases": list(i3["visible_aliases"]),
-                "mask_source": "processed_mask_ref",
-                "crop_margin": i3["margin"],
+                "description": image_descriptions["I3"],
+                "image_warning": (
+                    "IMAGE_DEGRADED"
+                    if i3_mode == "LIVE_E1" and i3["target_mask_short_side_px"] < 96
+                    else "NONE"
+                ),
             },
         ),
     }
-    final_text = (
-        "Return only object_state_v2 JSON. Available identity targets: "
-        + ", ".join(identity_targets)
-        + ". Available semantic targets: "
-        + ", ".join(semantic_targets)
-        + ".\nOUTPUT_SCHEMA\n"
-        + json.dumps(schema, ensure_ascii=False, sort_keys=True)
-    )
+    final_text = "Return only object_state_v2 JSON."
     sequence = (
         {"type": "text", "text": incident_text},
         {"type": "text", "text": specs["I1"]},
@@ -750,20 +978,42 @@ def prepare_case(
         "issue_uid": issue["issue_uid"],
         "issue_family": issue_family,
         "resolution": packet.get("resolution"),
+        "routing": packet.get("routing"),
         "ranking": packet.get("ranking"),
         "available_identity_targets": list(identity_targets),
         "available_semantic_targets": list(semantic_targets),
+        "current_assignment": str(packet.get("current_assignment") or "UNKNOWN"),
+        "newer_state_available": bool(packet.get("newer_state_available")),
         "i1_quality_status": i1_quality_status,
-        "structural_constraint_eligible": i1_quality_status == "PASS",
+        "degraded_images": degraded_images,
         "semantic_label_hypotheses": [{"id": "L0", "text": current_label}, *alternatives],
         "images": {
-            "I1": {**images["I1"], "frame": i1_frame, "dual_panel": dual_panel},
-            "I2": {**images["I2"], "frame": i2["frame"], "member_obs_uid": i2_row["obs_uid"], "quality": i2["quality"]},
-            "I3": {**images["I3"], "frame": i3["frame"], "member_obs_uid": i3_row["obs_uid"], "routing_mode": i3_mode},
+            "I1": {
+                **images["I1"],
+                "frames": i1_frames,
+                "layout": i1_layout,
+                "visible_aliases": i1_visible_aliases,
+                "image_degraded": i1_small_view,
+            },
+            "I2": {
+                **images["I2"],
+                "frame": i2["frame"],
+                "member_obs_uid": i2_row["obs_uid"],
+                "e0_visible": i2_e0_visible,
+                "image_degraded": i2_small_view,
+                "quality": i2["quality"],
+            },
+            "I3": {
+                **images["I3"],
+                "frame": i3["frame"],
+                "member_obs_uid": i3_row["obs_uid"],
+                "routing_mode": i3_mode,
+                "visible_aliases": list(i3["visible_aliases"]),
+            },
         },
         "cutoff_audit": {
-            "maximum_observation_frame_used": max(i1_frame, i2["frame"], i3["frame"]),
-            "all_observation_frames_lte_freeze_frame": max(i1_frame, i2["frame"], i3["frame"]) <= freeze_frame,
+            "maximum_observation_frame_used": max([*i1_frames, i2["frame"], i3["frame"]]),
+            "all_observation_frames_lte_freeze_frame": max([*i1_frames, i2["frame"], i3["frame"]]) <= freeze_frame,
             "all_active_versions_lte_freeze_sequence": all(
                 event_sequence(row["trigger_event_uid"]) <= freeze_sequence
                 for row in versions.values() if row
@@ -773,7 +1023,7 @@ def prepare_case(
             "final_membership_read": False,
             "ground_truth_read": False,
             "old_vlm_response_read": False,
-            "labels_from_e1_or_e2": False,
+            "labels_from_e1": False,
         },
     }
     write_json(case_dir / "case_manifest.json", manifest)
@@ -903,49 +1153,152 @@ def _read_optional(path: Path) -> Any:
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
 
 
+def _semantic_label_text(summary: Mapping[str, Any]) -> str:
+    labels = summary.get("label_candidates") or {}
+    if not isinstance(labels, Mapping) or not labels:
+        return "无"
+    parts = []
+    for label_id, label_text in labels.items():
+        current = "（当前 E0 标签）" if str(label_id) == "L0" else ""
+        parts.append(f"{label_id}={label_text}{current}")
+    return " · ".join(parts)
+
+
+def _pool_route_text(manifest: Mapping[str, Any]) -> str:
+    routing = manifest.get("routing") or {}
+    current = str(routing.get("pool_location") or "UNKNOWN")
+    destination = str(routing.get("destination") or current)
+    return current if destination == current else f"{current} → {destination}"
+
+
 def write_case_html(case_dir: Path) -> None:
     manifest = _read_optional(case_dir / "case_manifest.json") or {}
     summary = _read_optional(case_dir / "input_summary.json") or {}
     output = _read_optional(case_dir / "vlm_output.json")
     validation = _read_optional(case_dir / "validation.json") or {}
+    images = manifest.get("images") or {}
+    image_titles = {
+        "I1": "I1 · 归属事件（红色 A，蓝色 E0）",
+        "I2": "I2 · E0 最新可用状态（蓝色）",
+        "I3": "I3 · 独立 E1（绿色）或宽场景",
+    }
     cards = "".join(
-        f'<figure><img src="{name}_{role}.jpg"><figcaption>{name} {role}</figcaption></figure>'
-        for name, role in (("I1", "EVENT"), ("I2", "CURRENT"), ("I3", "DIAGNOSTIC"))
+        '<figure class="image-card '
+        + ("wide" if image_id == "I1" else "")
+        + '"><div class="image-title">'
+        + html.escape(image_titles[image_id])
+        + '</div><img src="'
+        + html.escape(str(record.get("file") or ""))
+        + '"><figcaption>'
+        + html.escape(str((summary.get("images") or {}).get(image_id) or ""))
+        + (" <b>仅质量提醒，不拦截。</b>" if image_id in set(summary.get("degraded_images") or ()) else "")
+        + "</figcaption></figure>"
+        for image_id, record in ((key, images.get(key) or {}) for key in ("I1", "I2", "I3"))
     )
+    status = str(validation.get("status") or "PREPARED_ONLY")
+    output_text = (
+        json.dumps(output, indent=2, ensure_ascii=False, sort_keys=True)
+        if output is not None
+        else "尚未调用 VLM：本页只验证输入构造与输出约束。"
+    )
+    pool = _pool_route_text(manifest)
+    i1_layout = str((images.get("I1") or {}).get("layout") or "UNKNOWN")
+    assignment = str(summary.get("current_assignment") or "UNKNOWN")
+    warnings = ", ".join(summary.get("degraded_images") or ()) or "无"
+    semantic_labels = _semantic_label_text(summary)
+    review_question = str(summary.get("review_question") or "未提供")
     page = f"""<!doctype html><meta charset="utf-8"><title>{html.escape(case_dir.name)}</title>
-<style>body{{font-family:Arial,sans-serif;margin:24px;background:#f5f7fa;color:#17202a}}.grid{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}figure{{margin:0;background:white;padding:10px;border-radius:10px}}img{{width:100%;height:360px;object-fit:contain;background:#111}}pre{{white-space:pre-wrap;background:white;padding:14px;border-radius:10px;overflow:auto}}.ok{{color:#087830;font-weight:bold}}.warn{{color:#a34b00;font-weight:bold}}</style>
-<h1>object_state_v2 · {html.escape(case_dir.name)}</h1>
-<p class="{'ok' if validation.get('status') == 'VALID' else 'warn'}">{html.escape(str(validation.get('status')))}</p>
+<style>
+*{{box-sizing:border-box}}body{{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#eef2f6;color:#182230}}main{{max-width:1480px;margin:auto;padding:24px}}h1{{margin:0 0 8px;font-size:25px}}h2{{font-size:18px;margin:26px 0 10px}}.sub{{color:#526173;margin-bottom:18px}}.facts{{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin:16px 0}}.fact,.panel,.image-card{{background:#fff;border:1px solid #d8e0e8;border-radius:12px;box-shadow:0 2px 8px #26384a12}}.fact{{padding:12px}}.fact small{{display:block;color:#68788b;margin-bottom:5px}}.fact strong{{font-size:16px}}.question,.semantic{{margin:0 0 10px;padding:11px 14px;border-radius:10px;line-height:1.55}}.question{{background:#eaf4ff;border:1px solid #8dbdea}}.question b{{color:#124e7c;margin-right:8px}}.semantic{{background:#fff7df;border:1px solid #edcf78}}.semantic b{{color:#704c00;margin-right:8px}}.legend{{display:flex;gap:12px;flex-wrap:wrap;background:#fff;padding:10px 14px;border-radius:10px;border:1px solid #d8e0e8}}.tag{{display:inline-flex;align-items:center;gap:6px;font-weight:700}}.dot{{width:13px;height:13px;border-radius:50%;display:inline-block}}.grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}}.image-card{{margin:0;padding:12px;min-width:0}}.image-card.wide{{grid-column:1/-1}}.image-title{{font-weight:750;margin:0 0 8px}}img{{display:block;width:100%;max-height:620px;object-fit:contain;background:#111;border-radius:8px}}figcaption{{line-height:1.5;color:#4f5f70;padding-top:8px}}figcaption b{{color:#a64b00}}.panel{{padding:14px}}pre{{white-space:pre-wrap;word-break:break-word;margin:0;font:13px/1.5 Consolas,monospace}}.ok{{color:#087830}}.warn{{color:#a34b00}}@media(max-width:850px){{.facts{{grid-template-columns:repeat(2,1fr)}}.grid{{grid-template-columns:1fr}}.image-card.wide{{grid-column:auto}}}}
+</style><main>
+<h1>VLM 输入检查 · {html.escape(case_dir.name)}</h1>
+<div class="sub">此页展示真正送入 VLM 的三张图与精简事实；标签都在图像外部，不遮挡 mask。</div>
+<div class="facts"><div class="fact"><small>准备状态</small><strong class="{'ok' if status == 'VALID' else 'warn'}">{html.escape(status)}</strong></div><div class="fact"><small>当前池 → Shadow 投影</small><strong>{html.escape(pool)}</strong></div><div class="fact"><small>当前 A 归属</small><strong>{html.escape(assignment)}</strong></div><div class="fact"><small>I1 形式</small><strong>{html.escape(i1_layout)}</strong></div><div class="fact"><small>质量提醒</small><strong>{html.escape(warnings)}</strong></div></div>
+<div class="question"><b>本例为什么送审（实际随请求发送，属于怀疑而非答案）</b>{html.escape(review_question)}</div>
+<div class="semantic"><b>语义候选（实际随请求发送）</b>{html.escape(semantic_labels)}</div>
+<div class="legend"><span class="tag"><i class="dot" style="background:rgb{ALIAS_COLORS['A']}"></i>A：待审核观测</span><span class="tag"><i class="dot" style="background:rgb{ALIAS_COLORS['E0']}"></i>E0：建票时主对象</span><span class="tag"><i class="dot" style="background:rgb{ALIAS_COLORS['E1']}"></i>E1：最强独立备选</span></div>
 <div class="grid">{cards}</div>
-<h2>VLM 实际输出</h2><pre>{html.escape(json.dumps(output, indent=2, ensure_ascii=False, sort_keys=True))}</pre>
-<h2>实际输入摘要</h2><pre>{html.escape(json.dumps(summary, indent=2, ensure_ascii=False, sort_keys=True))}</pre>
-<h2>水位与防泄露审计</h2><pre>{html.escape(json.dumps(manifest.get('cutoff_audit'), indent=2, ensure_ascii=False, sort_keys=True))}</pre>"""
+<h2>VLM 输出</h2><div class="panel"><pre>{html.escape(output_text)}</pre></div>
+<h2>实际送入的精简事实</h2><div class="panel"><pre>{html.escape(json.dumps(summary, indent=2, ensure_ascii=False, sort_keys=True))}</pre></div>
+<h2>冻结水位与防泄露检查</h2><div class="panel"><pre>{html.escape(json.dumps(manifest.get('cutoff_audit'), indent=2, ensure_ascii=False, sort_keys=True))}</pre></div>
+</main>"""
     (case_dir / "index.html").write_text(page, encoding="utf-8")
 
 
 def write_root_html(root: Path) -> None:
-    rows = []
+    cards = []
+    vlm_attempted = False
     for case_dir in sorted(path for path in root.iterdir() if path.is_dir()):
         manifest = _read_optional(case_dir / "case_manifest.json") or {}
+        summary = _read_optional(case_dir / "input_summary.json") or {}
         validation = _read_optional(case_dir / "validation.json") or {}
         output = _read_optional(case_dir / "vlm_output.json") or {}
-        rows.append(
-            "<tr>"
-            f'<td><a href="{html.escape(case_dir.name)}/index.html">{html.escape(case_dir.name)}</a></td>'
-            f"<td>{html.escape(str(manifest.get('issue_family')))}</td>"
-            f"<td>{html.escape(str(manifest.get('resolution', {}).get('state')))}</td>"
-            f"<td>{html.escape(str(manifest.get('ranking', {}).get('error_tier')))}</td>"
-            f"<td>{html.escape(str(validation.get('status')))}</td>"
-            f"<td>{html.escape(str(output.get('identity_target')))}</td>"
-            f"<td>{html.escape(str(output.get('semantic_target')))}</td>"
-            f"<td>{html.escape(str(output.get('missing_evidence')))}</td>"
-            "</tr>"
+        vlm_attempted = vlm_attempted or str(validation.get("status") or "") not in {
+            "",
+            "PREPARED_ONLY",
+        }
+        image_manifest = manifest.get("images") or {}
+        pool = _pool_route_text(manifest)
+        assignment = str(summary.get("current_assignment") or "UNKNOWN")
+        layout = str((image_manifest.get("I1") or {}).get("layout") or "UNKNOWN")
+        warning = ", ".join(summary.get("degraded_images") or ()) or "无"
+        semantic_labels = _semantic_label_text(summary)
+        review_question = str(summary.get("review_question") or "未提供")
+        thumbs = "".join(
+            f'<div><b>{image_id}</b><img src="{html.escape(case_dir.name)}/{html.escape(str((image_manifest.get(image_id) or {}).get("file") or ""))}"></div>'
+            for image_id in ("I1", "I2", "I3")
         )
+        cards.append(
+            '<article><div class="top"><div><span class="pool">'
+            + html.escape(pool)
+            + '</span><h2><a href="'
+            + html.escape(case_dir.name)
+            + '/index.html">'
+            + html.escape(case_dir.name)
+            + '</a></h2></div><strong>'
+            + html.escape(str(validation.get("status") or "PREPARED_ONLY"))
+            + '</strong></div><div class="meta"><span>触发：'
+            + html.escape(str(manifest.get("issue_family") or "UNKNOWN"))
+            + '</span><span>A 当前归属：'
+            + html.escape(assignment)
+            + '</span><span>I1：'
+            + html.escape(layout)
+            + '</span><span>质量提醒：'
+            + html.escape(warning)
+            + '</span></div><div class="question"><b>送审原因（怀疑，不是答案）</b>'
+            + html.escape(review_question)
+            + '</div><div class="semantic"><b>语义候选（实际输入 VLM）</b>'
+            + html.escape(semantic_labels)
+            + '</div><div class="thumbs">'
+            + thumbs
+            + '</div><div class="result">VLM：'
+            + html.escape(
+                f"{output.get('identity_target')} / {output.get('semantic_target')}"
+                if output else "尚未调用（仅检查输入）"
+            )
+            + '</div></article>'
+        )
+    case_count = len(cards)
+    stage_title = (
+        f"候选池 → VLM：{case_count} 例真实审核结果"
+        if vlm_attempted
+        else f"候选池 → VLM 输入包：{case_count} 例准备结果"
+    )
+    stage_lead = (
+        "本页展示真实 VLM 调用的三图输入、语义候选与结构化输出；只做诊断，"
+        "没有执行地图修复。所有图像均受各自冻结水位限制；没有读取最终建图成员关系、"
+        "GT 或旧 VLM 答案。点击案例编号可查看大图、完整输出与防泄露检查。"
+        if vlm_attempted
+        else "本阶段只检查筛选后案例的 E0/E1 绑定、三张真实输入图和严格输出范围，"
+        "尚未调用 VLM，也未执行修复。所有图像均受各自冻结水位限制；没有读取最终建图"
+        "成员关系、GT 或旧 VLM 答案。点击案例编号可查看大图与完整解释。"
+    )
     page = f"""<!doctype html><meta charset="utf-8"><title>object_state_v2 可视化</title>
-<style>body{{font-family:Arial,sans-serif;margin:24px;background:#f5f7fa;color:#17202a}}table{{border-collapse:collapse;width:100%;background:white}}th,td{{padding:10px;border:1px solid #dfe6ee;text-align:left}}th{{background:#e9f1fb}}</style>
-<h1>候选池 + VLM：object_state_v2 可视化</h1>
-<p>每个案例均使用冻结 review 水位，三图只读取 accepted processed masks；未读取 final membership、GT 或旧 VLM 输出。</p>
-<table><thead><tr><th>Ticket</th><th>触发族</th><th>池状态</th><th>错误档</th><th>JSON校验</th><th>Identity</th><th>Semantic</th><th>缺失证据</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"""
+<style>*{{box-sizing:border-box}}body{{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#eef2f6;color:#182230}}main{{max-width:1580px;margin:auto;padding:24px}}h1{{margin:0 0 8px}}.lead{{line-height:1.6;color:#516173;max-width:1100px}}.legend{{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0;padding:12px;background:#fff;border:1px solid #d9e1e9;border-radius:10px}}.legend b{{display:inline-flex;align-items:center;gap:6px}}.dot{{width:13px;height:13px;border-radius:50%}}.cases{{display:grid;gap:18px}}article{{background:#fff;border:1px solid #d7e0e8;border-radius:14px;padding:15px;box-shadow:0 2px 9px #23384d12}}.top{{display:flex;justify-content:space-between;gap:12px;align-items:start}}h2{{font-size:17px;margin:6px 0}}a{{color:#1557a0}}.pool{{background:#e8f1ff;color:#164d85;font-weight:700;border-radius:999px;padding:3px 9px;font-size:12px}}.meta{{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}}.meta span{{background:#f1f4f7;border-radius:7px;padding:5px 8px;font-size:13px}}.question,.semantic{{margin:0 0 10px;padding:9px 11px;border-radius:8px;line-height:1.5}}.question{{background:#eaf4ff;border:1px solid #8dbdea}}.question b{{color:#124e7c;margin-right:8px}}.semantic{{background:#fff7df;border:1px solid #edcf78}}.semantic b{{color:#704c00;margin-right:8px}}.thumbs{{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px}}.thumbs div{{font-size:13px}}.thumbs img{{display:block;width:100%;height:260px;object-fit:contain;background:#111;border-radius:8px;margin-top:5px}}.result{{margin-top:10px;color:#526173}}@media(max-width:900px){{.thumbs{{grid-template-columns:1fr}}.thumbs img{{height:auto;max-height:480px}}}}</style><main>
+<h1>{html.escape(stage_title)}</h1>
+<p class="lead">{html.escape(stage_lead)}</p>
+<div class="legend"><b><i class="dot" style="background:rgb{ALIAS_COLORS['A']}"></i>红 A：待审核观测</b><b><i class="dot" style="background:rgb{ALIAS_COLORS['E0']}"></i>蓝 E0：建票时主对象</b><b><i class="dot" style="background:rgb{ALIAS_COLORS['E1']}"></i>绿 E1：最强独立备选</b></div>
+<section class="cases">{''.join(cards)}</section></main>"""
     (root / "index.html").write_text(page, encoding="utf-8")
 
 
@@ -953,6 +1306,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--experiment-root", type=Path, required=True)
     parser.add_argument("--online-subdir", default="online_mvp")
+    parser.add_argument(
+        "--packet-subdir",
+        help="Optional packet-only subdirectory; online events still come from --online-subdir.",
+    )
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--ticket", action="append", required=True, dest="tickets")
     parser.add_argument("--base-url", default="https://api.pinaic.com/v1")
@@ -962,11 +1319,23 @@ def main() -> int:
     args = parser.parse_args()
     args.output_root.mkdir(parents=True, exist_ok=False)
     run = FrozenRun(args.experiment_root, online_subdir=args.online_subdir)
+    packet_root = (
+        args.experiment_root / args.packet_subdir
+        if args.packet_subdir
+        else run.online_root
+    )
     prepared = []
     results = []
     for ticket in args.tickets:
         try:
-            prepared.append(prepare_case(run, ticket, args.output_root))
+            prepared.append(
+                prepare_case(
+                    run,
+                    ticket,
+                    args.output_root,
+                    packet_root=packet_root,
+                )
+            )
         except PreflightDefer as exc:
             results.append({"ticket_uid": ticket, "status": exc.code, "detail": exc.detail})
     if args.prepare_only:

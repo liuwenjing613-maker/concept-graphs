@@ -186,6 +186,20 @@ def _safe_response(response: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _ticket_state_from_vlm_response(response: Mapping[str, Any]) -> str:
+    """Map a response to ticket state without treating input-only prep as failure."""
+
+    status = str(response.get("status") or "")
+    if status == "PREPARED_ONLY":
+        return "WAIT_EVIDENCE"
+    if status != "VALID":
+        return "ABORTED"
+    output = response.get("output") or {}
+    if output.get("identity_target") == "E0" and output.get("semantic_target") == "L0":
+        return "NO_ACTION"
+    return "DIAGNOSED"
+
+
 def _tail(path: Path, lines: int = 80) -> str:
     if not path.is_file():
         return ""
@@ -455,10 +469,11 @@ def main() -> int:
                     write_json(response_path, response)
                     output = response.get("output") or {}
                     valid = response.get("status") == "VALID"
-                    no_change = bool(
-                        valid
-                        and output.get("identity_target") == "E0"
-                        and output.get("semantic_target") == "L0"
+                    prepared_only = response.get("status") == "PREPARED_ONLY"
+                    parser_status = (
+                        "NOT_CALLED_INPUT_ONLY"
+                        if prepared_only
+                        else "DISABLED_FOR_FIRST_VALIDATION"
                     )
                     ticket.attempts.append(
                         {
@@ -466,7 +481,7 @@ def main() -> int:
                             "status": response.get("status"),
                             "response_path": str(response_path),
                             "output_contract": "object_state_v2",
-                            "parser_status": "DISABLED_FOR_FIRST_VALIDATION",
+                            "parser_status": parser_status,
                         }
                     )
                     if valid:
@@ -478,20 +493,20 @@ def main() -> int:
                                 "freeze_sequence": packet.freeze_sequence,
                             }
                         )
-                    ticket.state = "NO_ACTION" if no_change else (
-                        "DIAGNOSED" if valid else "ABORTED"
-                    )
+                    ticket.state = _ticket_state_from_vlm_response(response)
                     terminal_vlm_tickets.add(ticket.ticket_uid)
                     locked_lineages.difference_update(ticket.primary_lineage_uids)
                     append_jsonl(
                         live_log,
                         {
-                            "type": "VLM_COMPLETED",
+                            "type": (
+                                "VLM_INPUT_PREPARED" if prepared_only else "VLM_COMPLETED"
+                            ),
                             "ticket_uid": packet.ticket_uid,
                             "slot": slot,
                             "vlm_status": response.get("status"),
                             "object_state_v2": output if valid else None,
-                            "parser_status": "DISABLED_FOR_FIRST_VALIDATION",
+                            "parser_status": parser_status,
                         },
                     )
                 except Exception as exc:
