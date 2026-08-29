@@ -92,6 +92,7 @@ def _run_unified_vlm(
     api_key: str,
     base_url: str,
     model: str,
+    reasoning_effort: str | None,
     timeout: float,
     prepare_only: bool = False,
 ) -> dict[str, Any]:
@@ -149,7 +150,14 @@ def _run_unified_vlm(
             "api_call_attempted": False,
             "prompt_version": UNIFIED_VLM_PROMPT_VERSION,
         }
-    result = call_vlm(case, api_key, base_url, model, timeout)
+    result = call_vlm(
+        case,
+        api_key,
+        base_url,
+        model,
+        timeout,
+        reasoning_effort=reasoning_effort,
+    )
     result.update(
         {
             "available_identity_targets": list(case.available_identity_targets),
@@ -342,6 +350,18 @@ def main() -> int:
     parser.add_argument("--api-key-count", type=int, default=5)
     parser.add_argument("--base-url", default="https://api.pinaic.com/v1")
     parser.add_argument("--model", default="gpt-5.6-sol")
+    parser.add_argument(
+        "--reasoning-effort",
+        choices=("low", "medium", "high"),
+        default=None,
+        help="optional OpenAI-compatible reasoning_effort passed to every VLM call",
+    )
+    parser.add_argument(
+        "--routing-mode",
+        choices=("shadow", "active"),
+        default="shadow",
+        help="candidate routing mode; active moves likely-resolved tickets to AUDIT_POOL",
+    )
     parser.add_argument("--max-vlm-tickets", type=int, default=15)
     parser.add_argument(
         "--ticket-uid",
@@ -424,6 +444,8 @@ def main() -> int:
         "mapping_gpu": args.mapping_gpu,
         "replay_gpu": args.replay_gpu,
         "model": args.model,
+        "reasoning_effort": args.reasoning_effort,
+        "routing_mode": args.routing_mode,
         "base_url": args.base_url,
         "api_credential_slots": len(api_keys),
         "api_keys_persisted": False,
@@ -530,6 +552,7 @@ def main() -> int:
                         task_context=task_context,
                         stop_sequence=ledger.max_sequence_at_frame(committed_frame),
                         cutoff_frame=committed_frame,
+                        routing_mode=args.routing_mode,
                     )
                 if committed_frame % 10 == 0:
                     print(
@@ -549,6 +572,7 @@ def main() -> int:
                     task_context=task_context,
                     stop_sequence=ledger.max_sequence_at_frame(latest_committed),
                     cutoff_frame=latest_committed,
+                    routing_mode=args.routing_mode,
                 )
 
             for slot, future in list(slot_futures.items()):
@@ -696,6 +720,7 @@ def main() -> int:
                         api_key=clients[slot],
                         base_url=args.base_url,
                         model=args.model,
+                        reasoning_effort=args.reasoning_effort,
                         timeout=300.0,
                         prepare_only=args.prepare_vlm_only,
                     )
@@ -743,6 +768,7 @@ def main() -> int:
         task_context=task_context,
         stop_sequence=ledger.max_sequence_at_frame(max(ledger.frames, default=-1)),
         cutoff_frame=max(ledger.frames, default=-1),
+        routing_mode=args.routing_mode,
     )
     write_json(
         output_root / "tickets.json",
@@ -798,6 +824,8 @@ def main() -> int:
         "vlm_valid_output_count": len(diagnosed_results),
         "vlm_output_counts": output_counts,
         "vlm_prompt_version": UNIFIED_VLM_PROMPT_VERSION,
+        "reasoning_effort": args.reasoning_effort,
+        "routing_mode": args.routing_mode,
         "vlm_output_contract": "object_state_v2",
         "object_state_parser_enabled": False,
         "repair_execution_enabled": False,

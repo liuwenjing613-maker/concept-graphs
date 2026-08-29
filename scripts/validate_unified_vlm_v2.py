@@ -1085,6 +1085,7 @@ def call_vlm(
     base_url: str,
     model: str,
     timeout: float,
+    reasoning_effort: str | None = None,
 ) -> dict[str, Any]:
     body = {
         "model": model,
@@ -1100,9 +1101,12 @@ def call_vlm(
         "stream": False,
         "store": False,
     }
+    if reasoning_effort:
+        body["reasoning_effort"] = reasoning_effort
     audit_path = case.case_dir / "actual_request_redacted.json"
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
     audit["model"] = model
+    audit["reasoning_effort"] = reasoning_effort
     audit["endpoint"] = base_url.rstrip("/") + "/chat/completions"
     write_json(audit_path, audit)
     started = time.monotonic()
