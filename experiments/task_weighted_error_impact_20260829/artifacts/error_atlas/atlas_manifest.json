@@ -1,0 +1,13 @@
+{
+  "atlas": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/error_atlas/error_atlas.html",
+  "files": {
+    "error_atlas.html": "ee705f66cc7c19ccc27f4c03dd8759f05d47fe1555a63f547b56027bb726b6de",
+    "office0_distributions.png": "68df59395a936d073d80ecd5dd4db53fbfcbf4f07fbac11d6cff8f9fa79938c6",
+    "office0_overlap_heatmap.png": "056cd916051527b295c19f497b3fde4e61011a1f0807f06192baa6f92d3b2f64",
+    "office0_overview.png": "a525f143527a26b59705f2ada082b9c28a0ae6e9b77388d502c12d73f0c3ca5a",
+    "room0_distributions.png": "f6a8a267d003e21d61619b9a7965a5dd2c6b6ed2d8997bd6ebd99626349746e4",
+    "room0_overlap_heatmap.png": "b150dd5d92b94b263689b28f3e510824aaa22e9c442bc4a75d6bf81b727c350a",
+    "room0_overview.png": "b07e48779a3bd8f8b4ccdbf9ba1c73bff5001deb3b4ff1f4d103e8620ee9c6ca"
+  },
+  "schema_version": "1.0.0"
+}

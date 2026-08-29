@@ -1,0 +1,14 @@
+{
+  "errors": [
+    {
+      "branch": "llava_caption_gpt_text",
+      "error": "HTTP 502",
+      "node_index": 0
+    },
+    {
+      "branch": "gpt_vision",
+      "error": "HTTP 502",
+      "node_index": 0
+    }
+  ]
+}

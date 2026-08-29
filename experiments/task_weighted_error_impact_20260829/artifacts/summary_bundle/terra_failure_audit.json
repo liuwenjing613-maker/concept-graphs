@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "date": "2026-08-29",
+  "status": "blocked_by_upstream_http_502",
+  "requested_protocol": {
+    "model": "gpt-5.6-terra",
+    "reasoning_effort": "service_default_not_overridden",
+    "api_key_slots": 5,
+    "human_audit_used_as_truth": false,
+    "evaluation_reference": "O3 objective GT instance labels",
+    "metrics_only": true
+  },
+  "endpoint_validation": {
+    "models_endpoint_http_status": 200,
+    "requested_model_listed": true,
+    "minimal_completion_http_status": 200,
+    "minimal_completion_usage": {
+      "prompt_tokens": 4396,
+      "completion_tokens": 12,
+      "total_tokens": 4408
+    }
+  },
+  "full_office0_attempt": {
+    "planned_jobs": 62,
+    "observed_failed_jobs_before_manual_interrupt": 23,
+    "configured_retries_per_job": 3,
+    "upper_bound_http_attempts_for_observed_failed_jobs": 69,
+    "error": "HTTP 502",
+    "usage_returned_for_failures": false,
+    "interrupted_to_limit_waste": true
+  },
+  "bounded_diagnostics": [
+    {
+      "name": "two_branch_parallel_one_node",
+      "jobs": 2,
+      "workers": 2,
+      "retries": 1,
+      "failed": 2,
+      "error": "HTTP 502"
+    },
+    {
+      "name": "two_branch_serial_one_node",
+      "jobs": 2,
+      "workers": 1,
+      "retries": 1,
+      "failed": 2,
+      "error": "HTTP 502"
+    },
+    {
+      "name": "two_branch_serial_one_node_max_completion_100",
+      "jobs": 2,
+      "workers": 1,
+      "retries": 1,
+      "failed": 2,
+      "error": "HTTP 502"
+    }
+  ],
+  "conclusion": "The strict Terra/default-reasoning LLaVA-caption versus GPT-vision ablation could not be completed through this endpoint. Concurrency and completion-token cap were ruled out; changing reasoning effort or model requires explicit user authorization.",
+  "billing_limitation": "HTTP 502 responses returned no usage object, so their quota/billing impact cannot be verified from the API response.",
+  "retained_representative_evidence": "smoke100_office0"
+}

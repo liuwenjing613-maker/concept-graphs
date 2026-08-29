@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "protocol": "read model_returned and usage from every persisted relation prediction",
+  "cells": [
+    {
+      "scene_id": "room0",
+      "variant": "B0",
+      "prediction_files": 896,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 896
+      },
+      "usage": {
+        "prompt_tokens": 2737512,
+        "completion_tokens": 606171,
+        "total_tokens": 3343683
+      }
+    },
+    {
+      "scene_id": "room0",
+      "variant": "O1",
+      "prediction_files": 786,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 786
+      },
+      "usage": {
+        "prompt_tokens": 2430785,
+        "completion_tokens": 546766,
+        "total_tokens": 2977551
+      }
+    },
+    {
+      "scene_id": "room0",
+      "variant": "O2",
+      "prediction_files": 786,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 786
+      },
+      "usage": {
+        "prompt_tokens": 2430697,
+        "completion_tokens": 567817,
+        "total_tokens": 2998514
+      }
+    },
+    {
+      "scene_id": "room0",
+      "variant": "O3",
+      "prediction_files": 2330,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 2137,
+        "gpt-5.6-terra": 193
+      },
+      "usage": {
+        "prompt_tokens": 9150627,
+        "completion_tokens": 1646028,
+        "total_tokens": 10796655
+      }
+    },
+    {
+      "scene_id": "office0",
+      "variant": "B0",
+      "prediction_files": 296,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 296
+      },
+      "usage": {
+        "prompt_tokens": 1048375,
+        "completion_tokens": 201304,
+        "total_tokens": 1249679
+      }
+    },
+    {
+      "scene_id": "office0",
+      "variant": "O1",
+      "prediction_files": 366,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 366
+      },
+      "usage": {
+        "prompt_tokens": 1203998,
+        "completion_tokens": 251479,
+        "total_tokens": 1455477
+      }
+    },
+    {
+      "scene_id": "office0",
+      "variant": "O2",
+      "prediction_files": 366,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 366
+      },
+      "usage": {
+        "prompt_tokens": 1204023,
+        "completion_tokens": 255444,
+        "total_tokens": 1459467
+      }
+    },
+    {
+      "scene_id": "office0",
+      "variant": "O3",
+      "prediction_files": 681,
+      "model_returned_counts": {
+        "gpt-5.6-sol": 681
+      },
+      "usage": {
+        "prompt_tokens": 2648982,
+        "completion_tokens": 454959,
+        "total_tokens": 3103941
+      }
+    }
+  ],
+  "totals": {
+    "prediction_files": 6507,
+    "model_returned_counts": {
+      "gpt-5.6-sol": 6314,
+      "gpt-5.6-terra": 193
+    },
+    "usage": {
+      "prompt_tokens": 22854999,
+      "completion_tokens": 4529968,
+      "total_tokens": 27384967
+    }
+  },
+  "interpretation": "Relation metrics are a mixed-model cache and cannot be described as a pure Terra experiment."
+}

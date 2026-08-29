@@ -1,0 +1,123 @@
+{
+  "created_at": "2026-08-29T14:23:02.943880+00:00",
+  "macro_aggregate_rho": {
+    "arithmetic": {
+      "denominator": 0.7191931143406388,
+      "numerator": 0.009207610043617365,
+      "rho": 0.012802694936893223,
+      "status": "stable"
+    },
+    "harmonic": {
+      "denominator": 0.8794168351346123,
+      "numerator": 0.04774944297672999,
+      "rho": 0.05429671239966766,
+      "status": "stable"
+    },
+    "minimum": {
+      "denominator": 0.7039250512674171,
+      "numerator": 0.016716901667849997,
+      "rho": 0.02374812721574721,
+      "status": "stable"
+    }
+  },
+  "macro_components": {
+    "B0": {
+      "instance_ap_mean_25_50": 0.008724963734083066,
+      "node_f1": 0.06057400747479021,
+      "relation_recall_at_1": 0.6950000000000001,
+      "semantic_accuracy": 0.07142857142857142
+    },
+    "O1": {
+      "instance_ap_mean_25_50": 0.02529185040043291,
+      "node_f1": 0.1343494657448146,
+      "relation_recall_at_1": 0.17375000000000002,
+      "semantic_accuracy": 0.1
+    },
+    "O2": {
+      "instance_ap_mean_25_50": 0.02529185040043291,
+      "node_f1": 0.1343494657448146,
+      "relation_recall_at_1": 0.29625,
+      "semantic_accuracy": 0.41666666666666663
+    },
+    "O3": {
+      "instance_ap_mean_25_50": 1.0,
+      "node_f1": 1.0,
+      "relation_recall_at_1": 0.7125,
+      "semantic_accuracy": 1.0
+    }
+  },
+  "macro_per_metric_rho": {
+    "instance_ap_mean_25_50": {
+      "denominator": 0.991275036265917,
+      "numerator": 0.016566886666349846,
+      "rho": 0.016712704406192325,
+      "status": "stable"
+    },
+    "node_f1": {
+      "denominator": 0.9394259925252098,
+      "numerator": 0.07377545827002438,
+      "rho": 0.07853248564233717,
+      "status": "stable"
+    },
+    "relation_recall_at_1": {
+      "denominator": 0.01749999999999996,
+      "numerator": -0.39875000000000005,
+      "rho": -22.78571428571434,
+      "status": "unstable_small_denominator"
+    },
+    "semantic_accuracy": {
+      "denominator": 0.9285714285714286,
+      "numerator": 0.34523809523809523,
+      "rho": 0.37179487179487175,
+      "status": "stable"
+    }
+  },
+  "macro_q_scene_mean": {
+    "B0": {
+      "arithmetic": 0.20893188565936116,
+      "harmonic": 0.025954008855157473,
+      "minimum": 0.008574948732582915
+    },
+    "O1": {
+      "arithmetic": 0.10834782903631188,
+      "harmonic": 0.04671750681977451,
+      "minimum": 0.019328754090801946
+    },
+    "O2": {
+      "arithmetic": 0.21813949570297853,
+      "harmonic": 0.07370345183188746,
+      "minimum": 0.02529185040043291
+    },
+    "O3": {
+      "arithmetic": 0.928125,
+      "harmonic": 0.9053708439897699,
+      "minimum": 0.7125
+    }
+  },
+  "per_scene_primary_rho": {
+    "office0": {
+      "denominator": 0.7129278660624683,
+      "numerator": -0.0056264384958945035,
+      "rho": -0.007892016519103916,
+      "status": "stable"
+    },
+    "room0": {
+      "denominator": 0.7254583626188092,
+      "numerator": 0.024041658583129205,
+      "rho": 0.033139956504660006,
+      "status": "stable"
+    }
+  },
+  "scene_policy": "equal macro over room0 and office0",
+  "schema_version": "1.0.0",
+  "source_files": {
+    "office0": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/office0/metrics/oracle_q_primary.json",
+      "sha256": "30b64f1c31236a3c89e8daf40b3c1228b7d23aab7d5b731d94898cd1f26b3a00"
+    },
+    "room0": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/room0/metrics/oracle_q_primary.json",
+      "sha256": "be82a42aa959c9a5f02ba82a995c7ed9b3eb482d8eb04c58aa6551efa55722f7"
+    }
+  }
+}

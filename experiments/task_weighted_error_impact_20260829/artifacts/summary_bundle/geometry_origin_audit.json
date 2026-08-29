@@ -1,0 +1,271 @@
+{
+  "schema_version": "1.0.0",
+  "protocol": {
+    "unit": "O3 GT mask observation",
+    "retained_stage": "all observations retained by final B0 graph nodes",
+    "raw_stage": "saved per-frame B0 detector masks when available",
+    "support_threshold": "best pixel IoU >= 0.10",
+    "human_labels_used_as_truth": false
+  },
+  "cases": [
+    {
+      "case_id": "G01_office0",
+      "scene_id": "office0",
+      "gt_instance_id": 15,
+      "gt_label": "blinds",
+      "o3_observation_count_frozen": 149,
+      "retained_b0_observation_overlap": {
+        "observation_count": 149,
+        "best_iou": {
+          "count": 149,
+          "mean": 0.04716857262414493,
+          "median": 0.051750953241019464,
+          "maximum": 0.2128563087212697
+        },
+        "best_gt_recall": {
+          "count": 149,
+          "mean": 0.1623971442244664,
+          "median": 0.13660037878787878,
+          "maximum": 1.0
+        },
+        "best_candidate_purity": {
+          "count": 149,
+          "mean": 0.06216481279588681,
+          "median": 0.07603610726757594,
+          "maximum": 0.26527181019988794
+        },
+        "support_rate_iou_0p10": 0.0738255033557047,
+        "support_rate_recall_0p50": 0.053691275167785234,
+        "top_labels": [
+          {
+            "label": "chair",
+            "count": 90
+          }
+        ]
+      },
+      "raw_detector_observation_overlap": {
+        "observation_count": 149,
+        "best_iou": {
+          "count": 149,
+          "mean": 0.0732888986267158,
+          "median": 0.07798356433214768,
+          "maximum": 0.2848874144137785
+        },
+        "best_gt_recall": {
+          "count": 149,
+          "mean": 0.3531062897906777,
+          "median": 0.2403516295025729,
+          "maximum": 1.0
+        },
+        "best_candidate_purity": {
+          "count": 149,
+          "mean": 0.08545777422377872,
+          "median": 0.09205506717531929,
+          "maximum": 0.2848874144137785
+        },
+        "support_rate_iou_0p10": 0.2080536912751678,
+        "support_rate_recall_0p50": 0.2953020134228188,
+        "top_labels": [
+          {
+            "label": "chair 2",
+            "count": 7
+          },
+          {
+            "label": "chair 5",
+            "count": 7
+          },
+          {
+            "label": "folded chair 2",
+            "count": 6
+          },
+          {
+            "label": "chair 6",
+            "count": 5
+          },
+          {
+            "label": "chair 1",
+            "count": 4
+          }
+        ]
+      },
+      "i1": {
+        "processed_frame": 0,
+        "raw_frame": 0,
+        "retained_best": {
+          "source_index": null,
+          "label": null,
+          "intersection": 0,
+          "gt_recall": 0.0,
+          "candidate_purity": 0.0,
+          "iou": 0.0
+        },
+        "raw_best": {
+          "source_index": 10,
+          "label": "ottoman 10",
+          "intersection": 2485,
+          "gt_recall": 1.0,
+          "candidate_purity": 0.04310793463553412,
+          "iou": 0.04310793463553412
+        }
+      },
+      "root_cause_classification": "mixed_detection_and_mapping_loss"
+    },
+    {
+      "case_id": "G03_office0",
+      "scene_id": "office0",
+      "gt_instance_id": 28,
+      "gt_label": "tissue-paper",
+      "o3_observation_count_frozen": 42,
+      "retained_b0_observation_overlap": {
+        "observation_count": 42,
+        "best_iou": {
+          "count": 42,
+          "mean": 0.00018464885975766416,
+          "median": 0.0,
+          "maximum": 0.0077552521098218944
+        },
+        "best_gt_recall": {
+          "count": 42,
+          "mean": 0.02313362409773765,
+          "median": 0.0,
+          "maximum": 0.9716122121049813
+        },
+        "best_candidate_purity": {
+          "count": 42,
+          "mean": 0.0001846907082247232,
+          "median": 0.0,
+          "maximum": 0.007757009745438374
+        },
+        "support_rate_iou_0p10": 0.0,
+        "support_rate_recall_0p50": 0.023809523809523808,
+        "top_labels": [
+          {
+            "label": "window",
+            "count": 1
+          }
+        ]
+      },
+      "raw_detector_observation_overlap": {
+        "observation_count": 42,
+        "best_iou": {
+          "count": 42,
+          "mean": 0.0012327138700275742,
+          "median": 0.0,
+          "maximum": 0.012826644048220603
+        },
+        "best_gt_recall": {
+          "count": 42,
+          "mean": 0.15975637340846638,
+          "median": 0.0,
+          "maximum": 1.0
+        },
+        "best_candidate_purity": {
+          "count": 42,
+          "mean": 0.001232879705677575,
+          "median": 0.0,
+          "maximum": 0.012827338519013156
+        },
+        "support_rate_iou_0p10": 0.0,
+        "support_rate_recall_0p50": 0.16666666666666666,
+        "top_labels": [
+          {
+            "label": "picture 21",
+            "count": 1
+          },
+          {
+            "label": "window 11",
+            "count": 1
+          },
+          {
+            "label": "window 16",
+            "count": 1
+          },
+          {
+            "label": "window 6",
+            "count": 1
+          },
+          {
+            "label": "window 7",
+            "count": 1
+          }
+        ]
+      },
+      "i1": {
+        "processed_frame": 83,
+        "raw_frame": 415,
+        "retained_best": {
+          "source_index": null,
+          "label": null,
+          "intersection": 0,
+          "gt_recall": 0.0,
+          "candidate_purity": 0.0,
+          "iou": 0.0
+        },
+        "raw_best": {
+          "source_index": 16,
+          "label": "window 16",
+          "intersection": 555,
+          "gt_recall": 1.0,
+          "candidate_purity": 0.002768811705837453,
+          "iou": 0.002768811705837453
+        }
+      },
+      "root_cause_classification": "detector_or_mask_miss_dominant"
+    },
+    {
+      "case_id": "G02_room0",
+      "scene_id": "room0",
+      "gt_instance_id": 13,
+      "gt_label": "cushion",
+      "o3_observation_count_frozen": 80,
+      "retained_b0_observation_overlap": {
+        "observation_count": 80,
+        "best_iou": {
+          "count": 80,
+          "mean": 0.016973192014832154,
+          "median": 0.00999347077132512,
+          "maximum": 0.08934881373043917
+        },
+        "best_gt_recall": {
+          "count": 80,
+          "mean": 0.3657370838776379,
+          "median": 0.1990366189723103,
+          "maximum": 1.0
+        },
+        "best_candidate_purity": {
+          "count": 80,
+          "mean": 0.017333028220000046,
+          "median": 0.010520643186327155,
+          "maximum": 0.09076923076923077
+        },
+        "support_rate_iou_0p10": 0.0,
+        "support_rate_recall_0p50": 0.325,
+        "top_labels": [
+          {
+            "label": "pillow",
+            "count": 54
+          },
+          {
+            "label": "coffee table",
+            "count": 16
+          }
+        ]
+      },
+      "raw_detector_observation_overlap": null,
+      "i1": {
+        "processed_frame": 119,
+        "raw_frame": 595,
+        "retained_best": {
+          "source_index": null,
+          "label": null,
+          "intersection": 0,
+          "gt_recall": 0.0,
+          "candidate_purity": 0.0,
+          "iou": 0.0
+        },
+        "raw_best": null
+      },
+      "root_cause_classification": "detection_or_graph_retention_unresolved"
+    }
+  ]
+}

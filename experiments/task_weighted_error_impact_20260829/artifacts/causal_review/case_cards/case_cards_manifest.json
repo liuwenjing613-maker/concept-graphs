@@ -1,0 +1,68 @@
+[
+  {
+    "case_id": "A03_office0",
+    "scene_id": "office0",
+    "family": "association",
+    "image": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/causal_review/case_cards/A03_office0.png",
+    "image_sha256": "c48a62567c5fd045c7e788cc7d110c165d0354ffe905abaa26ecdf81b6fb3faf",
+    "i1_rgb": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/results/frame000080.jpg",
+    "i1_processed_frame": 16,
+    "mask_source": "B0 predicted object 0",
+    "verdict_5cm": "degraded"
+  },
+  {
+    "case_id": "G01_office0",
+    "scene_id": "office0",
+    "family": "geometry",
+    "image": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/causal_review/case_cards/G01_office0.png",
+    "image_sha256": "3ff4e9f53fdc59b87381adb6f262c1c20c7d36121643dabecd8a46d39d529bf6",
+    "i1_rgb": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/results/frame000000.jpg",
+    "i1_processed_frame": 0,
+    "mask_source": "O3 GT instance 15",
+    "verdict_5cm": "improved"
+  },
+  {
+    "case_id": "G03_office0",
+    "scene_id": "office0",
+    "family": "geometry",
+    "image": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/causal_review/case_cards/G03_office0.png",
+    "image_sha256": "2365fcc2298ec7b4da84ac8029b9dc82f1302b6b1dc576fe1fa1185483954d95",
+    "i1_rgb": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/results/frame000415.jpg",
+    "i1_processed_frame": 83,
+    "mask_source": "O3 GT instance 28",
+    "verdict_5cm": "improved"
+  },
+  {
+    "case_id": "A01_room0",
+    "scene_id": "room0",
+    "family": "association",
+    "image": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/causal_review/case_cards/A01_room0.png",
+    "image_sha256": "0dc2cc388008157f43f6af5d988295d235dad46f01f513103c9247ee5c903f88",
+    "i1_rgb": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/results/frame000795.jpg",
+    "i1_processed_frame": 159,
+    "mask_source": "B0 predicted object 55",
+    "verdict_5cm": "degraded"
+  },
+  {
+    "case_id": "A02_room0",
+    "scene_id": "room0",
+    "family": "association",
+    "image": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/causal_review/case_cards/A02_room0.png",
+    "image_sha256": "39c1b34c440ff208bcad493adab8e21c71244a1756cd0e94ed97348145493267",
+    "i1_rgb": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/results/frame001340.jpg",
+    "i1_processed_frame": 268,
+    "mask_source": "B0 predicted object 51",
+    "verdict_5cm": "improved"
+  },
+  {
+    "case_id": "G02_room0",
+    "scene_id": "room0",
+    "family": "geometry",
+    "image": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/causal_review/case_cards/G02_room0.png",
+    "image_sha256": "651ee74ea73bb8abc174ad78176d898d02b20a5db8d748531fcf67434a0b25a5",
+    "i1_rgb": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/results/frame000595.jpg",
+    "i1_processed_frame": 119,
+    "mask_source": "O3 GT instance 13",
+    "verdict_5cm": "improved"
+  }
+]

@@ -1,0 +1,55 @@
+{
+  "branches": {
+    "gpt_vision": {
+      "applied_map_accuracy_with_detector_fallback": 0.125,
+      "applied_map_correct": 1,
+      "applied_map_denominator": 8,
+      "fallback_nodes": 34,
+      "model_covered_accuracy": null,
+      "model_covered_correct": 0,
+      "model_covered_denominator": 0,
+      "prediction_count": 0,
+      "usage": {}
+    },
+    "llava_caption_gpt_text": {
+      "applied_map_accuracy_with_detector_fallback": 0.125,
+      "applied_map_correct": 1,
+      "applied_map_denominator": 8,
+      "fallback_nodes": 34,
+      "model_covered_accuracy": null,
+      "model_covered_correct": 0,
+      "model_covered_denominator": 0,
+      "prediction_count": 0,
+      "usage": {}
+    }
+  },
+  "counts": {
+    "failed": 2
+  },
+  "errors": [
+    {
+      "branch": "llava_caption_gpt_text",
+      "error": "HTTP 502",
+      "node_index": 0
+    },
+    {
+      "branch": "gpt_vision",
+      "error": "HTTP 502",
+      "node_index": 0
+    }
+  ],
+  "inference_failures": 2,
+  "jobs": 2,
+  "llava_captions": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/office0/semantics/office0_top3/llava/cfslam_llava_captions.json",
+  "llava_captions_sha256": "02335ea75be5bb99cedb469dd08a0c9ea3b36a545c9f3141710a69735f35be38",
+  "max_completion_tokens": 100,
+  "metrics_only": true,
+  "model": "gpt-5.6-terra",
+  "prompt_sha256": "fc1bfb7e5d48c1f37068621d624a909cad1dac61c30c43f8ee14e5a48a87c332",
+  "schema_version": "1.0.0",
+  "source_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/office0/o1_purity0p5/pcd_o1.pkl.gz",
+  "source_map_sha256": "f42de3eeecedd66d04951446fbe9845a79f3f72f93dbf92f96a421651342da96",
+  "view_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/office0/semantics/office0_top3/views/view_manifest.json",
+  "view_manifest_sha256": "a28bb47d6200b900a21423eb7499f0423ca5d2367a28769cc08915dc5a809408",
+  "wall_seconds": 36.555
+}

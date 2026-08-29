@@ -1,0 +1,53 @@
+{
+  "selection_stage": "pre_causal_objective_candidate_pool",
+  "human_labels_used": false,
+  "oracle_repair_results_used": false,
+  "scales_m": [
+    0.025,
+    0.05,
+    0.1
+  ],
+  "selection_policy": {
+    "per_scene_per_phenomenon": 3,
+    "controls_per_scene": 2,
+    "note": "Phenomena are GT-derived observations, not causal error labels."
+  },
+  "counts": {
+    "contamination": 6,
+    "fragmentation": 6,
+    "incompleteness": 6,
+    "relative_clean_control": 4,
+    "semantic_mismatch": 5,
+    "unsupported_prediction": 6
+  },
+  "scene_counts": {
+    "office0": 16,
+    "room0": 17
+  },
+  "input_sha256": {
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/b0_office0_fresh_final/pcd_b0_office0_fresh_final.pkl.gz": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/b0_room0_fresh/pcd_b0_room0_fresh.pkl.gz": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p025/gt_instance_summary.csv": "9e1f41cb288617bf38b4bf7e3ef7b108b107917219268266a396d1b2c93fca27",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p025/object_gt_overlaps.csv": "e29a53d106defc72ecbe51eb86c3cbb6558480be06088e2994836944f5ca2dc8",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p025/predicted_object_summary.csv": "3248297226e7e78ba884d922e7408f883c7c61a462f6630ab1a3c986d5962596",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p05/gt_instance_summary.csv": "1de7f5430f2a258556a8f17775c7995ca72adcdd49ffc712effca62c1b084b4d",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p05/object_gt_overlaps.csv": "0bc472db28560eec08bc2a2e00cd268e72481a512d31912d7f09188f3065f231",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p05/predicted_object_summary.csv": "b718493366aeb053e336fb5d420517a62e6c2f380fbe46a5da36c43b3f1f3301",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p10/gt_instance_summary.csv": "770bb599c39699f717fdfd66d90be7fc95f45856fedeb8031e9cfe033734c8f0",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p10/object_gt_overlaps.csv": "df2c79860b1e7d45ba31c151bc3d8c0c241de514bc928001b0e3a5065d085a4e",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/office0/voxel0p10/predicted_object_summary.csv": "d7006d50bcee804710443fa2c29300beac6a64e42376327f147b7a75c89bdc2b",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p025/gt_instance_summary.csv": "cb7ce50da697e1024b4f1bf0f26b65f80144e0808e48bfc7c4dca6ed9c9a61b6",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p025/object_gt_overlaps.csv": "13d4c04cc4cb966f65a5e5255d1c9ff4a2ea777097dece92e9b78c8360849d22",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p025/predicted_object_summary.csv": "dec9fbb9313fd36acbfe1bfb430ebe3339637f539c0b022a50b9b6c92310b7dc",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p05/gt_instance_summary.csv": "9d42c9fd40c99af2d95d331ab14bdfa6dd29fb202eab73d30962dca30d975864",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p05/object_gt_overlaps.csv": "cc3ff4cbc1df1853b97e9471084479876aef99865bf3076069111dc8a1a101e5",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p05/predicted_object_summary.csv": "a6fc5ea28533b68c1307cccebc2d741881a9c6b6fa556331dec2f5bf047ba438",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p10/gt_instance_summary.csv": "d9e5d8ef2c1b6acbcedf03ec3aeef67ca73655ccce9a791bfe3b3f6d20703f21",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p10/object_gt_overlaps.csv": "931e0c191408e46e10511ae2dabcac39000ac808cb81c5c90edf290476aab46c",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/matching/room0/voxel0p10/predicted_object_summary.csv": "f5798f7ced36d5183c99634856e5000eb7c5867a92626bc2ed938c3d56fbcdc5"
+  },
+  "outputs": {
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/objective_selection/objective_candidate_pool.csv": "d0953fc0b0c71e8599c9e58cb4bb921acad100eb5d4a72b72178d3a39434071d",
+    "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/objective_selection/objective_candidate_pool.json": "637d48f52f3b5338839fddacd56d063f83cb78577dd99acd00152c5069e8d52b"
+  }
+}

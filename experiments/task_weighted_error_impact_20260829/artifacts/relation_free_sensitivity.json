@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "protocol": {
+    "excluded_component": "relation_recall_at_1",
+    "reason": "relation predictions mix gpt-5.6-sol and gpt-5.6-terra cached outputs",
+    "included_components": [
+      "instance_ap_mean_25_50",
+      "node_f1",
+      "semantic_accuracy"
+    ],
+    "aggregation": "equal-weight arithmetic mean, then equal scene macro"
+  },
+  "per_scene": {
+    "room0": {
+      "q_relation_free": {
+        "B0": 0.08605551650825423,
+        "O1": 0.13811106128575987,
+        "O2": 0.23811106128575985,
+        "O3": 1.0
+      },
+      "numerator": 0.1520555447775056,
+      "denominator": 0.9139444834917457,
+      "rho_relation_free": 0.16637284597044005
+    },
+    "office0": {
+      "q_relation_free": {
+        "B0": 0.007762845250042246,
+        "O1": 0.03498314947773847,
+        "O2": 0.14609426058884958,
+        "O3": 1.0
+      },
+      "numerator": 0.13833141533880733,
+      "denominator": 0.9922371547499578,
+      "rho_relation_free": 0.13941366202283226
+    }
+  },
+  "macro": {
+    "q_relation_free": {
+      "B0": 0.046909180879148235,
+      "O1": 0.08654710538174917,
+      "O2": 0.19210266093730471,
+      "O3": 1.0
+    },
+    "numerator": 0.14519348005815647,
+    "denominator": 0.9530908191208518,
+    "rho_relation_free": 0.15233960620047265
+  }
+}

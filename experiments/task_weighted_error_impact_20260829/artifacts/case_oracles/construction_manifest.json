@@ -1,0 +1,281 @@
+{
+  "schema_version": "1.0.0",
+  "frozen_cases": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/frozen_cases/frozen_16_cases.json",
+  "frozen_cases_sha256": "79ce5893dba6db705a3c6b1b902e774cee2ce6ed777479bfbb2cc59f2abc54a2",
+  "protocol": {
+    "semantic": "label only; geometry/membership unchanged",
+    "spurious": "delete selected nodes only",
+    "geometry": "add selected observable O3 GT nodes only",
+    "association_split": "merge selected B0 fragments; preserve anchor label",
+    "association_merge": "nearest-O3 partition of selected B0 points; preserve source label and every point",
+    "control": "no mutation; compare baseline lightweight hash"
+  },
+  "scenes": {
+    "office0": {
+      "b0_source": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/b0_office0_fresh_final/pcd_b0_office0_fresh_final.pkl.gz",
+      "b0_source_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475",
+      "o3_source": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/office0/o3/pcd_o3.pkl.gz",
+      "o3_source_sha256": "1c0a2e13f6c2ff7094e73ffa6921fff9d1ae1d0b5463e82f33807ad99a6ec1d5",
+      "case_ids": [
+        "A03_office0",
+        "S01_office0",
+        "P01_office0",
+        "P03_office0",
+        "G01_office0",
+        "G03_office0",
+        "C02_office0",
+        "C04_office0"
+      ],
+      "variants": {
+        "baseline": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/baseline_light.pkl.gz",
+          "sha256": "7bf27c2f8473b7ad348c310db5d98310c05d6bab86926b7c059d8e7a6761ef8e",
+          "object_count": 35,
+          "point_count": 325055,
+          "bytes": 3543455
+        },
+        "semantic": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/semantic_light.pkl.gz",
+          "sha256": "7a6a8197a338b4dbef6eb397538173c9e3b9fca522ec021b85c26096f0212a7c",
+          "object_count": 35,
+          "point_count": 325055,
+          "bytes": 3543589
+        },
+        "spurious": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/spurious_light.pkl.gz",
+          "sha256": "dab117da6bd07e2a4327ca4c5731b496be61d93019b93d1cc743fbb0cf0c3e25",
+          "object_count": 33,
+          "point_count": 319583,
+          "bytes": 3484144
+        },
+        "geometry": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/geometry_light.pkl.gz",
+          "sha256": "14b80d6d836365c067cd34105cb76ea7b799373af514ff9e0db877005ea1558b",
+          "object_count": 37,
+          "point_count": 342035,
+          "bytes": 3723463
+        },
+        "association": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/association_light.pkl.gz",
+          "sha256": "48f3d2c9de763b3148ec3cba2724db94cf7dc009ef12138a5300c59015e7401d",
+          "object_count": 28,
+          "point_count": 325055,
+          "bytes": 3540612
+        },
+        "combined": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/combined_light.pkl.gz",
+          "sha256": "fc98aa0c03f17893b2c5f8eb55e706a4024d91d33058c2a26d13dc4aab12c2ae",
+          "object_count": 28,
+          "point_count": 336563,
+          "bytes": 3661859
+        }
+      },
+      "case_variants": {
+        "A03_office0": {
+          "family": "association",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/cases/A03_office0_light.pkl.gz",
+          "sha256": "c0a0faaddaaa3eba20ff91ad2d5e5631ec87804e7a91388c103d6f27041260de",
+          "object_count": 28,
+          "point_count": 325055,
+          "bytes": 3540613,
+          "no_op": false
+        },
+        "S01_office0": {
+          "family": "semantic",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/cases/S01_office0_light.pkl.gz",
+          "sha256": "28af2923a43b65f4ec72252c33fd23334168db4946cd452219c1a21471e99c4a",
+          "object_count": 35,
+          "point_count": 325055,
+          "bytes": 3543596,
+          "no_op": false
+        },
+        "P01_office0": {
+          "family": "spurious",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/cases/P01_office0_light.pkl.gz",
+          "sha256": "0ca7c975c143481f8767ca268abe1993f8313a9518e7a6c903087bf095ea4c82",
+          "object_count": 34,
+          "point_count": 320668,
+          "bytes": 3496093,
+          "no_op": false
+        },
+        "P03_office0": {
+          "family": "spurious",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/cases/P03_office0_light.pkl.gz",
+          "sha256": "fa1205b79a84bf13efaf72e8fc55a4011876e3cd334e8e7bc91cf16f3376cc85",
+          "object_count": 34,
+          "point_count": 323970,
+          "bytes": 3531498,
+          "no_op": false
+        },
+        "G01_office0": {
+          "family": "geometry",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/cases/G01_office0_light.pkl.gz",
+          "sha256": "823995692c8fa3d6e5b724a7061f1ea33e34635e2b0b3797c1aad8a8654de256",
+          "object_count": 36,
+          "point_count": 336966,
+          "bytes": 3669466,
+          "no_op": false
+        },
+        "G03_office0": {
+          "family": "geometry",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/cases/G03_office0_light.pkl.gz",
+          "sha256": "6733fea2f61f59763e0154470a48ec561e2e0a60919df724b0008a2bfb66d92a",
+          "object_count": 36,
+          "point_count": 330124,
+          "bytes": 3597244,
+          "no_op": false
+        },
+        "C02_office0": {
+          "family": "control",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/baseline_light.pkl.gz",
+          "sha256": "7bf27c2f8473b7ad348c310db5d98310c05d6bab86926b7c059d8e7a6761ef8e",
+          "object_count": 35,
+          "point_count": 325055,
+          "no_op": true
+        },
+        "C04_office0": {
+          "family": "control",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/baseline_light.pkl.gz",
+          "sha256": "7bf27c2f8473b7ad348c310db5d98310c05d6bab86926b7c059d8e7a6761ef8e",
+          "object_count": 35,
+          "point_count": 325055,
+          "no_op": true
+        }
+      },
+      "control_verification": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/office0/control_noop_verification.json"
+    },
+    "room0": {
+      "b0_source": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/b0_room0_fresh/pcd_b0_room0_fresh.pkl.gz",
+      "b0_source_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1",
+      "o3_source": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/room0/o3/pcd_o3.pkl.gz",
+      "o3_source_sha256": "f60a35694814ebef169ce863024cbdc521e636f565b3c88758435d7133f74100",
+      "case_ids": [
+        "A01_room0",
+        "A02_room0",
+        "S02_room0",
+        "S03_room0",
+        "P02_room0",
+        "G02_room0",
+        "C01_room0",
+        "C03_room0"
+      ],
+      "variants": {
+        "baseline": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/baseline_light.pkl.gz",
+          "sha256": "baf77d0925e8d6c1673012398edd1f6cfcb67a18abbace6dbf13a9d9ad2158d1",
+          "object_count": 72,
+          "point_count": 740266,
+          "bytes": 7925284
+        },
+        "semantic": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/semantic_light.pkl.gz",
+          "sha256": "9a53a1b6ad2c43890a9ef397c85e3eedf2fb2432bf3c8b0d25a827461a4fcb5e",
+          "object_count": 72,
+          "point_count": 740266,
+          "bytes": 7925451
+        },
+        "spurious": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/spurious_light.pkl.gz",
+          "sha256": "5d8358141ca48e1ff3ce13e3de15a8fe71ce6274839e9260d8f370dd52f65c4b",
+          "object_count": 71,
+          "point_count": 737019,
+          "bytes": 7889779
+        },
+        "geometry": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/geometry_light.pkl.gz",
+          "sha256": "539c149f94dfeb28e07104a135e99693d9a7e8398390dc98027da02b8fab6d8c",
+          "object_count": 73,
+          "point_count": 742185,
+          "bytes": 7945972
+        },
+        "association": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/association_light.pkl.gz",
+          "sha256": "e7c0d3a35720c888f13d6041aee13853840bb3a6c28c6c0e041c40458e14fd1e",
+          "object_count": 65,
+          "point_count": 740266,
+          "bytes": 7923057
+        },
+        "combined": {
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/combined_light.pkl.gz",
+          "sha256": "61fbc08e0b6e43e5f1c5d2db12d18ca6e85ded5cee3022b8bfc90e7807989069",
+          "object_count": 65,
+          "point_count": 738938,
+          "bytes": 7908114
+        }
+      },
+      "case_variants": {
+        "A01_room0": {
+          "family": "association",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/cases/A01_room0_light.pkl.gz",
+          "sha256": "375a33e79b4d7a22ab476e2d525f8d6b71de27027c5574e657dcc0c4ef69836e",
+          "object_count": 73,
+          "point_count": 740266,
+          "bytes": 7925224,
+          "no_op": false
+        },
+        "A02_room0": {
+          "family": "association",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/cases/A02_room0_light.pkl.gz",
+          "sha256": "b9142af0a3f90dc8928e9fbc1db8515160cf6da6dab241f9dc5d4a24031c5690",
+          "object_count": 64,
+          "point_count": 740266,
+          "bytes": 7923021,
+          "no_op": false
+        },
+        "S02_room0": {
+          "family": "semantic",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/cases/S02_room0_light.pkl.gz",
+          "sha256": "9ec15488f4859ef6c6b217bd065824326d86ea607a1c4ba2e7631730b440a410",
+          "object_count": 72,
+          "point_count": 740266,
+          "bytes": 7925418,
+          "no_op": false
+        },
+        "S03_room0": {
+          "family": "semantic",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/cases/S03_room0_light.pkl.gz",
+          "sha256": "02c6925106b3399c3a128b94326d72caf76b5618e4b6d091306c4bc4d531d580",
+          "object_count": 72,
+          "point_count": 740266,
+          "bytes": 7925411,
+          "no_op": false
+        },
+        "P02_room0": {
+          "family": "spurious",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/cases/P02_room0_light.pkl.gz",
+          "sha256": "7262c9a558668482dd998687651c47261e37f97166bd98b027d3fac9275e3892",
+          "object_count": 71,
+          "point_count": 737019,
+          "bytes": 7889783,
+          "no_op": false
+        },
+        "G02_room0": {
+          "family": "geometry",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/cases/G02_room0_light.pkl.gz",
+          "sha256": "492a44a403df4dee616947189d91ed2d86840cbec9d7181c7ce0bdc6e1f689f7",
+          "object_count": 73,
+          "point_count": 742185,
+          "bytes": 7945975,
+          "no_op": false
+        },
+        "C01_room0": {
+          "family": "control",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/baseline_light.pkl.gz",
+          "sha256": "baf77d0925e8d6c1673012398edd1f6cfcb67a18abbace6dbf13a9d9ad2158d1",
+          "object_count": 72,
+          "point_count": 740266,
+          "no_op": true
+        },
+        "C03_room0": {
+          "family": "control",
+          "map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/baseline_light.pkl.gz",
+          "sha256": "baf77d0925e8d6c1673012398edd1f6cfcb67a18abbace6dbf13a9d9ad2158d1",
+          "object_count": 72,
+          "point_count": 740266,
+          "no_op": true
+        }
+      },
+      "control_verification": "/home/chenkejun/beauty/conceptgraphs/results/experiments/task_weighted_error_impact_20260829/case_oracles/room0/control_noop_verification.json"
+    }
+  }
+}

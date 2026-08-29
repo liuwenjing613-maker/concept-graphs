@@ -1,0 +1,17 @@
+case_id,scene_id,family,subtype,phenomenon,predicted_index,gt_instance_id,predicted_label,gt_label,selection_score,s_processed_frame,d_processed_frame,h_processed_frame,online_latest_processed_frame
+A01_room0,room0,association,A_false_merge_observation_identity,contamination,55,,book,,16.789842008045433,159,399,399,399
+A02_room0,room0,association,A_false_split_observation_identity,fragmentation,51,0,ceiling,unknown,37.87161746915892,268,399,399,399
+A03_office0,office0,association,A_false_split_observation_identity,fragmentation,1,4,picture,chair,28.96776118542534,16,399,399,399
+S01_office0,office0,semantic,S3_ontology_or_unknown_mismatch,semantic_mismatch,33,17,speaker,vent,0.45077217542933323,266,399,399,399
+S02_room0,room0,semantic,S2_geometry_or_identity_confounded_label_mismatch,semantic_mismatch,38,19,armchair,blinds,0.7925654007171659,123,399,399,399
+S03_room0,room0,semantic,S2_geometry_or_identity_confounded_label_mismatch,semantic_mismatch,5,2,closet door,cabinet,0.4492381078524396,0,399,399,399
+P01_office0,office0,spurious,unsupported_prediction_all_three_scales,unsupported_prediction,23,,paper bag,,13.99572568879788,69,399,399,399
+P02_room0,room0,spurious,unsupported_prediction_all_three_scales,unsupported_prediction,3,,lamp,,26.52673887632507,0,399,399,399
+P03_office0,office0,spurious,unsupported_prediction_all_three_scales,unsupported_prediction,16,,potted plant,,7.828999564955975,35,399,399,399
+G01_office0,office0,geometry,G_observable_gt_incomplete_or_missed,incompleteness,,15,,blinds,31.21867024044867,0,399,399,399
+G02_room0,room0,geometry,G_observable_gt_incomplete_or_missed,incompleteness,,13,,cushion,22.219415105128938,119,399,399,399
+G03_office0,office0,geometry,G_observable_gt_incomplete_or_missed,incompleteness,,28,,tissue-paper,22.190694608874608,83,399,399,399
+C01_room0,room0,control,relative_identity_control,relative_non_target_control,39,15,blinds,blinds,1.035926671874464,123,399,399,399
+C02_office0,office0,control,geometry_ranked_non_target_control,relative_non_target_control,21,7,sofa chair,sofa,0.6360860534580175,63,399,399,399
+C03_room0,room0,control,geometry_ranked_non_target_control,relative_non_target_control,31,72,pillow,cushion,0.6724924231228265,111,399,399,399
+C04_office0,office0,control,geometry_ranked_non_target_control,relative_non_target_control,4,66,tv,tv-screen,0.6297731091639945,0,399,399,399
