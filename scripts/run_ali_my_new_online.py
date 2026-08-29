@@ -51,6 +51,19 @@ def _read_json(path: Path | None) -> dict[str, Any]:
     return value
 
 
+def _candidate_pool_passes(
+    dispatched: int,
+    *,
+    drain_all_candidates: bool,
+) -> tuple[bool, ...]:
+    """Return audit-slot choices in the exact order used for one dispatch."""
+
+    preferred_audit = (dispatched + 1) % 10 == 0
+    if drain_all_candidates:
+        return (preferred_audit, not preferred_audit)
+    return (preferred_audit,)
+
+
 def _mapping_command(args: argparse.Namespace, experiment_root: Path) -> list[str]:
     worktree = Path(args.worktree).resolve()
     return [
@@ -348,6 +361,12 @@ def main() -> int:
     parser.add_argument("--mapping-gpu", default="0")
     parser.add_argument("--replay-gpu", default="1")
     parser.add_argument("--api-key-count", type=int, default=5)
+    parser.add_argument(
+        "--api-concurrency",
+        type=int,
+        default=None,
+        help="worker count; one or more workers may share each memory-only key",
+    )
     parser.add_argument("--base-url", default="https://api.pinaic.com/v1")
     parser.add_argument("--model", default="gpt-5.6-sol")
     parser.add_argument(
@@ -363,6 +382,11 @@ def main() -> int:
         help="candidate routing mode; active moves likely-resolved tickets to AUDIT_POOL",
     )
     parser.add_argument("--max-vlm-tickets", type=int, default=15)
+    parser.add_argument(
+        "--drain-all-candidates",
+        action="store_true",
+        help="after mapping ends, process every remaining main/audit candidate",
+    )
     parser.add_argument(
         "--ticket-uid",
         action="append",
@@ -385,6 +409,8 @@ def main() -> int:
         raise ValueError("ali-my-new MVP is intentionally frozen to stride=10")
     if args.api_key_count < 1 and not args.no_vlm:
         raise ValueError("at least one API key is required")
+    if args.api_concurrency is not None and args.api_concurrency < 1:
+        raise ValueError("api-concurrency must be positive")
     if Path(args.output_subdir).name != args.output_subdir:
         raise ValueError("output-subdir must be one plain directory name")
     project_root = Path(args.project_root).resolve()
@@ -426,6 +452,11 @@ def main() -> int:
                 raise ValueError("empty API key")
             api_keys.append(value)
 
+    worker_count = max(
+        1,
+        int(args.api_concurrency or len(api_keys) or args.api_key_count),
+    )
+
     protocol = {
         "schema_version": "0.1.0",
         "experiment_root": str(experiment_root),
@@ -448,7 +479,9 @@ def main() -> int:
         "routing_mode": args.routing_mode,
         "base_url": args.base_url,
         "api_credential_slots": len(api_keys),
+        "api_concurrency": 0 if args.no_vlm else worker_count,
         "api_keys_persisted": False,
+        "drain_all_candidates": args.drain_all_candidates,
         "one_call_per_ticket": True,
         "prepare_vlm_only": args.prepare_vlm_only,
         "ticket_uid_allowlist": list(args.ticket_uid),
@@ -515,8 +548,12 @@ def main() -> int:
     tracker = LiveDependencyTracker()
     tickets = TicketStore()
     router = EvidenceRouter(experiment_root, max_images=6)
-    vlm_executor = ThreadPoolExecutor(max_workers=max(1, len(api_keys)))
-    clients = list(api_keys) or ([""] * args.api_key_count if args.prepare_vlm_only else [])
+    vlm_executor = ThreadPoolExecutor(max_workers=worker_count)
+    clients = (
+        [api_keys[index % len(api_keys)] for index in range(worker_count)]
+        if api_keys
+        else ([""] * worker_count if args.prepare_vlm_only else [])
+    )
     slot_futures: dict[int, Future[dict[str, Any]]] = {}
     slot_packets: dict[int, OnlineEvidencePacket] = {}
     locked_lineages: set[str] = set()
@@ -525,6 +562,7 @@ def main() -> int:
     latest_committed = -1
     diagnosed_results: list[dict[str, Any]] = []
     terminal_vlm_tickets: set[str] = set()
+    dispatch_records: list[dict[str, Any]] = []
 
     try:
         idle_rounds_after_done = 0
@@ -677,36 +715,94 @@ def main() -> int:
                     if dispatched >= args.max_vlm_tickets:
                         break
                     selected = None
-                    for ticket in tickets.ordered(
-                        current_frame=max(0, latest_committed),
-                        audit_slot=(dispatched + 1) % 10 == 0,
+                    for audit_slot in _candidate_pool_passes(
+                        dispatched,
+                        drain_all_candidates=args.drain_all_candidates,
                     ):
-                        if ticket.ticket_uid in terminal_vlm_tickets:
-                            continue
-                        if args.ticket_uid and ticket.ticket_uid not in set(args.ticket_uid):
-                            continue
-                        if ticket.dispatch_frame is not None:
-                            continue
-                        if max(0, latest_committed) - ticket.first_seen_frame < args.min_ticket_age_frames:
-                            continue
-                        if locked_lineages.intersection(ticket.primary_lineage_uids):
-                            continue
-                        packet = router.build_v2(
-                            ticket=ticket,
-                            ledger=ledger,
-                            freeze_frame=max(0, latest_committed),
-                            freeze_sequence=ledger.max_sequence_at_frame(
-                                max(0, latest_committed)
-                            ),
-                            output_dir=output_root / "vlm" / ticket.ticket_uid / "evidence",
-                        )
-                        if packet is None:
-                            continue
-                        selected = (ticket, packet)
-                        break
+                        for ticket in tickets.ordered(
+                            current_frame=max(0, latest_committed),
+                            audit_slot=audit_slot,
+                        ):
+                            if ticket.ticket_uid in terminal_vlm_tickets:
+                                continue
+                            if args.ticket_uid and ticket.ticket_uid not in set(args.ticket_uid):
+                                continue
+                            if ticket.dispatch_frame is not None:
+                                continue
+                            age = max(0, latest_committed) - ticket.first_seen_frame
+                            if (
+                                age < args.min_ticket_age_frames
+                                and not (mapping_done and args.drain_all_candidates)
+                            ):
+                                continue
+                            if locked_lineages.intersection(ticket.primary_lineage_uids):
+                                continue
+                            packet = router.build_v2(
+                                ticket=ticket,
+                                ledger=ledger,
+                                freeze_frame=max(0, latest_committed),
+                                freeze_sequence=ledger.max_sequence_at_frame(
+                                    max(0, latest_committed)
+                                ),
+                                output_dir=output_root / "vlm" / ticket.ticket_uid / "evidence",
+                            )
+                            if packet is None:
+                                if mapping_done and args.drain_all_candidates:
+                                    rank = len(dispatch_records) + 1
+                                    record = {
+                                        "dispatch_rank": rank,
+                                        "ticket_uid": ticket.ticket_uid,
+                                        "disposition": "NO_EVIDENCE_PACKET",
+                                        "pool_location": ticket.pool_location,
+                                        "routing_state": ticket.routing_state,
+                                        "priority": ticket.as_dict(
+                                            max(0, latest_committed)
+                                        ).get("priority_tuple"),
+                                    }
+                                    dispatch_records.append(record)
+                                    terminal_vlm_tickets.add(ticket.ticket_uid)
+                                    case_dir = (
+                                        output_root
+                                        / "vlm_object_state_v2"
+                                        / ticket.ticket_uid
+                                    )
+                                    write_json(
+                                        case_dir / "validation.json",
+                                        {
+                                            "status": "NO_EVIDENCE_PACKET",
+                                            "api_call_attempted": False,
+                                            "dispatch_rank": rank,
+                                        },
+                                    )
+                                    append_jsonl(
+                                        live_log,
+                                        {
+                                            "type": "VLM_SKIPPED_NO_PACKET",
+                                            **record,
+                                        },
+                                    )
+                                continue
+                            selected = (ticket, packet)
+                            break
+                        if selected is not None:
+                            break
                     if selected is None:
                         break
                     ticket, packet = selected
+                    dispatch_rank = len(dispatch_records) + 1
+                    dispatch_record = {
+                        "dispatch_rank": dispatch_rank,
+                        "ticket_uid": ticket.ticket_uid,
+                        "disposition": "VLM_DISPATCHED",
+                        "pool_location": ticket.pool_location,
+                        "routing_state": ticket.routing_state,
+                        "h_frame": packet.freeze_frame,
+                        "h_sequence": packet.freeze_sequence,
+                        "priority": ticket.as_dict(max(0, latest_committed)).get(
+                            "priority_tuple"
+                        ),
+                    }
+                    dispatch_records.append(dispatch_record)
                     ticket.state = "DIAGNOSING"
                     ticket.dispatch_frame = packet.freeze_frame
                     ticket.dispatch_sequence = packet.freeze_sequence
@@ -729,6 +825,7 @@ def main() -> int:
                         live_log,
                         {
                             "type": "VLM_STARTED",
+                            "dispatch_rank": dispatch_rank,
                             "ticket_uid": ticket.ticket_uid,
                             "slot": slot,
                             "freeze_frame": packet.freeze_frame,
@@ -747,6 +844,31 @@ def main() -> int:
             if mapping_done:
                 if mapping_process is not None and mapping_process.returncode not in (0, None):
                     break
+                if args.drain_all_candidates:
+                    target_uids = {
+                        ticket_uid
+                        for ticket_uid in tickets.tickets
+                        if not args.ticket_uid or ticket_uid in set(args.ticket_uid)
+                    }
+                    pending_uids = target_uids - terminal_vlm_tickets
+                    if active_work:
+                        idle_rounds_after_done = 0
+                    elif not pending_uids:
+                        break
+                    else:
+                        idle_rounds_after_done += 1
+                    if idle_rounds_after_done >= 3:
+                        append_jsonl(
+                            live_log,
+                            {
+                                "type": "VLM_DRAIN_INCOMPLETE",
+                                "pending_ticket_uids": sorted(pending_uids),
+                                "max_vlm_tickets": args.max_vlm_tickets,
+                            },
+                        )
+                        break
+                    time.sleep(max(0.05, args.poll_seconds))
+                    continue
                 if active_work:
                     idle_rounds_after_done = 0
                 else:
@@ -790,9 +912,27 @@ def main() -> int:
         print(json.dumps(failure, ensure_ascii=False), flush=True)
         return 2
 
+    target_ticket_uids = {
+        ticket_uid
+        for ticket_uid in tickets.tickets
+        if not args.ticket_uid or ticket_uid in set(args.ticket_uid)
+    }
+    undrained_ticket_uids = sorted(target_ticket_uids - terminal_vlm_tickets)
+    write_json(
+        output_root / "dispatch_order.json",
+        {
+            "candidate_count": len(target_ticket_uids),
+            "ordered_candidate_count": len(dispatch_records),
+            "undrained_ticket_uids": undrained_ticket_uids,
+            "records": dispatch_records,
+        },
+    )
     visualization_root = output_root / "vlm_object_state_v2"
     if visualization_root.is_dir():
-        write_root_html(visualization_root)
+        write_root_html(
+            visualization_root,
+            ordered_ticket_uids=[row["ticket_uid"] for row in dispatch_records],
+        )
     resolution_counts: dict[str, int] = {}
     error_tier_counts: dict[str, int] = {}
     for ticket in tickets.tickets.values():
@@ -808,7 +948,11 @@ def main() -> int:
         output_counts[key] = output_counts.get(key, 0) + 1
     summary = {
         "schema_version": "ali_my_houxuan_vlm/2.0",
-        "status": "COMPLETED",
+        "status": (
+            "COMPLETED"
+            if not undrained_ticket_uids
+            else "COMPLETED_WITH_UNDRAINED_CANDIDATES"
+        ),
         "experiment_root": str(experiment_root),
         "fresh_online_mapping": not bool(args.reuse_experiment_root),
         "processed_committed_frame_count": len(ledger._committed_frames),
@@ -820,12 +964,18 @@ def main() -> int:
         "resolution_counts": resolution_counts,
         "error_tier_counts": error_tier_counts,
         "vlm_dispatched": dispatched,
+        "candidate_target_count": len(target_ticket_uids),
+        "candidate_ordered_count": len(dispatch_records),
+        "undrained_candidate_count": len(undrained_ticket_uids),
+        "undrained_ticket_uids": undrained_ticket_uids,
         "vlm_api_calls_attempted": api_calls_attempted,
         "vlm_valid_output_count": len(diagnosed_results),
         "vlm_output_counts": output_counts,
         "vlm_prompt_version": UNIFIED_VLM_PROMPT_VERSION,
         "reasoning_effort": args.reasoning_effort,
         "routing_mode": args.routing_mode,
+        "drain_all_candidates": args.drain_all_candidates,
+        "api_concurrency": 0 if args.no_vlm else worker_count,
         "vlm_output_contract": "object_state_v2",
         "object_state_parser_enabled": False,
         "repair_execution_enabled": False,

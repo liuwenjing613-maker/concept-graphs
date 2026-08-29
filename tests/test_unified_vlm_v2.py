@@ -8,6 +8,7 @@ import pytest
 from conceptgraph.revision.online_mvp import LiveEvidenceLedger, OnlineEvidencePacket
 from scripts.run_ali_my_new_online import (
     _bind_completion_timeline,
+    _candidate_pool_passes,
     _ticket_state_from_vlm_response,
 )
 from scripts.validate_unified_vlm_v2 import (
@@ -316,6 +317,32 @@ def test_root_html_distinguishes_real_vlm_results_from_prepare_only(tmp_path) ->
     assert "1 例真实审核结果" in page
     assert "真实 VLM 调用" in page
     assert "尚未调用 API" not in page
+
+
+def test_drain_all_candidates_falls_back_to_the_other_pool() -> None:
+    assert _candidate_pool_passes(0, drain_all_candidates=False) == (False,)
+    assert _candidate_pool_passes(9, drain_all_candidates=False) == (True,)
+    assert _candidate_pool_passes(0, drain_all_candidates=True) == (False, True)
+    assert _candidate_pool_passes(9, drain_all_candidates=True) == (True, False)
+
+
+def test_root_html_respects_recorded_candidate_order(tmp_path) -> None:
+    for ticket_uid in ("ticket_a", "ticket_z"):
+        case_dir = tmp_path / ticket_uid
+        case_dir.mkdir()
+        (case_dir / "validation.json").write_text(
+            json.dumps({"status": "NO_EVIDENCE_PACKET"}),
+            encoding="utf-8",
+        )
+
+    write_root_html(tmp_path, ordered_ticket_uids=["ticket_z", "ticket_a"])
+
+    page = (tmp_path / "index.html").read_text(encoding="utf-8")
+    assert page.index("ticket_z") < page.index("ticket_a")
+    assert "#1" in page
+    assert "#2" in page
+    assert "案例按候选池真实派发顺序编号" in page
+
 
 def test_i1_never_invents_e1_from_unbound_raw_candidate_order() -> None:
     packet = {

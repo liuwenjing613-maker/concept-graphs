@@ -347,6 +347,32 @@ def _render_image(run: FrozenRun, view: Mapping[str, Any], role: str) -> Image.I
     return framed
 
 
+def _missing_i1_image() -> Image.Image:
+    """Render an explicit non-evidence card without inventing A/E0 pixels."""
+
+    canvas = Image.new("RGB", (1200, 680), (24, 29, 38))
+    draw = ImageDraw.Draw(canvas)
+    title_font = get_font(38)
+    detail_font = get_font(25)
+    title = "I1 - Exact S evidence unavailable"
+    detail = "A/E0 masks cannot be recovered at S. Identity must remain UNRESOLVED."
+    title_box = draw.textbbox((0, 0), title, font=title_font)
+    detail_box = draw.textbbox((0, 0), detail, font=detail_font)
+    draw.text(
+        ((canvas.width - (title_box[2] - title_box[0])) // 2, 270),
+        title,
+        fill=(245, 247, 252),
+        font=title_font,
+    )
+    draw.text(
+        ((canvas.width - (detail_box[2] - detail_box[0])) // 2, 340),
+        detail,
+        fill=(181, 192, 211),
+        font=detail_font,
+    )
+    return canvas
+
+
 def _shared_event_frame(
     anchor_rows: Iterable[Mapping[str, Any]],
     core_rows: Iterable[Mapping[str, Any]],
@@ -726,21 +752,35 @@ def prepare_case(
         ]
         selected_anchor = _best_row_view(run, exact_s_anchor_rows, "A", margin=0.35)
         if selected_anchor is None:
-            raise PreflightDefer(
-                "DEFER_I1_SOURCE_AT_S_MISSING",
-                "no same-frame A/E0 evidence and exact-S A cannot be recovered",
+            anchor = min(anchor_rows, key=lambda row: str(row["obs_uid"]))
+            i1 = {
+                "frame": s_frame,
+                "target_mask_short_side_px": 0.0,
+                "visible_aliases": [],
+            }
+            i1_frame = s_frame
+            primary_image = _missing_i1_image()
+            i1_source_relation = "EXACT_S_EVIDENCE_MISSING"
+            i1_layout = "evidence_missing"
+            i1_frames = [s_frame]
+            i1_visible_aliases = []
+        else:
+            i1, anchor = selected_anchor
+            i1_frame = int(i1["frame"])
+            primary_image = _render_image(
+                run, i1, "I1 - Exact S | A-only; E0-at-S unavailable"
             )
-        i1, anchor = selected_anchor
-        i1_frame = int(i1["frame"])
-        primary_image = _render_image(
-            run, i1, "I1 - Exact S | A-only; E0-at-S unavailable"
-        )
-        i1_source_relation = "EXACT_S_A_ONLY"
-        i1_layout = "a_only"
-        i1_frames = [i1_frame]
-        i1_visible_aliases = ["A"]
+            i1_source_relation = "EXACT_S_A_ONLY"
+            i1_layout = "a_only"
+            i1_frames = [i1_frame]
+            i1_visible_aliases = ["A"]
+    i1_evidence_missing = i1_layout == "evidence_missing"
     i1_small_view = bool(i1["target_mask_short_side_px"] < 96)
-    i1_quality_status = "IMAGE_DEGRADED" if i1_small_view else "PASS"
+    i1_quality_status = (
+        "EVIDENCE_MISSING"
+        if i1_evidence_missing
+        else ("IMAGE_DEGRADED" if i1_small_view else "PASS")
+    )
 
     anchor_uid = str(anchor["obs_uid"])
     i2_pool = [row for row in e0_rows if str(row["obs_uid"]) != anchor_uid] or e0_rows
@@ -809,26 +849,40 @@ def prepare_case(
 
     current_label = normalize_label(versions["E0"].get("class_name")) or "unknown"
     alternatives = _semantic_labels([anchor, *e0_rows], current_label)
-    identity_targets = tuple(
-        ["E0"]
-        + (["E1"] if versions.get("E1") and i3_mode == "LIVE_E1" else [])
-        + ["SEPARATE", "UNRESOLVED"]
+    identity_targets = (
+        ("UNRESOLVED",)
+        if i1_evidence_missing
+        else tuple(
+            ["E0"]
+            + (["E1"] if versions.get("E1") and i3_mode == "LIVE_E1" else [])
+            + ["SEPARATE", "UNRESOLVED"]
+        )
     )
-    semantic_targets = tuple(
-        ["L0"] + [row["id"] for row in alternatives] + ["UNRESOLVED", "NOT_APPLICABLE"]
+    semantic_targets = (
+        ("NOT_APPLICABLE",)
+        if i1_evidence_missing
+        else tuple(
+            ["L0"]
+            + [row["id"] for row in alternatives]
+            + ["UNRESOLVED", "NOT_APPLICABLE"]
+        )
     )
     schema = output_schema(identity_targets, semantic_targets)
     label_candidates = {"L0": current_label}
     label_candidates.update({str(row["id"]): str(row["text"]) for row in alternatives})
     image_descriptions = {
         "I1": (
-            (
-                "A and E0 are shown in exact S in one saved frame."
-                if i1_source_relation == "EXACT_S"
-                else "A and E0 are shown in one real shared frame not later than D; the offset from S is explicit."
+            "Exact-S A/E0 evidence is unavailable; this explicit placeholder contains no invented object pixels."
+            if i1_evidence_missing
+            else (
+                (
+                    "A and E0 are shown in exact S in one saved frame."
+                    if i1_source_relation == "EXACT_S"
+                    else "A and E0 are shown in one real shared frame not later than D; the offset from S is explicit."
+                )
+                if i1_layout == "same_frame"
+                else "Only exact-S A is shown; no real same-frame E0 source mask was recovered."
             )
-            if i1_layout == "same_frame"
-            else "Only exact-S A is shown; no real same-frame E0 source mask was recovered."
         ),
         "I2": (
             "Best available real view of the latest E0."
@@ -854,6 +908,11 @@ def prepare_case(
         contract,
         has_e1=bool(versions.get("E1") and i3_mode == "LIVE_E1"),
     )
+    if i1_evidence_missing:
+        review_question = (
+            "Exact-S A/E0 evidence could not be recovered. Do not infer identity "
+            "from later views; return UNRESOLVED and NOT_APPLICABLE."
+        )
     input_summary = {
         "issue_family": issue_family,
         "review_question": review_question,
@@ -1263,10 +1322,22 @@ def write_case_html(case_dir: Path) -> None:
     (case_dir / "index.html").write_text(page, encoding="utf-8")
 
 
-def write_root_html(root: Path) -> None:
+def write_root_html(
+    root: Path,
+    ordered_ticket_uids: Iterable[str] | None = None,
+) -> None:
     cards = []
     vlm_attempted = False
-    for case_dir in sorted(path for path in root.iterdir() if path.is_dir()):
+    order = {
+        ticket_uid: index
+        for index, ticket_uid in enumerate(ordered_ticket_uids or ())
+    }
+    case_dirs = sorted(
+        (path for path in root.iterdir() if path.is_dir()),
+        key=lambda path: (order.get(path.name, len(order)), path.name),
+    )
+    for fallback_index, case_dir in enumerate(case_dirs):
+        display_rank = order.get(case_dir.name, fallback_index) + 1
         manifest = _read_optional(case_dir / "case_manifest.json") or {}
         summary = _read_optional(case_dir / "input_summary.json") or {}
         validation = _read_optional(case_dir / "validation.json") or {}
@@ -1291,18 +1362,33 @@ def write_root_html(root: Path) -> None:
         i1_record = image_manifest.get("I1") or {}
         i1_relation = str(i1_record.get("source_relation") or "UNKNOWN")
         i1_offset = i1_record.get("offset_from_s")
-        thumbs = "".join(
-            f'<div><b>{image_id}</b><img src="{html.escape(case_dir.name)}/{html.escape(str((image_manifest.get(image_id) or {}).get("file") or ""))}"></div>'
-            for image_id in ("I1", "I2", "I3")
+        thumb_cards = []
+        for image_id in ("I1", "I2", "I3"):
+            image_file = str((image_manifest.get(image_id) or {}).get("file") or "")
+            if image_file and (case_dir / image_file).is_file():
+                thumb_cards.append(
+                    f'<div><b>{image_id}</b><img src="{html.escape(case_dir.name)}/'
+                    f'{html.escape(image_file)}"></div>'
+                )
+            else:
+                thumb_cards.append(
+                    f'<div><b>{image_id}</b><p class="missing">未生成可用图像</p></div>'
+                )
+        thumbs = "".join(thumb_cards)
+        case_name = html.escape(case_dir.name)
+        case_title = (
+            f'<a href="{case_name}/index.html">{case_name}</a>'
+            if (case_dir / "index.html").is_file()
+            else case_name
         )
         cards.append(
-            '<article><div class="top"><div><span class="pool">'
+            '<article><div class="top"><div><span class="rank">#'
+            + str(display_rank)
+            + '</span><span class="pool">'
             + html.escape(pool)
-            + '</span><h2><a href="'
-            + html.escape(case_dir.name)
-            + '/index.html">'
-            + html.escape(case_dir.name)
-            + '</a></h2></div><strong>'
+            + '</span><h2>'
+            + case_title
+            + '</h2></div><strong>'
             + html.escape(str(validation.get("status") or "PREPARED_ONLY"))
             + '</strong></div><div class="meta"><span>触发：'
             + html.escape(str(manifest.get("issue_family") or "UNKNOWN"))
@@ -1344,10 +1430,11 @@ def write_root_html(root: Path) -> None:
         "尚未调用 VLM，也未执行修复。所有图像均受各自冻结水位限制；没有读取最终建图"
         "成员关系、GT 或旧 VLM 答案。点击案例编号可查看大图与完整解释。"
     )
+    order_note = "案例按候选池真实派发顺序编号。" if order else ""
     page = f"""<!doctype html><meta charset="utf-8"><title>object_state_v2 可视化</title>
-<style>*{{box-sizing:border-box}}body{{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#eef2f6;color:#182230}}main{{max-width:1580px;margin:auto;padding:24px}}h1{{margin:0 0 8px}}.lead{{line-height:1.6;color:#516173;max-width:1100px}}.legend{{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0;padding:12px;background:#fff;border:1px solid #d9e1e9;border-radius:10px}}.legend b{{display:inline-flex;align-items:center;gap:6px}}.dot{{width:13px;height:13px;border-radius:50%}}.cases{{display:grid;gap:18px}}article{{background:#fff;border:1px solid #d7e0e8;border-radius:14px;padding:15px;box-shadow:0 2px 9px #23384d12}}.top{{display:flex;justify-content:space-between;gap:12px;align-items:start}}h2{{font-size:17px;margin:6px 0}}a{{color:#1557a0}}.pool{{background:#e8f1ff;color:#164d85;font-weight:700;border-radius:999px;padding:3px 9px;font-size:12px}}.meta{{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}}.meta span{{background:#f1f4f7;border-radius:7px;padding:5px 8px;font-size:13px}}.question,.semantic{{margin:0 0 10px;padding:9px 11px;border-radius:8px;line-height:1.5}}.question{{background:#eaf4ff;border:1px solid #8dbdea}}.question b{{color:#124e7c;margin-right:8px}}.semantic{{background:#fff7df;border:1px solid #edcf78}}.semantic b{{color:#704c00;margin-right:8px}}.thumbs{{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px}}.thumbs div{{font-size:13px}}.thumbs img{{display:block;width:100%;height:260px;object-fit:contain;background:#111;border-radius:8px;margin-top:5px}}.result{{margin-top:10px;color:#526173}}@media(max-width:900px){{.thumbs{{grid-template-columns:1fr}}.thumbs img{{height:auto;max-height:480px}}}}</style><main>
+<style>*{{box-sizing:border-box}}body{{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#eef2f6;color:#182230}}main{{max-width:1580px;margin:auto;padding:24px}}h1{{margin:0 0 8px}}.lead{{line-height:1.6;color:#516173;max-width:1100px}}.legend{{display:flex;gap:14px;flex-wrap:wrap;margin:16px 0;padding:12px;background:#fff;border:1px solid #d9e1e9;border-radius:10px}}.legend b{{display:inline-flex;align-items:center;gap:6px}}.dot{{width:13px;height:13px;border-radius:50%}}.cases{{display:grid;gap:18px}}article{{background:#fff;border:1px solid #d7e0e8;border-radius:14px;padding:15px;box-shadow:0 2px 9px #23384d12}}.top{{display:flex;justify-content:space-between;gap:12px;align-items:start}}h2{{font-size:17px;margin:6px 0}}a{{color:#1557a0}}.rank{{display:inline-block;background:#172f4d;color:#fff;font-weight:800;border-radius:7px;padding:3px 8px;margin-right:7px}}.pool{{background:#e8f1ff;color:#164d85;font-weight:700;border-radius:999px;padding:3px 9px;font-size:12px}}.meta{{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 10px}}.meta span{{background:#f1f4f7;border-radius:7px;padding:5px 8px;font-size:13px}}.question,.semantic{{margin:0 0 10px;padding:9px 11px;border-radius:8px;line-height:1.5}}.question{{background:#eaf4ff;border:1px solid #8dbdea}}.question b{{color:#124e7c;margin-right:8px}}.semantic{{background:#fff7df;border:1px solid #edcf78}}.semantic b{{color:#704c00;margin-right:8px}}.thumbs{{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:10px}}.thumbs div{{font-size:13px}}.thumbs img{{display:block;width:100%;height:260px;object-fit:contain;background:#111;border-radius:8px;margin-top:5px}}.missing{{height:260px;margin:5px 0 0;display:grid;place-items:center;background:#f1f4f7;color:#657487;border-radius:8px}}.result{{margin-top:10px;color:#526173}}@media(max-width:900px){{.thumbs{{grid-template-columns:1fr}}.thumbs img,.missing{{height:auto;min-height:120px;max-height:480px}}}}</style><main>
 <h1>{html.escape(stage_title)}</h1>
-<p class="lead">{html.escape(stage_lead)}</p>
+<p class="lead">{html.escape(order_note + stage_lead)}</p>
 <div class="legend"><b><i class="dot" style="background:rgb{ALIAS_COLORS['A']}"></i>红 A：待审核观测</b><b><i class="dot" style="background:rgb{ALIAS_COLORS['E0']}"></i>蓝 E0：建票时主对象</b><b><i class="dot" style="background:rgb{ALIAS_COLORS['E1']}"></i>绿 E1：最强独立备选</b></div>
 <section class="cases">{''.join(cards)}</section></main>"""
     (root / "index.html").write_text(page, encoding="utf-8")
