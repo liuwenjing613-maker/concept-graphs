@@ -1,0 +1,52 @@
+{
+  "counts": {
+    "observable_gt_instances": 91,
+    "positive_hungarian_matches": 36,
+    "positive_overlap_pairs": 293,
+    "predicted_objects": 64
+  },
+  "coverage": {
+    "count": 91,
+    "max": 1.0,
+    "mean": 0.4528917967142171,
+    "median": 0.3932926829268293,
+    "min": 0.0,
+    "q05": 0.0,
+    "q25": 0.113945095494911,
+    "q75": 0.8485714285714285,
+    "q95": 1.0
+  },
+  "purity": {
+    "count": 64,
+    "max": 1.0,
+    "mean": 0.8024545570024693,
+    "median": 0.927479091995221,
+    "min": 0.0,
+    "q05": 0.0890123340551738,
+    "q25": 0.6952624839948784,
+    "q75": 1.0,
+    "q95": 1.0
+  },
+  "scene": "room0",
+  "thresholds": {
+    "0.1": {
+      "f1": 0.34838709677419355,
+      "precision": 0.421875,
+      "recall": 0.2967032967032967,
+      "true_positive": 27
+    },
+    "0.25": {
+      "f1": 0.18064516129032257,
+      "precision": 0.21875,
+      "recall": 0.15384615384615385,
+      "true_positive": 14
+    },
+    "0.5": {
+      "f1": 0.03870967741935484,
+      "precision": 0.046875,
+      "recall": 0.03296703296703297,
+      "true_positive": 3
+    }
+  },
+  "voxel_size_m": 0.1
+}
