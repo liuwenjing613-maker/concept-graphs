@@ -183,6 +183,9 @@ def _safe_response(response: dict[str, Any]) -> dict[str, Any]:
         "defer_code": response.get("defer_code"),
         "defer_detail": response.get("defer_detail"),
         "error": response.get("error"),
+        "timeline": response.get("timeline"),
+        "source_h_snapshot": response.get("source_h_snapshot"),
+        "completion_binding": response.get("completion_binding"),
     }
 
 
@@ -198,6 +201,100 @@ def _ticket_state_from_vlm_response(response: Mapping[str, Any]) -> str:
     if output.get("identity_target") == "E0" and output.get("semantic_target") == "L0":
         return "NO_ACTION"
     return "DIAGNOSED"
+
+
+def _bind_completion_timeline(
+    *,
+    packet: OnlineEvidencePacket,
+    response: dict[str, Any],
+    ledger: LiveEvidenceLedger,
+    latest_committed: int,
+    output_root: Path,
+) -> dict[str, Any]:
+    """Persist C while keeping the conclusion bound to the immutable H snapshot."""
+
+    timeline = dict(packet.packet_manifest.get("timeline") or {})
+    c_frame = max(int(packet.freeze_frame), int(latest_committed))
+    c_sequence = ledger.max_sequence_at_frame(c_frame)
+    timeline.update(
+        {
+            "c_frame": c_frame,
+            "c_sequence": c_sequence,
+            "c_latest_main_map_frame": c_frame,
+            "frame_order_valid": (
+                int(timeline.get("s_frame", -1))
+                <= int(timeline.get("d_frame", -1))
+                <= int(timeline.get("h_frame", -1))
+                <= c_frame
+            ),
+        }
+    )
+    if not timeline["frame_order_valid"]:
+        raise ValueError("online timeline violates S <= D <= H <= C")
+    h_snapshot = packet.packet_manifest.get("h_snapshot") or {}
+    source_h_snapshot = {
+        key: h_snapshot.get(key)
+        for key in (
+            "snapshot_uid",
+            "snapshot_sha256",
+            "cutoff_frame",
+            "cutoff_sequence",
+            "watermark_source",
+        )
+    }
+    completion_binding = {
+        "schema_version": "ali_my_vlm_completion_binding/1.0",
+        "ticket_uid": packet.ticket_uid,
+        "vlm_status": response.get("status"),
+        "source_h_snapshot": source_h_snapshot,
+        "saved_at_c": {
+            "frame": c_frame,
+            "sequence": c_sequence,
+            "latest_main_map_frame": c_frame,
+        },
+        "constraint_source_must_match_h_snapshot": True,
+    }
+    packet.packet_manifest["timeline"] = timeline
+    packet.packet_manifest["completion_binding"] = completion_binding
+    packet_path = output_root / "vlm" / packet.ticket_uid / "evidence" / "packet_manifest.json"
+    write_json(packet_path, packet.packet_manifest)
+    write_json(
+        output_root / "vlm" / packet.ticket_uid / "completion_manifest.json",
+        completion_binding,
+    )
+
+    response["timeline"] = timeline
+    response["source_h_snapshot"] = source_h_snapshot
+    response["completion_binding"] = completion_binding
+    case_dir_value = response.get("case_dir")
+    case_dir = (
+        Path(str(case_dir_value))
+        if case_dir_value
+        else output_root / "vlm_object_state_v2" / packet.ticket_uid
+    )
+    manifest_path = case_dir / "case_manifest.json"
+    if manifest_path.is_file():
+        case_manifest = _read_json(manifest_path)
+        case_manifest["timeline"] = timeline
+        case_manifest["completion_binding"] = completion_binding
+        cutoff_audit = dict(case_manifest.get("cutoff_audit") or {})
+        cutoff_audit["s_lte_d_lte_h_lte_c"] = timeline["frame_order_valid"]
+        cutoff_audit["c_binds_same_h_snapshot"] = (
+            source_h_snapshot.get("snapshot_uid") == timeline.get("h_snapshot_uid")
+            and source_h_snapshot.get("snapshot_sha256")
+            == timeline.get("h_snapshot_sha256")
+        )
+        case_manifest["cutoff_audit"] = cutoff_audit
+        write_json(manifest_path, case_manifest)
+    validation_path = case_dir / "validation.json"
+    if validation_path.is_file():
+        validation = _read_json(validation_path)
+        validation["timeline"] = timeline
+        validation["source_h_snapshot"] = source_h_snapshot
+        write_json(validation_path, validation)
+    if manifest_path.is_file():
+        write_case_html(case_dir)
+    return response
 
 
 def _tail(path: Path, lines: int = 80) -> str:
@@ -462,6 +559,13 @@ def main() -> int:
                 ticket = tickets.tickets[packet.ticket_uid]
                 try:
                     raw_response = future.result()
+                    raw_response = _bind_completion_timeline(
+                        packet=packet,
+                        response=raw_response,
+                        ledger=ledger,
+                        latest_committed=latest_committed,
+                        output_root=output_root,
+                    )
                     response = _safe_response(raw_response)
                     if response.get("api_call_attempted"):
                         api_calls_attempted += 1
@@ -482,6 +586,8 @@ def main() -> int:
                             "response_path": str(response_path),
                             "output_contract": "object_state_v2",
                             "parser_status": parser_status,
+                            "timeline": response.get("timeline"),
+                            "source_h_snapshot": response.get("source_h_snapshot"),
                         }
                     )
                     if valid:
@@ -491,6 +597,8 @@ def main() -> int:
                                 "output": output,
                                 "freeze_frame": packet.freeze_frame,
                                 "freeze_sequence": packet.freeze_sequence,
+                                "timeline": response.get("timeline"),
+                                "source_h_snapshot": response.get("source_h_snapshot"),
                             }
                         )
                     ticket.state = _ticket_state_from_vlm_response(response)
@@ -507,6 +615,8 @@ def main() -> int:
                             "vlm_status": response.get("status"),
                             "object_state_v2": output if valid else None,
                             "parser_status": parser_status,
+                            "timeline": response.get("timeline"),
+                            "source_h_snapshot": response.get("source_h_snapshot"),
                         },
                     )
                 except Exception as exc:
@@ -526,6 +636,14 @@ def main() -> int:
                             "type": "VLM_FAILED",
                             "ticket_uid": packet.ticket_uid,
                             "error": f"{type(exc).__name__}:{exc}",
+                            "h_frame": packet.freeze_frame,
+                            "h_sequence": packet.freeze_sequence,
+                            "h_snapshot_uid": (
+                                packet.packet_manifest.get("h_snapshot") or {}
+                            ).get("snapshot_uid"),
+                            "latest_main_map_frame": max(
+                                int(packet.freeze_frame), int(latest_committed)
+                            ),
                         },
                     )
 
@@ -589,6 +707,11 @@ def main() -> int:
                             "ticket_uid": ticket.ticket_uid,
                             "slot": slot,
                             "freeze_frame": packet.freeze_frame,
+                            "freeze_sequence": packet.freeze_sequence,
+                            "h_snapshot_uid": (
+                                packet.packet_manifest.get("h_snapshot") or {}
+                            ).get("snapshot_uid"),
+                            "latest_main_map_frame": max(0, latest_committed),
                             "priority": ticket.as_dict(max(0, latest_committed)).get(
                                 "priority_tuple"
                             ),

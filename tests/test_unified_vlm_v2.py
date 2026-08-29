@@ -1,21 +1,27 @@
 from __future__ import annotations
 
+import hashlib
 import numpy as np
 import json
+import pytest
 
-from PIL import Image
-
-from scripts.run_ali_my_new_online import _ticket_state_from_vlm_response
+from conceptgraph.revision.online_mvp import LiveEvidenceLedger, OnlineEvidencePacket
+from scripts.run_ali_my_new_online import (
+    _bind_completion_timeline,
+    _ticket_state_from_vlm_response,
+)
 from scripts.validate_unified_vlm_v2 import (
     ALIAS_COLORS,
     SYSTEM_PROMPT,
     _candidate_event_context,
-    _dual_panel,
     _expanded_bbox,
+    _h_snapshot_payload,
     _pool_route_text,
     _review_question,
     _semantic_label_text,
     _shared_event_frame,
+    _validate_h_snapshot,
+    PreflightDefer,
     output_schema,
     validate_output,
     write_root_html,
@@ -74,32 +80,117 @@ def test_unresolved_and_missing_evidence_are_biconditional() -> None:
     assert "missing_evidence must be non-NONE iff one target is UNRESOLVED" in errors
 
 
+def test_reason_must_be_a_complete_sentence() -> None:
+    value = _output("E0", "L0")
+    value["reason"] = "A belongs to"
+    errors = validate_output(value, IDENTITY, SEMANTIC)
+    assert "reason must be a complete sentence ending in punctuation" in errors
+
+
 def test_unavailable_alias_is_rejected() -> None:
     errors = validate_output(_output("E2", "NOT_APPLICABLE"), IDENTITY, SEMANTIC)
     assert "identity_target is unavailable in this frozen case" in errors
 
 
-def test_i1_prefers_nearest_frame_where_a_and_e0_are_both_visible() -> None:
+def test_i1_prefers_exact_s_then_nearest_causal_shared_frame() -> None:
     anchors = [
         {"obs_uid": "scene_f000004_r0019"},
         {"obs_uid": "scene_f000000_r0021"},
     ]
-    event_core = [{"obs_uid": "scene_f000000_r0020"}]
-    assert _shared_event_frame(anchors, event_core, trigger_frame=4) == 0
+    event_core = [
+        {"obs_uid": "scene_f000000_r0020"},
+        {"obs_uid": "scene_f000004_r0020"},
+    ]
+    assert _shared_event_frame(anchors, event_core, s_frame=4, d_frame=4) == 4
+
+
+def test_i1_never_uses_a_shared_frame_after_d() -> None:
+    anchors = [
+        {"obs_uid": "scene_f000000_r0019"},
+        {"obs_uid": "scene_f000006_r0019"},
+    ]
+    event_core = [
+        {"obs_uid": "scene_f000000_r0020"},
+        {"obs_uid": "scene_f000006_r0020"},
+    ]
+    assert _shared_event_frame(anchors, event_core, s_frame=4, d_frame=5) == 0
 
 
 def test_i1_can_fall_back_when_a_and_e0_have_no_shared_frame() -> None:
     anchors = [{"obs_uid": "scene_f000004_r0019"}]
     event_core = [{"obs_uid": "scene_f000000_r0020"}]
-    assert _shared_event_frame(anchors, event_core, trigger_frame=4) is None
+    assert _shared_event_frame(anchors, event_core, s_frame=4, d_frame=4) is None
 
 
-def test_i1_dual_panel_keeps_two_real_views_visibly_separate() -> None:
-    left = Image.new("RGB", (120, 80), (90, 20, 20))
-    right = Image.new("RGB", (100, 60), (20, 20, 90))
-    panel = _dual_panel(left, right)
-    assert panel.width >= left.width + right.width + 8
-    assert panel.height > max(left.height, right.height)
+def test_h_snapshot_hash_is_verified_and_tampering_fails_closed() -> None:
+    snapshot = {
+        "schema_version": "ali_my_h_snapshot/1.0",
+        "cutoff_frame": 8,
+        "cutoff_sequence": 12,
+        "active_object_version_uids": {"object-a": "object-a@v3"},
+        "merge_redirects": {},
+    }
+    digest = hashlib.sha256(
+        json.dumps(
+            _h_snapshot_payload(snapshot),
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=False,
+        ).encode("utf-8")
+    ).hexdigest()
+    snapshot.update(
+        {"snapshot_uid": "hsnap_" + digest[:16], "snapshot_sha256": digest}
+    )
+    assert _validate_h_snapshot({"h_snapshot": snapshot})["snapshot_uid"].startswith(
+        "hsnap_"
+    )
+    snapshot["active_object_version_uids"]["object-a"] = "object-a@v4"
+    with pytest.raises(PreflightDefer, match="H snapshot digest is invalid"):
+        _validate_h_snapshot({"h_snapshot": snapshot})
+
+
+def test_completion_c_binds_the_same_h_snapshot(tmp_path) -> None:
+    h_snapshot = {
+        "snapshot_uid": "hsnap_demo",
+        "snapshot_sha256": "a" * 64,
+        "cutoff_frame": 8,
+        "cutoff_sequence": 12,
+        "watermark_source": "ledger_committed",
+    }
+    packet = OnlineEvidencePacket(
+        ticket_uid="ticket-demo",
+        issue_uid="issue-demo",
+        freeze_frame=8,
+        freeze_sequence=12,
+        evidence=None,
+        association={},
+        alias_version_uids={"E0": "object-a@v3"},
+        allowed_image_ids=("I1", "I2", "I3"),
+        packet_manifest={
+            "timeline": {
+                "s_frame": 2,
+                "d_frame": 4,
+                "h_frame": 8,
+                "h_snapshot_uid": "hsnap_demo",
+                "h_snapshot_sha256": "a" * 64,
+            },
+            "h_snapshot": h_snapshot,
+        },
+    )
+    response = _bind_completion_timeline(
+        packet=packet,
+        response={"ticket_uid": "ticket-demo", "status": "VALID"},
+        ledger=LiveEvidenceLedger(tmp_path),
+        latest_committed=11,
+        output_root=tmp_path / "online",
+    )
+    assert response["timeline"]["c_frame"] == 11
+    assert response["timeline"]["frame_order_valid"] is True
+    assert response["source_h_snapshot"]["snapshot_uid"] == "hsnap_demo"
+    completion = json.loads(
+        (tmp_path / "online" / "vlm" / "ticket-demo" / "completion_manifest.json").read_text()
+    )
+    assert completion["source_h_snapshot"]["snapshot_sha256"] == "a" * 64
 
 
 def test_alias_colors_are_fixed_red_blue_green() -> None:
@@ -127,6 +218,8 @@ def test_prompt_has_no_action_or_quality_gate_instruction() -> None:
     assert "visible fragment or subregion" in prompt
     assert "two distinct physical instances" in prompt
     assert "duplicate representations" in prompt
+    assert "not supporting evidence" in prompt
+    assert "one complete sentence" in prompt
 
 
 def test_join_candidate_question_explains_suspicion_without_declaring_answer() -> None:

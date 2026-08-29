@@ -468,7 +468,25 @@ class ActiveStateResolver:
         )
 
     def snapshot_manifest(self) -> dict[str, Any]:
+        active_object_version_uids = {
+            owner_uid: str(row.get("object_version_uid") or "")
+            for owner_uid, row in sorted(self.active_versions.items())
+        }
+        identity_payload = {
+            "schema_version": "ali_my_h_snapshot/1.0",
+            "cutoff_frame": self.cutoff_frame,
+            "cutoff_sequence": self.cutoff_sequence,
+            "active_object_version_uids": active_object_version_uids,
+            "merge_redirects": dict(sorted(self.redirects.items())),
+        }
+        snapshot_sha256 = hashlib.sha256(
+            _canonical_json(identity_payload).encode("utf-8")
+        ).hexdigest()
         return {
+            **identity_payload,
+            "snapshot_uid": "hsnap_" + snapshot_sha256[:16],
+            "snapshot_sha256": snapshot_sha256,
+            "watermark_source": "ledger_committed",
             "cutoff_frame": self.cutoff_frame,
             "cutoff_sequence": self.cutoff_sequence,
             "active_object_count": len(self.active_versions),
@@ -2114,6 +2132,12 @@ class EvidenceRouter:
             seen_owners.add(str(owner))
             break
 
+        if (
+            alias_owner_uids.get("E1")
+            and alias_owner_uids["E1"] == alias_owner_uids["E0"]
+        ):
+            return None
+
         if current_owner == primary_owner:
             current_assignment = "E0"
         elif current_owner and current_owner == alias_owner_uids.get("E1"):
@@ -2138,8 +2162,49 @@ class EvidenceRouter:
                 "decision": "POSTPROCESS_MERGE",
                 "target_object_uid": mapping.get("target_object_uid"),
             }
+        source_event = event or mapping or {}
+        s_frame = frame_index(source_event.get("frame_uid"))
+        if s_frame < 0:
+            s_frame = int(ticket.review_context.get("event_frame_id", -1))
+        s_sequence = int(
+            source_event.get(
+                "event_sequence", ticket.review_context.get("event_sequence", -1)
+            )
+        )
+        d_frame = int(issue.detected_frame)
+        d_sequence = int(issue.detected_sequence)
+        h_frame = int(freeze_frame)
+        h_sequence = int(freeze_sequence)
+        if s_frame < 0 or not (s_frame <= d_frame <= h_frame):
+            return None
+        h_snapshot = resolver.snapshot_manifest()
+        active_at_h = h_snapshot["active_object_version_uids"]
+        if any(
+            active_at_h.get(owner_uid) != alias_versions.get(alias)
+            for alias, owner_uid in alias_owner_uids.items()
+        ):
+            return None
+        timeline = {
+            "schema_version": "ali_my_online_timeline/1.0",
+            "s_frame": s_frame,
+            "s_sequence": s_sequence,
+            "s_event_uid": issue.anchor_event_uid,
+            "d_frame": d_frame,
+            "d_sequence": d_sequence,
+            "d_issue_uid": issue.issue_uid,
+            "h_frame": h_frame,
+            "h_sequence": h_sequence,
+            "h_snapshot_uid": h_snapshot["snapshot_uid"],
+            "h_snapshot_sha256": h_snapshot["snapshot_sha256"],
+            "h_latest_main_map_frame": h_frame,
+            "c_frame": None,
+            "c_sequence": None,
+            "c_latest_main_map_frame": None,
+            "watermark_source": "ledger_committed",
+            "frame_order_valid_through_h": s_frame <= d_frame <= h_frame,
+        }
         packet_manifest = {
-            "schema_version": "ali_my_object_state_packet/2.0",
+            "schema_version": "ali_my_object_state_packet/2.1",
             "output_contract_version": "object_state_v2",
             "ticket_uid": ticket.ticket_uid,
             "issue_uid": issue.issue_uid,
@@ -2185,7 +2250,9 @@ class EvidenceRouter:
             "candidate_alias_observation_uids": candidate_alias_observation_uids,
             "current_assignment": current_assignment,
             "newer_state_available": newer_state_available,
-            "active_snapshot": resolver.snapshot_manifest(),
+            "timeline": timeline,
+            "h_snapshot": h_snapshot,
+            "active_snapshot": h_snapshot,
             "oracle_fields_included": False,
             "end_of_run_membership_read": False,
         }
@@ -2566,11 +2633,24 @@ def compile_unified_vlm_response(
 
     output = result.get("output")
     candidates = result.get("candidates")
+    raw_h_snapshot = packet.packet_manifest.get("h_snapshot") or {}
+    h_snapshot_binding = {
+        key: raw_h_snapshot.get(key)
+        for key in (
+            "snapshot_uid",
+            "snapshot_sha256",
+            "cutoff_frame",
+            "cutoff_sequence",
+            "watermark_source",
+        )
+        if raw_h_snapshot.get(key) is not None
+    }
     audit = {
         "prompt_version": result.get("prompt_version"),
         "vlm_status": result.get("status"),
         "selected_candidate": output.get("selected_candidate") if isinstance(output, Mapping) else None,
         "output": dict(output) if isinstance(output, Mapping) else None,
+        "source_h_snapshot": h_snapshot_binding,
     }
 
     def deferred(reason: str, *, stage: str = "DEFERRED", candidate: Mapping[str, Any] | None = None) -> dict[str, Any]:
@@ -2581,6 +2661,7 @@ def compile_unified_vlm_response(
             "proposal": dict(output) if isinstance(output, Mapping) else None,
             "selected_candidate_row": dict(candidate) if isinstance(candidate, Mapping) else None,
             "unified_vlm": audit,
+            "source_h_snapshot": h_snapshot_binding,
         }
 
     if str(result.get("status")) != "VALID":
@@ -2707,6 +2788,7 @@ def compile_unified_vlm_response(
             "proposal": dict(output),
             "selected_candidate_row": dict(candidate),
             "unified_vlm": audit,
+            "source_h_snapshot": h_snapshot_binding,
             "citation_check": {
                 "pass": True,
                 "cited_image_ids": evidence_ids,
@@ -2797,6 +2879,7 @@ def compile_unified_vlm_response(
     )
     compiled["selected_candidate_row"] = dict(candidate)
     compiled["unified_vlm"] = audit
+    compiled["source_h_snapshot"] = h_snapshot_binding
     compiled["adapter_proposal"] = proposal
     return compiled
 

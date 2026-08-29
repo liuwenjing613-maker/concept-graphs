@@ -461,6 +461,30 @@ def test_vlm_packet_keeps_event_primary_as_e0_and_current_owner_as_e1(
     assert manifest["alias_version_uids"] == {"E0": "created@v2", "E1": "other@v1"}
     assert manifest["current_assignment"] == "E1"
     assert manifest["newer_state_available"] is True
+    assert manifest["timeline"] == {
+        "schema_version": "ali_my_online_timeline/1.0",
+        "s_frame": 1,
+        "s_sequence": 1,
+        "s_event_uid": "run_e00000001",
+        "d_frame": 1,
+        "d_sequence": 1,
+        "d_issue_uid": manifest["issue_uid"],
+        "h_frame": 3,
+        "h_sequence": 4,
+        "h_snapshot_uid": manifest["h_snapshot"]["snapshot_uid"],
+        "h_snapshot_sha256": manifest["h_snapshot"]["snapshot_sha256"],
+        "h_latest_main_map_frame": 3,
+        "c_frame": None,
+        "c_sequence": None,
+        "c_latest_main_map_frame": None,
+        "watermark_source": "ledger_committed",
+        "frame_order_valid_through_h": True,
+    }
+    assert manifest["h_snapshot"]["active_object_version_uids"]["created"] == "created@v2"
+    assert manifest["h_snapshot"]["active_object_version_uids"]["other"] == "other@v1"
+    assert manifest["h_snapshot"]["snapshot_uid"].startswith("hsnap_")
+    assert len(manifest["h_snapshot"]["snapshot_sha256"]) == 64
+    assert manifest["alias_owner_uids"]["E0"] != manifest["alias_owner_uids"]["E1"]
 
 
 def test_likely_resolved_retrigger_returns_to_main_pool(tmp_path: Path) -> None:

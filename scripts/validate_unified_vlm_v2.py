@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import base64
 import getpass
+import hashlib
 import html
 import json
 import math
@@ -38,7 +39,7 @@ from scripts.validate_unified_vlm_v1 import (
 )
 
 
-PROMPT_VERSION = "ali_my_object_state_v2_v3_7_20260829"
+PROMPT_VERSION = "ali_my_object_state_v2_v3_9_timeline_20260829"
 ALIAS_COLORS = {
     "A": (235, 52, 64),
     "E0": (42, 111, 230),
@@ -63,10 +64,11 @@ E1 is the strongest alternative map entity, when one is available. E0 and E1
 are map identities, so they can be duplicate representations of one physical
 object; do not assume they are physically distinct merely because both exist.
 
-I1 shows the assignment event. Red marks A. When separate E0 evidence is
-available, blue marks E0. If I1 has two panels, the left panel shows A and the
-right panel shows E0; the panels may come from different saved frames. The case
-description states explicitly when only A is available.
+I1 is tied to this review issue's S event. Red marks A and blue marks E0. It
+prefers exact S; otherwise it may use the nearest causally available real frame
+not later than D only when A and E0 both have real masks in one physical
+frame. It never combines different frames. The case facts state the exact I1
+frame and its offset from S. If no valid shared frame exists, I1 is A-only at S.
 
 I2 shows the best available view of the latest E0.
 
@@ -93,6 +95,10 @@ consolidated into E1. Choose E0 when A belongs with E0 and E1 is a different
 physical instance. Choose SEPARATE only when A is distinct from all displayed
 entities; choose UNRESOLVED when the supplied evidence cannot distinguish the
 valid owners.
+The current A→E0 assignment is review context, not supporting evidence. Never
+choose E0 merely to preserve that assignment. In particular, when I1 is A-only
+and I2/I3 leave E0 and E1 as indistinguishable duplicate views, choose
+UNRESOLVED with EVENT_EVIDENCE_UNCLEAR.
 Only when A belongs to E0, choose the best semantic label for E0.
 For every non-E0 identity_target (E1, SEPARATE, or UNRESOLVED), semantic_target
 MUST be NOT_APPLICABLE. Never assign an L-label to A, E1, or a new/separate
@@ -102,7 +108,9 @@ the existing E0.
 If identity_target is E0, E1, or SEPARATE, missing_evidence must be NONE. If
 required evidence is missing, use identity_target UNRESOLVED instead.
 
-Return only JSON that matches the schema supplied by the caller."""
+Write reason as one complete sentence of at most 180 characters and end it with
+sentence punctuation. Return only JSON that matches the schema supplied by the
+caller."""
 
 
 @dataclass(frozen=True)
@@ -342,9 +350,10 @@ def _render_image(run: FrozenRun, view: Mapping[str, Any], role: str) -> Image.I
 def _shared_event_frame(
     anchor_rows: Iterable[Mapping[str, Any]],
     core_rows: Iterable[Mapping[str, Any]],
-    trigger_frame: int,
+    s_frame: int,
+    d_frame: int,
 ) -> int | None:
-    """Select the closest trigger-time frame where both A and E0 are visible."""
+    """Prefer exact S, else the nearest same-frame A/E0 evidence no later than D."""
 
     anchor_frames = {
         frame_index(row.get("frame_uid") or row["obs_uid"]) for row in anchor_rows
@@ -352,8 +361,39 @@ def _shared_event_frame(
     core_frames = {
         frame_index(row.get("frame_uid") or row["obs_uid"]) for row in core_rows
     }
-    shared = anchor_frames & core_frames
-    return min(shared, key=lambda frame: (abs(frame - trigger_frame), frame)) if shared else None
+    shared = {
+        frame for frame in anchor_frames & core_frames
+        if frame >= 0 and frame <= int(d_frame)
+    }
+    return min(shared, key=lambda frame: (frame != int(s_frame), abs(frame - int(s_frame)), frame)) if shared else None
+
+
+def _h_snapshot_payload(snapshot: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        "schema_version": snapshot.get("schema_version"),
+        "cutoff_frame": int(snapshot.get("cutoff_frame", -1)),
+        "cutoff_sequence": int(snapshot.get("cutoff_sequence", -1)),
+        "active_object_version_uids": dict(
+            sorted((snapshot.get("active_object_version_uids") or {}).items())
+        ),
+        "merge_redirects": dict(sorted((snapshot.get("merge_redirects") or {}).items())),
+    }
+
+
+def _validate_h_snapshot(packet: Mapping[str, Any]) -> dict[str, Any]:
+    snapshot = packet.get("h_snapshot")
+    if not isinstance(snapshot, Mapping):
+        raise PreflightDefer("DEFER_H_SNAPSHOT_MISSING", "packet has no immutable H snapshot")
+    payload = _h_snapshot_payload(snapshot)
+    encoded = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
+    digest = hashlib.sha256(encoded).hexdigest()
+    if snapshot.get("snapshot_sha256") != digest:
+        raise PreflightDefer("DEFER_H_SNAPSHOT_HASH_MISMATCH", "H snapshot digest is invalid")
+    if snapshot.get("snapshot_uid") != "hsnap_" + digest[:16]:
+        raise PreflightDefer("DEFER_H_SNAPSHOT_UID_MISMATCH", "H snapshot UID is invalid")
+    return dict(snapshot)
 
 
 def _candidate_event_context(
@@ -392,71 +432,6 @@ def _save_image(image: Image.Image, path: Path) -> dict[str, Any]:
         "source_height": original_size[1],
         "display_upscaled": image.size != original_size,
     }
-
-
-def _dual_panel(
-    left: Image.Image,
-    right: Image.Image,
-    *,
-    title: str = "I1 - Assignment event | Left: A | Right: E0 | Different saved frames",
-) -> Image.Image:
-    """Place real A/E0 views from different frames side by side."""
-
-    gap = 8
-    target_height = max(left.height, right.height)
-
-    def fit(image: Image.Image) -> Image.Image:
-        if image.height == target_height:
-            return image
-        scale = target_height / max(1, image.height)
-        return image.resize(
-            (max(1, round(image.width * scale)), target_height),
-            Image.Resampling.LANCZOS,
-        )
-
-    left, right = fit(left), fit(right)
-    font = get_font(14)
-    probe = ImageDraw.Draw(left)
-    box = probe.textbbox((0, 0), title, font=font)
-    header = box[3] - box[1] + 10
-    width = max(left.width + gap + right.width, box[2] - box[0] + 12)
-    canvas = Image.new("RGB", (width, target_height + header), (18, 18, 18))
-    canvas.paste(left, (0, header))
-    canvas.paste(right, (left.width + gap, header))
-    ImageDraw.Draw(canvas).text((6, 5), title, fill=(255, 255, 255), font=font)
-    return canvas
-
-
-def _best_event_row_view(
-    run: FrozenRun,
-    rows: Iterable[Mapping[str, Any]],
-    alias: str,
-    *,
-    trigger_frame: int,
-    margin: float,
-) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    candidates = []
-    for row in rows:
-        try:
-            view = _view(
-                run,
-                frame_index(row.get("frame_uid") or row.get("obs_uid")),
-                {alias: [row]},
-                margin=margin,
-            )
-        except (FileNotFoundError, ValueError, PreflightDefer):
-            continue
-        candidates.append((view, dict(row)))
-    return max(
-        candidates,
-        key=lambda item: (
-            -abs(item[0]["frame"] - int(trigger_frame)),
-            item[0]["quality"],
-            item[0]["target_mask_short_side_px"],
-            -item[0]["frame"],
-        ),
-        default=None,
-    )
 
 
 def _best_row_view(
@@ -571,7 +546,7 @@ def output_schema(
                 "maxItems": 3,
                 "items": {"type": "string", "enum": ["I1", "I2", "I3"]},
             },
-            "reason": {"type": "string", "minLength": 1, "maxLength": 240},
+            "reason": {"type": "string", "minLength": 1, "maxLength": 320},
             "missing_evidence": {"type": "string", "enum": list(MISSING_EVIDENCE)},
         },
     }
@@ -614,8 +589,10 @@ def validate_output(
     ):
         errors.append("evidence_ids must contain 1-3 unique IDs from I1/I2/I3")
     reason = value.get("reason")
-    if not isinstance(reason, str) or not reason or len(reason) > 240:
-        errors.append("reason must be a nonempty string of at most 240 characters")
+    if not isinstance(reason, str) or not reason or len(reason) > 320:
+        errors.append("reason must be a nonempty string of at most 320 characters")
+    elif reason.rstrip()[-1:] not in ".!?。！？":
+        errors.append("reason must be a complete sentence ending in punctuation")
     missing = value.get("missing_evidence")
     if missing not in MISSING_EVIDENCE:
         errors.append("invalid missing_evidence")
@@ -653,11 +630,47 @@ def prepare_case(
     issue = packet["issue"]
     issue_family = str(issue.get("issue_type") or issue.get("family") or "UNKNOWN")
     contract = packet["repair_contract"]
-    trigger_frame = int(issue["detected_frame"])
+    timeline = packet.get("timeline")
+    if not isinstance(timeline, Mapping):
+        raise PreflightDefer("DEFER_TIMELINE_MISSING", "packet has no S/D/H timeline")
+    s_frame = int(timeline.get("s_frame", -1))
+    d_frame = int(timeline.get("d_frame", -1))
+    h_frame = int(timeline.get("h_frame", -1))
+    if not (0 <= s_frame <= d_frame <= h_frame):
+        raise PreflightDefer("DEFER_TIMELINE_ORDER_INVALID", "S <= D <= H is not satisfied")
+    if h_frame != freeze_frame or int(timeline.get("h_sequence", -1)) != freeze_sequence:
+        raise PreflightDefer("DEFER_TIMELINE_H_MISMATCH", "timeline H differs from packet freeze")
+    if str(timeline.get("s_event_uid") or "") != str(issue.get("anchor_event_uid") or ""):
+        raise PreflightDefer("DEFER_TIMELINE_S_ISSUE_MISMATCH", "S is not bound to review_issue")
+    h_snapshot = _validate_h_snapshot(packet)
+    if (
+        int(h_snapshot.get("cutoff_frame", -1)) != h_frame
+        or int(h_snapshot.get("cutoff_sequence", -1)) != freeze_sequence
+        or h_snapshot.get("snapshot_uid") != timeline.get("h_snapshot_uid")
+        or h_snapshot.get("snapshot_sha256") != timeline.get("h_snapshot_sha256")
+    ):
+        raise PreflightDefer("DEFER_TIMELINE_H_SNAPSHOT_MISMATCH", "timeline and H snapshot differ")
     review_uids = [str(uid) for uid in contract.get("review_unit_obs_uids") or ()]
-    versions = {
-        alias: run.versions.get(str(uid))
+    alias_version_uids = {
+        str(alias): str(uid)
         for alias, uid in (packet.get("alias_version_uids") or {}).items()
+    }
+    alias_owner_uids = {
+        str(alias): str(uid)
+        for alias, uid in (packet.get("alias_owner_uids") or {}).items()
+    }
+    if set(alias_owner_uids) != set(alias_version_uids) or "E0" not in alias_owner_uids:
+        raise PreflightDefer("DEFER_H_ALIAS_BINDING_INCOMPLETE", "H alias owner/version binding is incomplete")
+    if alias_owner_uids.get("E1") == alias_owner_uids.get("E0"):
+        raise PreflightDefer("DEFER_E0_E1_NOT_DISTINCT", "E0 and E1 resolve to the same object")
+    active_at_h = h_snapshot.get("active_object_version_uids") or {}
+    if any(
+        active_at_h.get(owner_uid) != alias_version_uids.get(alias)
+        for alias, owner_uid in alias_owner_uids.items()
+    ):
+        raise PreflightDefer("DEFER_H_ALIAS_NOT_LATEST", "I2/I3 alias is not latest in H snapshot")
+    versions = {
+        alias: run.versions.get(uid) for alias, uid in alias_version_uids.items()
     }
     if not versions.get("E0") or versions["E0"].get("status") != "active":
         raise PreflightDefer("DEFER_CURRENT_OWNER_UNBOUND", "E0 active version is unavailable")
@@ -670,36 +683,24 @@ def prepare_case(
     ]
     if not anchor_rows:
         raise PreflightDefer("DEFER_MISSING_DECISION_PROVENANCE", "review unit has no accepted mask")
-    review_uid_set = set(review_uids)
-    e0_context_rows = [
-        row for row in e0_rows if str(row["obs_uid"]) not in review_uid_set
-    ]
     core_uid_set = {
         str(uid) for uid in contract.get("event_owner_core_obs_uids") or ()
     }
-    postprocess_core_rows = [
+    event_e0_rows = [
         run.observations[uid]
         for uid in core_uid_set
         if uid in run.observations
         and run.observations[uid].get("status") == "kept"
         and run.observations[uid].get("processed_mask_ref")
     ]
-    use_postprocess_source_panel = bool(
-        issue_family == "POSTPROCESS_MERGE_CONFLICT" and postprocess_core_rows
-    )
-    i1_frame = (
-        None
-        if use_postprocess_source_panel
-        else _shared_event_frame(anchor_rows, e0_context_rows, trigger_frame)
-    )
-    dual_panel = False
+    i1_frame = _shared_event_frame(anchor_rows, event_e0_rows, s_frame, d_frame)
     if i1_frame is not None:
         frame_anchor_rows = [
             row for row in anchor_rows
             if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame
         ]
         frame_e0_rows = [
-            row for row in e0_rows
+            row for row in event_e0_rows
             if frame_index(row.get("frame_uid") or row["obs_uid"]) == i1_frame
         ]
         anchor = min(frame_anchor_rows, key=lambda row: str(row["obs_uid"]))
@@ -709,62 +710,35 @@ def prepare_case(
             {"A": frame_anchor_rows, "E0": frame_e0_rows},
             margin=0.35,
         )
-        primary_image = _render_image(run, i1, "I1 - Assignment event")
+        i1_source_relation = "EXACT_S" if i1_frame == s_frame else "NEAREST_SHARED_CAUSAL"
+        primary_image = _render_image(
+            run,
+            i1,
+            "I1 - Exact S event" if i1_frame == s_frame else "I1 - Nearest same-frame A + E0 evidence",
+        )
         i1_layout = "same_frame"
         i1_frames = [i1_frame]
         i1_visible_aliases = list(i1["visible_aliases"])
     else:
-        selected_anchor = (
-            _best_row_view(run, anchor_rows, "A", margin=0.35)
-            if use_postprocess_source_panel
-            else _best_event_row_view(
-                run,
-                anchor_rows,
-                "A",
-                trigger_frame=trigger_frame,
-                margin=0.35,
-            )
-        )
+        exact_s_anchor_rows = [
+            row for row in anchor_rows
+            if frame_index(row.get("frame_uid") or row["obs_uid"]) == s_frame
+        ]
+        selected_anchor = _best_row_view(run, exact_s_anchor_rows, "A", margin=0.35)
         if selected_anchor is None:
             raise PreflightDefer(
-                "DEFER_MISSING_DECISION_PROVENANCE",
-                "A event RGB or processed mask cannot be recovered",
+                "DEFER_I1_SOURCE_AT_S_MISSING",
+                "no same-frame A/E0 evidence and exact-S A cannot be recovered",
             )
         i1, anchor = selected_anchor
         i1_frame = int(i1["frame"])
-        selected_event_e0 = (
-            _best_row_view(run, postprocess_core_rows, "E0", margin=0.35)
-            if use_postprocess_source_panel
-            else _best_event_row_view(
-                run,
-                e0_context_rows or e0_rows,
-                "E0",
-                trigger_frame=trigger_frame,
-                margin=0.35,
-            )
+        primary_image = _render_image(
+            run, i1, "I1 - Exact S | A-only; E0-at-S unavailable"
         )
-        if selected_event_e0 is None:
-            primary_image = _render_image(
-                run, i1, "I1 - Assignment event | A-only event view"
-            )
-            i1_layout = "a_only"
-            i1_frames = [i1_frame]
-            i1_visible_aliases = ["A"]
-        else:
-            e0_event_view, _ = selected_event_e0
-            primary_image = _dual_panel(
-                _render_image(run, i1, "A source unit"),
-                _render_image(run, e0_event_view, "E0 source core"),
-                title=(
-                    "I1 - Pre-merge source comparison | Left: A | Right: E0 core"
-                    if use_postprocess_source_panel
-                    else "I1 - Assignment event | Left: A | Right: E0 | Different saved frames"
-                ),
-            )
-            dual_panel = True
-            i1_layout = "dual_panel"
-            i1_frames = [i1_frame, int(e0_event_view["frame"])]
-            i1_visible_aliases = ["A", "E0"]
+        i1_source_relation = "EXACT_S_A_ONLY"
+        i1_layout = "a_only"
+        i1_frames = [i1_frame]
+        i1_visible_aliases = ["A"]
     i1_small_view = bool(i1["target_mask_short_side_px"] < 96)
     i1_quality_status = "IMAGE_DEGRADED" if i1_small_view else "PASS"
 
@@ -773,12 +747,14 @@ def prepare_case(
     selected_i2 = _best_row_view(run, i2_pool, "E0", margin=0.25)
     i2_e0_visible = selected_i2 is not None
     if selected_i2 is None:
-        i2, i2_row = i1, anchor
-    else:
-        i2, i2_row = selected_i2
+        raise PreflightDefer(
+            "DEFER_H_E0_RENDER_MISSING",
+            "latest E0 in H snapshot has no renderable accepted mask",
+        )
+    i2, i2_row = selected_i2
     i2_small_view = bool(i2["target_mask_short_side_px"] < 96)
 
-    i3_mode = "WIDER_CONTEXT"
+    i3_mode = "H_WIDER_CONTEXT"
     i3 = None
     i3_row = None
     if versions.get("E1"):
@@ -789,15 +765,19 @@ def prepare_case(
             i3, i3_row = selected_e1
             i3_mode = "LIVE_E1"
     if i3 is None:
-        wide_frame = frame_index(anchor.get("frame_uid") or anchor_uid)
+        wide_frame = int(i2["frame"])
         wide_e0_rows = [
             row for row in e0_rows
             if frame_index(row.get("frame_uid") or row["obs_uid"]) == wide_frame
         ]
-        aliases: dict[str, list[dict[str, Any]]] = {"A": [anchor]}
-        if wide_e0_rows:
-            aliases["E0"] = wide_e0_rows
-        i3_row = anchor
+        aliases: dict[str, list[dict[str, Any]]] = {"E0": wide_e0_rows or [i2_row]}
+        wide_anchor_rows = [
+            row for row in anchor_rows
+            if frame_index(row.get("frame_uid") or row["obs_uid"]) == wide_frame
+        ]
+        if wide_anchor_rows:
+            aliases["A"] = wide_anchor_rows
+        i3_row = i2_row
         i3 = _view(
             run,
             wide_frame,
@@ -842,17 +822,13 @@ def prepare_case(
     label_candidates.update({str(row["id"]): str(row["text"]) for row in alternatives})
     image_descriptions = {
         "I1": (
-            "A and E0 are shown in one saved frame."
-            if i1_layout == "same_frame"
-            else (
-                (
-                    "Pre-merge source A is on the left and E0 core is on the right in two real saved frames."
-                    if use_postprocess_source_panel
-                    else "A is on the left and E0 is on the right in two real saved frames."
-                )
-                if i1_layout == "dual_panel"
-                else "Only A event evidence is available; no separate E0 event view was recovered."
+            (
+                "A and E0 are shown in exact S in one saved frame."
+                if i1_source_relation == "EXACT_S"
+                else "A and E0 are shown in one real shared frame not later than D; the offset from S is explicit."
             )
+            if i1_layout == "same_frame"
+            else "Only exact-S A is shown; no real same-frame E0 source mask was recovered."
         ),
         "I2": (
             "Best available real view of the latest E0."
@@ -862,7 +838,7 @@ def prepare_case(
         "I3": (
             "Strongest alternative map entity E1 is shown in green."
             if i3_mode == "LIVE_E1"
-            else "No valid distinct E1 is available; wider scene context around A/E0 is shown."
+            else "No valid distinct E1 is available; wider context is built from the H-bound E0 view."
         ),
     }
     degraded_images = []
@@ -883,6 +859,15 @@ def prepare_case(
         "review_question": review_question,
         "current_assignment": str(packet.get("current_assignment") or "UNKNOWN"),
         "newer_state_available": bool(packet.get("newer_state_available")),
+        "timeline": {
+            "S": s_frame,
+            "D": d_frame,
+            "H": h_frame,
+            "I1_frame": i1_frame,
+            "I1_offset_from_S": int(i1_frame) - s_frame,
+            "I1_source_relation": i1_source_relation,
+            "H_snapshot_uid": h_snapshot.get("snapshot_uid"),
+        },
         "allowed_identity_targets": list(identity_targets),
         "allowed_semantic_targets": list(semantic_targets),
         "label_candidates": label_candidates,
@@ -899,6 +884,12 @@ def prepare_case(
             {
                 "description": image_descriptions["I1"],
                 "layout": i1_layout,
+                "source_relation": i1_source_relation,
+                "s_frame": s_frame,
+                "d_frame": d_frame,
+                "i1_frame": i1_frame,
+                "offset_from_s": int(i1_frame) - s_frame,
+                "same_physical_frame_for_A_and_E0": i1_layout == "same_frame",
                 "image_warning": i1_quality_status if i1_small_view else "NONE",
             },
         ),
@@ -907,6 +898,10 @@ def prepare_case(
             "LATEST_E0",
             {
                 "description": image_descriptions["I2"],
+                "h_frame": h_frame,
+                "h_snapshot_uid": h_snapshot.get("snapshot_uid"),
+                "e0_owner_uid": alias_owner_uids["E0"],
+                "e0_version_uid": alias_version_uids["E0"],
                 "newer_state_available": bool(packet.get("newer_state_available")),
                 "image_warning": "IMAGE_DEGRADED" if i2_small_view else "NONE",
             },
@@ -916,6 +911,10 @@ def prepare_case(
             "ALTERNATIVE_E1" if i3_mode == "LIVE_E1" else "WIDER_CONTEXT",
             {
                 "description": image_descriptions["I3"],
+                "h_frame": h_frame,
+                "h_snapshot_uid": h_snapshot.get("snapshot_uid"),
+                "e1_owner_uid": alias_owner_uids.get("E1"),
+                "e1_version_uid": alias_version_uids.get("E1"),
                 "image_warning": (
                     "IMAGE_DEGRADED"
                     if i3_mode == "LIVE_E1" and i3["target_mask_short_side_px"] < 96
@@ -975,6 +974,10 @@ def prepare_case(
         "source_packet": str(packet_path),
         "freeze_frame": freeze_frame,
         "freeze_sequence": freeze_sequence,
+        "timeline": dict(timeline),
+        "h_snapshot": h_snapshot,
+        "alias_owner_uids": alias_owner_uids,
+        "alias_version_uids": alias_version_uids,
         "issue_uid": issue["issue_uid"],
         "issue_family": issue_family,
         "resolution": packet.get("resolution"),
@@ -992,6 +995,11 @@ def prepare_case(
                 **images["I1"],
                 "frames": i1_frames,
                 "layout": i1_layout,
+                "source_relation": i1_source_relation,
+                "s_frame": s_frame,
+                "d_frame": d_frame,
+                "offset_from_s": int(i1_frame) - s_frame,
+                "same_physical_frame_for_A_and_E0": i1_layout == "same_frame",
                 "visible_aliases": i1_visible_aliases,
                 "image_degraded": i1_small_view,
             },
@@ -1018,6 +1026,23 @@ def prepare_case(
                 event_sequence(row["trigger_event_uid"]) <= freeze_sequence
                 for row in versions.values() if row
             ),
+            "s_lte_d_lte_h": s_frame <= d_frame <= h_frame,
+            "i1_not_after_d": int(i1_frame) <= d_frame,
+            "i1_single_physical_frame": len(set(i1_frames)) == 1,
+            "i1_uses_review_issue_event_core_only": True,
+            "i2_e0_is_latest_in_h_snapshot": active_at_h.get(alias_owner_uids["E0"])
+            == alias_version_uids["E0"],
+            "i3_e1_is_latest_in_h_snapshot": (
+                active_at_h.get(alias_owner_uids["E1"]) == alias_version_uids["E1"]
+                if "E1" in alias_owner_uids
+                else True
+            ),
+            "e0_e1_distinct_objects": (
+                alias_owner_uids.get("E0") != alias_owner_uids.get("E1")
+                if "E1" in alias_owner_uids
+                else True
+            ),
+            "h_snapshot_hash_valid": True,
             "active_e0_status": versions["E0"].get("status"),
             "mask_source_required": "processed_mask_ref",
             "final_membership_read": False,
@@ -1178,9 +1203,9 @@ def write_case_html(case_dir: Path) -> None:
     validation = _read_optional(case_dir / "validation.json") or {}
     images = manifest.get("images") or {}
     image_titles = {
-        "I1": "I1 · 归属事件（红色 A，蓝色 E0）",
-        "I2": "I2 · E0 最新可用状态（蓝色）",
-        "I3": "I3 · 独立 E1（绿色）或宽场景",
+        "I1": "I1 · S 事件/因果邻帧（红 A、蓝 E0 必须同帧）",
+        "I2": "I2 · H 快照中的最新 E0（蓝色）",
+        "I3": "I3 · H 快照中的独立 E1（绿色）或 H 宽场景",
     }
     cards = "".join(
         '<figure class="image-card '
@@ -1207,20 +1232,29 @@ def write_case_html(case_dir: Path) -> None:
     warnings = ", ".join(summary.get("degraded_images") or ()) or "无"
     semantic_labels = _semantic_label_text(summary)
     review_question = str(summary.get("review_question") or "未提供")
+    timeline = manifest.get("timeline") or {}
+    c_frame = timeline.get("c_frame")
+    timeline_text = (
+        f"S{timeline.get('s_frame')} ≤ D{timeline.get('d_frame')} ≤ "
+        f"H{timeline.get('h_frame')} ≤ C{c_frame if c_frame is not None else '待保存'}"
+    )
+    i1_record = images.get("I1") or {}
+    i1_relation = str(i1_record.get("source_relation") or "UNKNOWN")
+    i1_offset = i1_record.get("offset_from_s")
     page = f"""<!doctype html><meta charset="utf-8"><title>{html.escape(case_dir.name)}</title>
 <style>
-*{{box-sizing:border-box}}body{{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#eef2f6;color:#182230}}main{{max-width:1480px;margin:auto;padding:24px}}h1{{margin:0 0 8px;font-size:25px}}h2{{font-size:18px;margin:26px 0 10px}}.sub{{color:#526173;margin-bottom:18px}}.facts{{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:10px;margin:16px 0}}.fact,.panel,.image-card{{background:#fff;border:1px solid #d8e0e8;border-radius:12px;box-shadow:0 2px 8px #26384a12}}.fact{{padding:12px}}.fact small{{display:block;color:#68788b;margin-bottom:5px}}.fact strong{{font-size:16px}}.question,.semantic{{margin:0 0 10px;padding:11px 14px;border-radius:10px;line-height:1.55}}.question{{background:#eaf4ff;border:1px solid #8dbdea}}.question b{{color:#124e7c;margin-right:8px}}.semantic{{background:#fff7df;border:1px solid #edcf78}}.semantic b{{color:#704c00;margin-right:8px}}.legend{{display:flex;gap:12px;flex-wrap:wrap;background:#fff;padding:10px 14px;border-radius:10px;border:1px solid #d8e0e8}}.tag{{display:inline-flex;align-items:center;gap:6px;font-weight:700}}.dot{{width:13px;height:13px;border-radius:50%;display:inline-block}}.grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}}.image-card{{margin:0;padding:12px;min-width:0}}.image-card.wide{{grid-column:1/-1}}.image-title{{font-weight:750;margin:0 0 8px}}img{{display:block;width:100%;max-height:620px;object-fit:contain;background:#111;border-radius:8px}}figcaption{{line-height:1.5;color:#4f5f70;padding-top:8px}}figcaption b{{color:#a64b00}}.panel{{padding:14px}}pre{{white-space:pre-wrap;word-break:break-word;margin:0;font:13px/1.5 Consolas,monospace}}.ok{{color:#087830}}.warn{{color:#a34b00}}@media(max-width:850px){{.facts{{grid-template-columns:repeat(2,1fr)}}.grid{{grid-template-columns:1fr}}.image-card.wide{{grid-column:auto}}}}
+*{{box-sizing:border-box}}body{{font-family:"Segoe UI",Arial,sans-serif;margin:0;background:#eef2f6;color:#182230}}main{{max-width:1480px;margin:auto;padding:24px}}h1{{margin:0 0 8px;font-size:25px}}h2{{font-size:18px;margin:26px 0 10px}}.sub{{color:#526173;margin-bottom:18px}}.facts{{display:grid;grid-template-columns:repeat(6,minmax(120px,1fr));gap:10px;margin:16px 0}}.fact,.panel,.image-card{{background:#fff;border:1px solid #d8e0e8;border-radius:12px;box-shadow:0 2px 8px #26384a12}}.fact{{padding:12px}}.fact small{{display:block;color:#68788b;margin-bottom:5px}}.fact strong{{font-size:16px}}.question,.semantic{{margin:0 0 10px;padding:11px 14px;border-radius:10px;line-height:1.55}}.question{{background:#eaf4ff;border:1px solid #8dbdea}}.question b{{color:#124e7c;margin-right:8px}}.semantic{{background:#fff7df;border:1px solid #edcf78}}.semantic b{{color:#704c00;margin-right:8px}}.legend{{display:flex;gap:12px;flex-wrap:wrap;background:#fff;padding:10px 14px;border-radius:10px;border:1px solid #d8e0e8}}.tag{{display:inline-flex;align-items:center;gap:6px;font-weight:700}}.dot{{width:13px;height:13px;border-radius:50%;display:inline-block}}.grid{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:14px}}.image-card{{margin:0;padding:12px;min-width:0}}.image-card.wide{{grid-column:1/-1}}.image-title{{font-weight:750;margin:0 0 8px}}img{{display:block;width:100%;max-height:620px;object-fit:contain;background:#111;border-radius:8px}}figcaption{{line-height:1.5;color:#4f5f70;padding-top:8px}}figcaption b{{color:#a64b00}}.panel{{padding:14px}}pre{{white-space:pre-wrap;word-break:break-word;margin:0;font:13px/1.5 Consolas,monospace}}.ok{{color:#087830}}.warn{{color:#a34b00}}@media(max-width:850px){{.facts{{grid-template-columns:repeat(2,1fr)}}.grid{{grid-template-columns:1fr}}.image-card.wide{{grid-column:auto}}}}
 </style><main>
 <h1>VLM 输入检查 · {html.escape(case_dir.name)}</h1>
 <div class="sub">此页展示真正送入 VLM 的三张图与精简事实；标签都在图像外部，不遮挡 mask。</div>
-<div class="facts"><div class="fact"><small>准备状态</small><strong class="{'ok' if status == 'VALID' else 'warn'}">{html.escape(status)}</strong></div><div class="fact"><small>当前池 → Shadow 投影</small><strong>{html.escape(pool)}</strong></div><div class="fact"><small>当前 A 归属</small><strong>{html.escape(assignment)}</strong></div><div class="fact"><small>I1 形式</small><strong>{html.escape(i1_layout)}</strong></div><div class="fact"><small>质量提醒</small><strong>{html.escape(warnings)}</strong></div></div>
+<div class="facts"><div class="fact"><small>准备状态</small><strong class="{'ok' if status == 'VALID' else 'warn'}">{html.escape(status)}</strong></div><div class="fact"><small>统一时间线</small><strong>{html.escape(timeline_text)}</strong></div><div class="fact"><small>I1 相对 S</small><strong>{html.escape(i1_relation)} · Δ{html.escape(str(i1_offset))}</strong></div><div class="fact"><small>当前池 → Shadow 投影</small><strong>{html.escape(pool)}</strong></div><div class="fact"><small>当前 A 归属</small><strong>{html.escape(assignment)}</strong></div><div class="fact"><small>质量提醒</small><strong>{html.escape(warnings)}</strong></div></div>
 <div class="question"><b>本例为什么送审（实际随请求发送，属于怀疑而非答案）</b>{html.escape(review_question)}</div>
 <div class="semantic"><b>语义候选（实际随请求发送）</b>{html.escape(semantic_labels)}</div>
 <div class="legend"><span class="tag"><i class="dot" style="background:rgb{ALIAS_COLORS['A']}"></i>A：待审核观测</span><span class="tag"><i class="dot" style="background:rgb{ALIAS_COLORS['E0']}"></i>E0：建票时主对象</span><span class="tag"><i class="dot" style="background:rgb{ALIAS_COLORS['E1']}"></i>E1：最强独立备选</span></div>
 <div class="grid">{cards}</div>
 <h2>VLM 输出</h2><div class="panel"><pre>{html.escape(output_text)}</pre></div>
 <h2>实际送入的精简事实</h2><div class="panel"><pre>{html.escape(json.dumps(summary, indent=2, ensure_ascii=False, sort_keys=True))}</pre></div>
-<h2>冻结水位与防泄露检查</h2><div class="panel"><pre>{html.escape(json.dumps(manifest.get('cutoff_audit'), indent=2, ensure_ascii=False, sort_keys=True))}</pre></div>
+<h2>统一时间线、H 快照与防泄露检查</h2><div class="panel"><pre>{html.escape(json.dumps({'timeline': timeline, 'h_snapshot_binding': {key: (manifest.get('h_snapshot') or {}).get(key) for key in ('snapshot_uid','snapshot_sha256','cutoff_frame','cutoff_sequence','watermark_source')}, 'cutoff_audit': manifest.get('cutoff_audit')}, indent=2, ensure_ascii=False, sort_keys=True))}</pre></div>
 </main>"""
     (case_dir / "index.html").write_text(page, encoding="utf-8")
 
@@ -1244,6 +1278,15 @@ def write_root_html(root: Path) -> None:
         warning = ", ".join(summary.get("degraded_images") or ()) or "无"
         semantic_labels = _semantic_label_text(summary)
         review_question = str(summary.get("review_question") or "未提供")
+        timeline = manifest.get("timeline") or {}
+        c_frame = timeline.get("c_frame")
+        timeline_text = (
+            f"S{timeline.get('s_frame')} ≤ D{timeline.get('d_frame')} ≤ "
+            f"H{timeline.get('h_frame')} ≤ C{c_frame if c_frame is not None else '待保存'}"
+        )
+        i1_record = image_manifest.get("I1") or {}
+        i1_relation = str(i1_record.get("source_relation") or "UNKNOWN")
+        i1_offset = i1_record.get("offset_from_s")
         thumbs = "".join(
             f'<div><b>{image_id}</b><img src="{html.escape(case_dir.name)}/{html.escape(str((image_manifest.get(image_id) or {}).get("file") or ""))}"></div>'
             for image_id in ("I1", "I2", "I3")
@@ -1262,7 +1305,11 @@ def write_root_html(root: Path) -> None:
             + '</span><span>A 当前归属：'
             + html.escape(assignment)
             + '</span><span>I1：'
-            + html.escape(layout)
+             + html.escape(layout)
+            + '</span><span>时间线：'
+            + html.escape(timeline_text)
+            + '</span><span>I1 相对 S：'
+            + html.escape(f"{i1_relation} · Δ{i1_offset}")
             + '</span><span>质量提醒：'
             + html.escape(warning)
             + '</span></div><div class="question"><b>送审原因（怀疑，不是答案）</b>'
