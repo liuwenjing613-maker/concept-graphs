@@ -11,6 +11,7 @@
 - 旧 O1 只以 purity 判定，未同时要求 visible-instance recall；新版漏斗同时报告 0.3/0.5/0.7 的 purity+recall。
 - 旧 O3 对自身评测得到 1.0 是定义上限，不是模型结果；不再压成单一 rho。
 - 关系结果因模型/候选集不统一被排除。
+- room0 的 B0 冻结 parity 已通过；office0 从空图在线新跑且数据配对通过，但没有独立旧冻结 B0 可作 parity，因此不声称复现了某个旧 office0 数值。
 - Replica/ReplicaSSG 数据配对和标签本体单独审计；严格官方映射、原评测别名、灯具复合词扩展三档并列，不按样本事后挑映射。
 
 ## 数据集配对
@@ -81,6 +82,7 @@ OM_all 大幅改善结构，却没有同步改善类别查询，说明语义是�
 ## 局限
 
 - Only two scenes were run by explicit user constraint; no population confidence interval or scene bootstrap is valid.
+- room0 B0 parity against the frozen reference was verified; office0 was freshly built online from empty but has no independent frozen B0 reference for a parity claim.
 - OM_pure/OM_all/OG use GT only as Oracle capabilities and are not deployable methods.
 - The strict semantic cohort is empty in both scenes, so pure semantic benefit is unidentified.
 - The real micro-pilot has one strict room0 positive and one relaxed office0 exploratory case, not a repair success-rate estimate.

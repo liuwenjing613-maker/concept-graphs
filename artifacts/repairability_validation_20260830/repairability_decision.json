@@ -2578,6 +2578,7 @@
   },
   "limitations": [
     "Only two scenes were run by explicit user constraint; no population confidence interval or scene bootstrap is valid.",
+    "room0 B0 parity against the frozen reference was verified; office0 was freshly built online from empty but has no independent frozen B0 reference for a parity claim.",
     "OM_pure/OM_all/OG use GT only as Oracle capabilities and are not deployable methods.",
     "The strict semantic cohort is empty in both scenes, so pure semantic benefit is unidentified.",
     "The real micro-pilot has one strict room0 positive and one relaxed office0 exploratory case, not a repair success-rate estimate.",
@@ -2594,6 +2595,7 @@
     "corrected_ladder_online_from_empty": true,
     "corrected_semantic_requires_strict_one_to_one_structure": true,
     "dataset_and_ontology_audit_pass": true,
+    "office0_b0_independent_frozen_parity_reference_available": false,
     "old_o1_manifests": {
       "office0": {
         "assignment_summary": {
@@ -2631,6 +2633,7 @@
     "old_o3_self_evaluation_is_tautological_ceiling": true,
     "old_relation_result_used_for_direction": false,
     "old_scalar_rho_publication_ready": false,
+    "room0_b0_frozen_parity_verified": true,
     "semantic_comparability_policy": "frozen current aliases reproduced exactly",
     "semantic_expanded_alias_policy": "lamp compounds reported as sensitivity only",
     "semantic_primary_policy": "official-only strict cross-dataset mapping"
