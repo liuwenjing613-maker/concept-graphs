@@ -1,0 +1,1131 @@
+{
+  "schema_version": "1.0",
+  "generated_at_utc": "2026-08-30T11:34:33.378877+00:00",
+  "experiment": "mask-first cumulative ordering audit",
+  "scenes": [
+    "room0",
+    "office0"
+  ],
+  "frames_per_scene": 400,
+  "stage_order": [
+    "B0",
+    "MF_OP",
+    "MF_OM_pure",
+    "MF_OM_all_native",
+    "MF_OM_all_OA",
+    "OG"
+  ],
+  "stage_definitions": {
+    "B0": "frozen baseline",
+    "MF_OP": "native processed observations plus owner-identifiable rejected raw observations; native online association",
+    "MF_OM_pure": "OP subsumed; one GT-clipped union per owner-identifiable object from all raw proposals; native online association",
+    "MF_OM_all_native": "OP and OM_pure subsumed; maximal GT-clipped partition of all overlapping raw proposals plus false-positive suppression; native online association",
+    "MF_OM_all_OA": "identical maximal-partition observation stream with GT-identity association; reused from prior formal OM_all after parity audit",
+    "OG": "observable GT upper bound"
+  },
+  "quality_gates": {
+    "new_online_runs_ready": 6,
+    "expected_new_online_runs": 6,
+    "incomplete_runs": [],
+    "single_runner_hash": true,
+    "runner_sha256": "43c5e9c105140d3d237a23ca50b6f6bdcde0fd53e9c121266c8328857e1de29d",
+    "all_online_from_empty": true,
+    "future_final_lineage_used": false,
+    "earlier_mask_geometry_duplicated": false,
+    "op_provenance_missing_total": 0,
+    "op_provenance_unexpected_total": 0,
+    "dataset_pairing_pass": true,
+    "multiscale_outputs": 6,
+    "fross_outputs": 2,
+    "reused_oa_two_scene_10_frame_geometry_parity": true,
+    "reused_oa_parity": {
+      "room0": {
+        "pass": true,
+        "new_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_20260830/smoke/room0_mf_all_oa10/manifest.json",
+        "old_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_20260830/parity/room0_old_om_all10/manifest.json",
+        "geometry_sha256": "1b2058c03b62117d07cb5b92601942a34074d24a0bcd49d8739a7256007747a7",
+        "object_count": 34,
+        "observation_count": 267
+      },
+      "office0": {
+        "pass": true,
+        "new_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_20260830/smoke/office0_mf_all_oa10/manifest.json",
+        "old_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/repairability_validation_20260830/ladder_smoke/office0_om_all10/manifest.json",
+        "geometry_sha256": "9bb898d0d7ce91d008f5a44ff328d831a4a9bb37e856393445fef21e6b38b684",
+        "object_count": 18,
+        "observation_count": 65
+      }
+    }
+  },
+  "five_cm": {
+    "room0": {
+      "B0": {
+        "instance_ap_mean_25_50": 0.02232953862187838,
+        "ap25": 0.043558967232755666,
+        "ap50": 0.0011001100110011,
+        "node_f1": 0.11042944785276074,
+        "semantic_accuracy": 0.25,
+        "semantic_denominator": 8,
+        "predicted_nodes": 72,
+        "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+      },
+      "FWD_OA": {
+        "instance_ap_mean_25_50": 0.05004770883588639,
+        "ap25": 0.09231112275876499,
+        "ap50": 0.0077842949130077855,
+        "node_f1": 0.21794871794871795,
+        "semantic_accuracy": 0.23076923076923078,
+        "semantic_denominator": 13,
+        "predicted_nodes": 65,
+        "map_sha256": "92bb6f3c2efe7e42a8825aa77b7c2f0c1425ff23ea1850ab2e7ff14857090a7b"
+      },
+      "FWD_OP": {
+        "instance_ap_mean_25_50": 0.057059684524151666,
+        "ap25": 0.10196015739152998,
+        "ap50": 0.012159211656773354,
+        "node_f1": 0.22085889570552147,
+        "semantic_accuracy": 0.23076923076923078,
+        "semantic_denominator": 13,
+        "predicted_nodes": 72,
+        "map_sha256": "6de372e3efa5a558d3c267fc30643e8ed5a20b8165ed6417e715e835de499568"
+      },
+      "FWD_OM_pure": {
+        "instance_ap_mean_25_50": 0.06005576151842688,
+        "ap25": 0.08966331692592008,
+        "ap50": 0.030448206110933674,
+        "node_f1": 0.2222222222222222,
+        "semantic_accuracy": 0.2222222222222222,
+        "semantic_denominator": 9,
+        "predicted_nodes": 35,
+        "map_sha256": "764628eab19a9e695ceaf008581d53edf69fbbf6a5104f4c2652dd2bdb098203"
+      },
+      "MF_OP": {
+        "instance_ap_mean_25_50": 0.025694286659734625,
+        "ap25": 0.0497384083029676,
+        "ap50": 0.00165016501650165,
+        "node_f1": 0.13496932515337423,
+        "semantic_accuracy": 0.2857142857142857,
+        "semantic_denominator": 7,
+        "predicted_nodes": 72,
+        "map_sha256": "9ef5c0f706f195b573c1ba9f640fe4b6049b50d0be179d1b254ca7d3e8de9b74"
+      },
+      "MF_OM_pure": {
+        "instance_ap_mean_25_50": 0.04232863757516488,
+        "ap25": 0.07142438664408783,
+        "ap50": 0.01323288850624193,
+        "node_f1": 0.20408163265306123,
+        "semantic_accuracy": 0.1111111111111111,
+        "semantic_denominator": 9,
+        "predicted_nodes": 56,
+        "map_sha256": "92147f5265bc4e44443bda65b471358df0f924ff15b30569bdef1c77d7b97814"
+      },
+      "MF_OM_all_native": {
+        "instance_ap_mean_25_50": 0.1900532712639555,
+        "ap25": 0.2461937231161603,
+        "ap50": 0.13391281941175068,
+        "node_f1": 0.42045454545454547,
+        "semantic_accuracy": 0.1111111111111111,
+        "semantic_denominator": 27,
+        "predicted_nodes": 85,
+        "map_sha256": "6e805e78822eb82f7881ad560e8c7c7d703c8e7bc2b763066c3d273c6fe27b60"
+      },
+      "MF_OM_all_OA": {
+        "instance_ap_mean_25_50": 0.6769744267843866,
+        "ap25": 0.7349092507749837,
+        "ap50": 0.6190396027937894,
+        "node_f1": 0.8351648351648352,
+        "semantic_accuracy": 0.061224489795918366,
+        "semantic_denominator": 49,
+        "predicted_nodes": 91,
+        "map_sha256": "bf2c8b4081f8509765f041f103dd5046b57847fdddbae29a25244df07b84a8a2"
+      },
+      "OG": {
+        "instance_ap_mean_25_50": 1.0,
+        "ap25": 1.0,
+        "ap50": 1.0,
+        "node_f1": 1.0,
+        "semantic_accuracy": 1.0,
+        "semantic_denominator": 58,
+        "predicted_nodes": 91,
+        "map_sha256": "f60a35694814ebef169ce863024cbdc521e636f565b3c88758435d7133f74100"
+      }
+    },
+    "office0": {
+      "B0": {
+        "instance_ap_mean_25_50": 0.004530453045304531,
+        "ap25": 0.009060906090609062,
+        "ap50": 0.0,
+        "node_f1": 0.06896551724137931,
+        "semantic_accuracy": 1.0,
+        "semantic_denominator": 1,
+        "predicted_nodes": 35,
+        "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+      },
+      "FWD_OA": {
+        "instance_ap_mean_25_50": 0.013576357635763574,
+        "ap25": 0.02715271527152715,
+        "ap50": 0.0,
+        "node_f1": 0.09302325581395349,
+        "semantic_accuracy": 0.25,
+        "semantic_denominator": 4,
+        "predicted_nodes": 34,
+        "map_sha256": "1348571deb5f17d99a9db27249be9b66f35e85b60c742f3c2e08dd29860750ac"
+      },
+      "FWD_OP": {
+        "instance_ap_mean_25_50": 0.02028952895289529,
+        "ap25": 0.04057905790579058,
+        "ap50": 0.0,
+        "node_f1": 0.15730337078651685,
+        "semantic_accuracy": 0.5,
+        "semantic_denominator": 4,
+        "predicted_nodes": 37,
+        "map_sha256": "645653b4f3255fe1740a6910a59ba8bb787399380ab70d4b1a9f882c8b5eda89"
+      },
+      "FWD_OM_pure": {
+        "instance_ap_mean_25_50": 0.04550981413930866,
+        "ap25": 0.08441896821261072,
+        "ap50": 0.0066006600660066,
+        "node_f1": 0.2535211267605634,
+        "semantic_accuracy": 0.6666666666666666,
+        "semantic_denominator": 3,
+        "predicted_nodes": 19,
+        "map_sha256": "aafc9faf5317b391ec1a0d7f6f440bf2205ed2a36239648931e25954f8aa9b1c"
+      },
+      "MF_OP": {
+        "instance_ap_mean_25_50": 0.017256011315417256,
+        "ap25": 0.03451202263083451,
+        "ap50": 0.0,
+        "node_f1": 0.13333333333333333,
+        "semantic_accuracy": 0.25,
+        "semantic_denominator": 4,
+        "predicted_nodes": 38,
+        "map_sha256": "ef8cd2740db383808e10c281ecf2673e78873b4aefce8919168fd7d800a9033b"
+      },
+      "MF_OM_pure": {
+        "instance_ap_mean_25_50": 0.012240235012512242,
+        "ap25": 0.021651615711021654,
+        "ap50": 0.0028288543140028285,
+        "node_f1": 0.08602150537634409,
+        "semantic_accuracy": 0.0,
+        "semantic_denominator": 2,
+        "predicted_nodes": 41,
+        "map_sha256": "1663917e21ea40b8298ddeedc616f7262d6bbd0d0ee768117bfb6625b0670a89"
+      },
+      "MF_OM_all_native": {
+        "instance_ap_mean_25_50": 0.10726698855843837,
+        "ap25": 0.1437365747959995,
+        "ap50": 0.07079740232087725,
+        "node_f1": 0.2692307692307692,
+        "semantic_accuracy": 0.14285714285714285,
+        "semantic_denominator": 7,
+        "predicted_nodes": 52,
+        "map_sha256": "1e76d509b39f53c82fd55ac3b5fe96bd6dade0dc4acba551fb2d69ff3df5246a"
+      },
+      "MF_OM_all_OA": {
+        "instance_ap_mean_25_50": 0.6358061076922576,
+        "ap25": 0.7557082238836128,
+        "ap50": 0.5159039915009025,
+        "node_f1": 0.8627450980392157,
+        "semantic_accuracy": 0.2857142857142857,
+        "semantic_denominator": 14,
+        "predicted_nodes": 50,
+        "map_sha256": "b4b033a10cb20101dbc23c26ae93d1f5ff5fcb41d3038df639aecef665c78240"
+      },
+      "OG": {
+        "instance_ap_mean_25_50": 1.0,
+        "ap25": 1.0,
+        "ap50": 1.0,
+        "node_f1": 1.0,
+        "semantic_accuracy": 1.0,
+        "semantic_denominator": 15,
+        "predicted_nodes": 52,
+        "map_sha256": "1c0a2e13f6c2ff7094e73ffa6921fff9d1ae1d0b5463e82f33807ad99a6ec1d5"
+      }
+    }
+  },
+  "five_cm_two_scene_average": {
+    "B0": {
+      "instance_ap_mean_25_50": 0.013429995833591456,
+      "node_f1": 0.08969748254707002
+    },
+    "FWD_OA": {
+      "instance_ap_mean_25_50": 0.03181203323582498,
+      "node_f1": 0.15548598688133572
+    },
+    "FWD_OP": {
+      "instance_ap_mean_25_50": 0.03867460673852348,
+      "node_f1": 0.18908113324601916
+    },
+    "FWD_OM_pure": {
+      "instance_ap_mean_25_50": 0.052782787828867764,
+      "node_f1": 0.2378716744913928
+    },
+    "MF_OP": {
+      "instance_ap_mean_25_50": 0.02147514898757594,
+      "node_f1": 0.13415132924335377
+    },
+    "MF_OM_pure": {
+      "instance_ap_mean_25_50": 0.027284436293838563,
+      "node_f1": 0.14505156901470267
+    },
+    "MF_OM_all_native": {
+      "instance_ap_mean_25_50": 0.14866012991119693,
+      "node_f1": 0.34484265734265734
+    },
+    "MF_OM_all_OA": {
+      "instance_ap_mean_25_50": 0.6563902672383222,
+      "node_f1": 0.8489549666020255
+    },
+    "OG": {
+      "instance_ap_mean_25_50": 1.0,
+      "node_f1": 1.0
+    }
+  },
+  "five_cm_cumulative_increments": {
+    "B0->MF_OP": {
+      "instance_ap_mean_25_50": 0.008045153153984484,
+      "node_f1": 0.044453846696283744
+    },
+    "MF_OP->MF_OM_pure": {
+      "instance_ap_mean_25_50": 0.005809287306262623,
+      "node_f1": 0.010900239771348907
+    },
+    "MF_OM_pure->MF_OM_all_native": {
+      "instance_ap_mean_25_50": 0.12137569361735837,
+      "node_f1": 0.19979108832795467
+    },
+    "MF_OM_all_native->MF_OM_all_OA": {
+      "instance_ap_mean_25_50": 0.5077301373271252,
+      "node_f1": 0.5041123092593682
+    },
+    "MF_OM_all_OA->OG": {
+      "instance_ap_mean_25_50": 0.34360973276167783,
+      "node_f1": 0.15104503339797448
+    }
+  },
+  "five_cm_gap_recovery_fraction": {
+    "MF_OP": 0.00815467034271141,
+    "MF_OM_pure": 0.014043038407551488,
+    "MF_OM_all_native": 0.13707099699617029,
+    "MF_OM_all_OA": 0.6517127712067355
+  },
+  "multiscale": {
+    "room0": {
+      "0p025": {
+        "B0": {
+          "instance_ap_mean_25_50": 0.01714989746516583,
+          "ap25": 0.03319968491933056,
+          "ap50": 0.0011001100110011,
+          "node_f1": 0.09815950920245399,
+          "semantic_accuracy": 0.14285714285714285,
+          "semantic_denominator": 7,
+          "predicted_nodes": 72,
+          "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+        },
+        "FWD_OA": {
+          "instance_ap_mean_25_50": 0.03881207733364136,
+          "ap25": 0.07335515633887844,
+          "ap50": 0.0042689983284042695,
+          "node_f1": 0.1794871794871795,
+          "semantic_accuracy": 0.2,
+          "semantic_denominator": 10,
+          "predicted_nodes": 65,
+          "map_sha256": "92bb6f3c2efe7e42a8825aa77b7c2f0c1425ff23ea1850ab2e7ff14857090a7b"
+        },
+        "FWD_OP": {
+          "instance_ap_mean_25_50": 0.05001873076957805,
+          "ap25": 0.09666855321975273,
+          "ap50": 0.003368908319403369,
+          "node_f1": 0.19631901840490798,
+          "semantic_accuracy": 0.2727272727272727,
+          "semantic_denominator": 11,
+          "predicted_nodes": 72,
+          "map_sha256": "6de372e3efa5a558d3c267fc30643e8ed5a20b8165ed6417e715e835de499568"
+        },
+        "FWD_OM_pure": {
+          "instance_ap_mean_25_50": 0.04747201618051691,
+          "ap25": 0.06449582625010016,
+          "ap50": 0.030448206110933674,
+          "node_f1": 0.20634920634920634,
+          "semantic_accuracy": 0.25,
+          "semantic_denominator": 8,
+          "predicted_nodes": 35,
+          "map_sha256": "764628eab19a9e695ceaf008581d53edf69fbbf6a5104f4c2652dd2bdb098203"
+        },
+        "MF_OP": {
+          "instance_ap_mean_25_50": 0.023527810008303358,
+          "ap25": 0.045405455000105066,
+          "ap50": 0.00165016501650165,
+          "node_f1": 0.12269938650306748,
+          "semantic_accuracy": 0.2857142857142857,
+          "semantic_denominator": 7,
+          "predicted_nodes": 72,
+          "map_sha256": "9ef5c0f706f195b573c1ba9f640fe4b6049b50d0be179d1b254ca7d3e8de9b74"
+        },
+        "MF_OM_pure": {
+          "instance_ap_mean_25_50": 0.04008419293679103,
+          "ap25": 0.06693549736734013,
+          "ap50": 0.01323288850624193,
+          "node_f1": 0.19047619047619047,
+          "semantic_accuracy": 0.125,
+          "semantic_denominator": 8,
+          "predicted_nodes": 56,
+          "map_sha256": "92147f5265bc4e44443bda65b471358df0f924ff15b30569bdef1c77d7b97814"
+        },
+        "MF_OM_all_native": {
+          "instance_ap_mean_25_50": 0.18030797587626993,
+          "ap25": 0.24559253855992355,
+          "ap50": 0.1150234131926163,
+          "node_f1": 0.4318181818181818,
+          "semantic_accuracy": 0.11538461538461539,
+          "semantic_denominator": 26,
+          "predicted_nodes": 85,
+          "map_sha256": "6e805e78822eb82f7881ad560e8c7c7d703c8e7bc2b763066c3d273c6fe27b60"
+        },
+        "MF_OM_all_OA": {
+          "instance_ap_mean_25_50": 0.6640146397708597,
+          "ap25": 0.7222672669736259,
+          "ap50": 0.6057620125680937,
+          "node_f1": 0.8351648351648352,
+          "semantic_accuracy": 0.0625,
+          "semantic_denominator": 48,
+          "predicted_nodes": 91,
+          "map_sha256": "bf2c8b4081f8509765f041f103dd5046b57847fdddbae29a25244df07b84a8a2"
+        },
+        "OG": {
+          "instance_ap_mean_25_50": 1.0,
+          "ap25": 1.0,
+          "ap50": 1.0,
+          "node_f1": 1.0,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 58,
+          "predicted_nodes": 91,
+          "map_sha256": "f60a35694814ebef169ce863024cbdc521e636f565b3c88758435d7133f74100"
+        }
+      },
+      "0p05": {
+        "B0": {
+          "instance_ap_mean_25_50": 0.02232953862187838,
+          "ap25": 0.043558967232755666,
+          "ap50": 0.0011001100110011,
+          "node_f1": 0.11042944785276074,
+          "semantic_accuracy": 0.25,
+          "semantic_denominator": 8,
+          "predicted_nodes": 72,
+          "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+        },
+        "FWD_OA": {
+          "instance_ap_mean_25_50": 0.05004770883588639,
+          "ap25": 0.09231112275876499,
+          "ap50": 0.0077842949130077855,
+          "node_f1": 0.21794871794871795,
+          "semantic_accuracy": 0.23076923076923078,
+          "semantic_denominator": 13,
+          "predicted_nodes": 65,
+          "map_sha256": "92bb6f3c2efe7e42a8825aa77b7c2f0c1425ff23ea1850ab2e7ff14857090a7b"
+        },
+        "FWD_OP": {
+          "instance_ap_mean_25_50": 0.057059684524151666,
+          "ap25": 0.10196015739152998,
+          "ap50": 0.012159211656773354,
+          "node_f1": 0.22085889570552147,
+          "semantic_accuracy": 0.23076923076923078,
+          "semantic_denominator": 13,
+          "predicted_nodes": 72,
+          "map_sha256": "6de372e3efa5a558d3c267fc30643e8ed5a20b8165ed6417e715e835de499568"
+        },
+        "FWD_OM_pure": {
+          "instance_ap_mean_25_50": 0.06005576151842688,
+          "ap25": 0.08966331692592008,
+          "ap50": 0.030448206110933674,
+          "node_f1": 0.2222222222222222,
+          "semantic_accuracy": 0.2222222222222222,
+          "semantic_denominator": 9,
+          "predicted_nodes": 35,
+          "map_sha256": "764628eab19a9e695ceaf008581d53edf69fbbf6a5104f4c2652dd2bdb098203"
+        },
+        "MF_OP": {
+          "instance_ap_mean_25_50": 0.025694286659734625,
+          "ap25": 0.0497384083029676,
+          "ap50": 0.00165016501650165,
+          "node_f1": 0.13496932515337423,
+          "semantic_accuracy": 0.2857142857142857,
+          "semantic_denominator": 7,
+          "predicted_nodes": 72,
+          "map_sha256": "9ef5c0f706f195b573c1ba9f640fe4b6049b50d0be179d1b254ca7d3e8de9b74"
+        },
+        "MF_OM_pure": {
+          "instance_ap_mean_25_50": 0.04232863757516488,
+          "ap25": 0.07142438664408783,
+          "ap50": 0.01323288850624193,
+          "node_f1": 0.20408163265306123,
+          "semantic_accuracy": 0.1111111111111111,
+          "semantic_denominator": 9,
+          "predicted_nodes": 56,
+          "map_sha256": "92147f5265bc4e44443bda65b471358df0f924ff15b30569bdef1c77d7b97814"
+        },
+        "MF_OM_all_native": {
+          "instance_ap_mean_25_50": 0.1900532712639555,
+          "ap25": 0.2461937231161603,
+          "ap50": 0.13391281941175068,
+          "node_f1": 0.42045454545454547,
+          "semantic_accuracy": 0.1111111111111111,
+          "semantic_denominator": 27,
+          "predicted_nodes": 85,
+          "map_sha256": "6e805e78822eb82f7881ad560e8c7c7d703c8e7bc2b763066c3d273c6fe27b60"
+        },
+        "MF_OM_all_OA": {
+          "instance_ap_mean_25_50": 0.6769744267843866,
+          "ap25": 0.7349092507749837,
+          "ap50": 0.6190396027937894,
+          "node_f1": 0.8351648351648352,
+          "semantic_accuracy": 0.061224489795918366,
+          "semantic_denominator": 49,
+          "predicted_nodes": 91,
+          "map_sha256": "bf2c8b4081f8509765f041f103dd5046b57847fdddbae29a25244df07b84a8a2"
+        },
+        "OG": {
+          "instance_ap_mean_25_50": 1.0,
+          "ap25": 1.0,
+          "ap50": 1.0,
+          "node_f1": 1.0,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 58,
+          "predicted_nodes": 91,
+          "map_sha256": "f60a35694814ebef169ce863024cbdc521e636f565b3c88758435d7133f74100"
+        }
+      },
+      "0p10": {
+        "B0": {
+          "instance_ap_mean_25_50": 0.034449740095679506,
+          "ap25": 0.06229882012535241,
+          "ap50": 0.0066006600660066,
+          "node_f1": 0.15950920245398773,
+          "semantic_accuracy": 0.18181818181818182,
+          "semantic_denominator": 11,
+          "predicted_nodes": 72,
+          "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+        },
+        "FWD_OA": {
+          "instance_ap_mean_25_50": 0.06292069195209919,
+          "ap25": 0.10908685130808164,
+          "ap50": 0.016754532596116752,
+          "node_f1": 0.23076923076923078,
+          "semantic_accuracy": 0.23076923076923078,
+          "semantic_denominator": 13,
+          "predicted_nodes": 65,
+          "map_sha256": "92bb6f3c2efe7e42a8825aa77b7c2f0c1425ff23ea1850ab2e7ff14857090a7b"
+        },
+        "FWD_OP": {
+          "instance_ap_mean_25_50": 0.07107420906312915,
+          "ap25": 0.12450967946247596,
+          "ap50": 0.017638738663782343,
+          "node_f1": 0.24539877300613497,
+          "semantic_accuracy": 0.2,
+          "semantic_denominator": 15,
+          "predicted_nodes": 72,
+          "map_sha256": "6de372e3efa5a558d3c267fc30643e8ed5a20b8165ed6417e715e835de499568"
+        },
+        "FWD_OM_pure": {
+          "instance_ap_mean_25_50": 0.07220277213123147,
+          "ap25": 0.10324013739919596,
+          "ap50": 0.041165406863266966,
+          "node_f1": 0.23809523809523808,
+          "semantic_accuracy": 0.2,
+          "semantic_denominator": 10,
+          "predicted_nodes": 35,
+          "map_sha256": "764628eab19a9e695ceaf008581d53edf69fbbf6a5104f4c2652dd2bdb098203"
+        },
+        "MF_OP": {
+          "instance_ap_mean_25_50": 0.040025341306741,
+          "ap25": 0.07156411967147351,
+          "ap50": 0.008486562942008486,
+          "node_f1": 0.17177914110429449,
+          "semantic_accuracy": 0.2222222222222222,
+          "semantic_denominator": 9,
+          "predicted_nodes": 72,
+          "map_sha256": "9ef5c0f706f195b573c1ba9f640fe4b6049b50d0be179d1b254ca7d3e8de9b74"
+        },
+        "MF_OM_pure": {
+          "instance_ap_mean_25_50": 0.05095873562511531,
+          "ap25": 0.08868458274398869,
+          "ap50": 0.01323288850624193,
+          "node_f1": 0.24489795918367346,
+          "semantic_accuracy": 0.09090909090909091,
+          "semantic_denominator": 11,
+          "predicted_nodes": 56,
+          "map_sha256": "92147f5265bc4e44443bda65b471358df0f924ff15b30569bdef1c77d7b97814"
+        },
+        "MF_OM_all_native": {
+          "instance_ap_mean_25_50": 0.20034479454142295,
+          "ap25": 0.26316424625659157,
+          "ap50": 0.1375253428262543,
+          "node_f1": 0.42045454545454547,
+          "semantic_accuracy": 0.11538461538461539,
+          "semantic_denominator": 26,
+          "predicted_nodes": 85,
+          "map_sha256": "6e805e78822eb82f7881ad560e8c7c7d703c8e7bc2b763066c3d273c6fe27b60"
+        },
+        "MF_OM_all_OA": {
+          "instance_ap_mean_25_50": 0.6770336634772867,
+          "ap25": 0.7350277241607838,
+          "ap50": 0.6190396027937894,
+          "node_f1": 0.8351648351648352,
+          "semantic_accuracy": 0.061224489795918366,
+          "semantic_denominator": 49,
+          "predicted_nodes": 91,
+          "map_sha256": "bf2c8b4081f8509765f041f103dd5046b57847fdddbae29a25244df07b84a8a2"
+        },
+        "OG": {
+          "instance_ap_mean_25_50": 1.0,
+          "ap25": 1.0,
+          "ap50": 1.0,
+          "node_f1": 1.0,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 58,
+          "predicted_nodes": 91,
+          "map_sha256": "f60a35694814ebef169ce863024cbdc521e636f565b3c88758435d7133f74100"
+        }
+      }
+    },
+    "office0": {
+      "0p025": {
+        "B0": {
+          "instance_ap_mean_25_50": 0.004530453045304531,
+          "ap25": 0.009060906090609062,
+          "ap50": 0.0,
+          "node_f1": 0.04597701149425287,
+          "semantic_accuracy": null,
+          "semantic_denominator": 0,
+          "predicted_nodes": 35,
+          "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+        },
+        "FWD_OA": {
+          "instance_ap_mean_25_50": 0.017176717671767174,
+          "ap25": 0.03435343534353435,
+          "ap50": 0.0,
+          "node_f1": 0.09302325581395349,
+          "semantic_accuracy": 0.0,
+          "semantic_denominator": 3,
+          "predicted_nodes": 34,
+          "map_sha256": "1348571deb5f17d99a9db27249be9b66f35e85b60c742f3c2e08dd29860750ac"
+        },
+        "FWD_OP": {
+          "instance_ap_mean_25_50": 0.025180018001800177,
+          "ap25": 0.05036003600360035,
+          "ap50": 0.0,
+          "node_f1": 0.15730337078651685,
+          "semantic_accuracy": 0.3333333333333333,
+          "semantic_denominator": 3,
+          "predicted_nodes": 37,
+          "map_sha256": "645653b4f3255fe1740a6910a59ba8bb787399380ab70d4b1a9f882c8b5eda89"
+        },
+        "FWD_OM_pure": {
+          "instance_ap_mean_25_50": 0.028190319031903194,
+          "ap25": 0.05390539053905391,
+          "ap50": 0.0024752475247524753,
+          "node_f1": 0.19718309859154928,
+          "semantic_accuracy": 0.6666666666666666,
+          "semantic_denominator": 3,
+          "predicted_nodes": 19,
+          "map_sha256": "aafc9faf5317b391ec1a0d7f6f440bf2205ed2a36239648931e25954f8aa9b1c"
+        },
+        "MF_OP": {
+          "instance_ap_mean_25_50": 0.01108910891089109,
+          "ap25": 0.02217821782178218,
+          "ap50": 0.0,
+          "node_f1": 0.044444444444444446,
+          "semantic_accuracy": 0.0,
+          "semantic_denominator": 1,
+          "predicted_nodes": 38,
+          "map_sha256": "ef8cd2740db383808e10c281ecf2673e78873b4aefce8919168fd7d800a9033b"
+        },
+        "MF_OM_pure": {
+          "instance_ap_mean_25_50": 0.012240235012512242,
+          "ap25": 0.021651615711021654,
+          "ap50": 0.0028288543140028285,
+          "node_f1": 0.08602150537634409,
+          "semantic_accuracy": 0.0,
+          "semantic_denominator": 2,
+          "predicted_nodes": 41,
+          "map_sha256": "1663917e21ea40b8298ddeedc616f7262d6bbd0d0ee768117bfb6625b0670a89"
+        },
+        "MF_OM_all_native": {
+          "instance_ap_mean_25_50": 0.08644735441286064,
+          "ap25": 0.1361652294261684,
+          "ap50": 0.03672947939955286,
+          "node_f1": 0.25,
+          "semantic_accuracy": 0.14285714285714285,
+          "semantic_denominator": 7,
+          "predicted_nodes": 52,
+          "map_sha256": "1e76d509b39f53c82fd55ac3b5fe96bd6dade0dc4acba551fb2d69ff3df5246a"
+        },
+        "MF_OM_all_OA": {
+          "instance_ap_mean_25_50": 0.6430803044996936,
+          "ap25": 0.7557082238836128,
+          "ap50": 0.5304523851157742,
+          "node_f1": 0.8627450980392157,
+          "semantic_accuracy": 0.2857142857142857,
+          "semantic_denominator": 14,
+          "predicted_nodes": 50,
+          "map_sha256": "b4b033a10cb20101dbc23c26ae93d1f5ff5fcb41d3038df639aecef665c78240"
+        },
+        "OG": {
+          "instance_ap_mean_25_50": 1.0,
+          "ap25": 1.0,
+          "ap50": 1.0,
+          "node_f1": 1.0,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 15,
+          "predicted_nodes": 52,
+          "map_sha256": "1c0a2e13f6c2ff7094e73ffa6921fff9d1ae1d0b5463e82f33807ad99a6ec1d5"
+        }
+      },
+      "0p05": {
+        "B0": {
+          "instance_ap_mean_25_50": 0.004530453045304531,
+          "ap25": 0.009060906090609062,
+          "ap50": 0.0,
+          "node_f1": 0.06896551724137931,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 1,
+          "predicted_nodes": 35,
+          "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+        },
+        "FWD_OA": {
+          "instance_ap_mean_25_50": 0.013576357635763574,
+          "ap25": 0.02715271527152715,
+          "ap50": 0.0,
+          "node_f1": 0.09302325581395349,
+          "semantic_accuracy": 0.25,
+          "semantic_denominator": 4,
+          "predicted_nodes": 34,
+          "map_sha256": "1348571deb5f17d99a9db27249be9b66f35e85b60c742f3c2e08dd29860750ac"
+        },
+        "FWD_OP": {
+          "instance_ap_mean_25_50": 0.02028952895289529,
+          "ap25": 0.04057905790579058,
+          "ap50": 0.0,
+          "node_f1": 0.15730337078651685,
+          "semantic_accuracy": 0.5,
+          "semantic_denominator": 4,
+          "predicted_nodes": 37,
+          "map_sha256": "645653b4f3255fe1740a6910a59ba8bb787399380ab70d4b1a9f882c8b5eda89"
+        },
+        "FWD_OM_pure": {
+          "instance_ap_mean_25_50": 0.04550981413930866,
+          "ap25": 0.08441896821261072,
+          "ap50": 0.0066006600660066,
+          "node_f1": 0.2535211267605634,
+          "semantic_accuracy": 0.6666666666666666,
+          "semantic_denominator": 3,
+          "predicted_nodes": 19,
+          "map_sha256": "aafc9faf5317b391ec1a0d7f6f440bf2205ed2a36239648931e25954f8aa9b1c"
+        },
+        "MF_OP": {
+          "instance_ap_mean_25_50": 0.017256011315417256,
+          "ap25": 0.03451202263083451,
+          "ap50": 0.0,
+          "node_f1": 0.13333333333333333,
+          "semantic_accuracy": 0.25,
+          "semantic_denominator": 4,
+          "predicted_nodes": 38,
+          "map_sha256": "ef8cd2740db383808e10c281ecf2673e78873b4aefce8919168fd7d800a9033b"
+        },
+        "MF_OM_pure": {
+          "instance_ap_mean_25_50": 0.012240235012512242,
+          "ap25": 0.021651615711021654,
+          "ap50": 0.0028288543140028285,
+          "node_f1": 0.08602150537634409,
+          "semantic_accuracy": 0.0,
+          "semantic_denominator": 2,
+          "predicted_nodes": 41,
+          "map_sha256": "1663917e21ea40b8298ddeedc616f7262d6bbd0d0ee768117bfb6625b0670a89"
+        },
+        "MF_OM_all_native": {
+          "instance_ap_mean_25_50": 0.10726698855843837,
+          "ap25": 0.1437365747959995,
+          "ap50": 0.07079740232087725,
+          "node_f1": 0.2692307692307692,
+          "semantic_accuracy": 0.14285714285714285,
+          "semantic_denominator": 7,
+          "predicted_nodes": 52,
+          "map_sha256": "1e76d509b39f53c82fd55ac3b5fe96bd6dade0dc4acba551fb2d69ff3df5246a"
+        },
+        "MF_OM_all_OA": {
+          "instance_ap_mean_25_50": 0.6358061076922576,
+          "ap25": 0.7557082238836128,
+          "ap50": 0.5159039915009025,
+          "node_f1": 0.8627450980392157,
+          "semantic_accuracy": 0.2857142857142857,
+          "semantic_denominator": 14,
+          "predicted_nodes": 50,
+          "map_sha256": "b4b033a10cb20101dbc23c26ae93d1f5ff5fcb41d3038df639aecef665c78240"
+        },
+        "OG": {
+          "instance_ap_mean_25_50": 1.0,
+          "ap25": 1.0,
+          "ap50": 1.0,
+          "node_f1": 1.0,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 15,
+          "predicted_nodes": 52,
+          "map_sha256": "1c0a2e13f6c2ff7094e73ffa6921fff9d1ae1d0b5463e82f33807ad99a6ec1d5"
+        }
+      },
+      "0p10": {
+        "B0": {
+          "instance_ap_mean_25_50": 0.006030603060306031,
+          "ap25": 0.012061206120612062,
+          "ap50": 0.0,
+          "node_f1": 0.09195402298850575,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 1,
+          "predicted_nodes": 35,
+          "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+        },
+        "FWD_OA": {
+          "instance_ap_mean_25_50": 0.01795679567956796,
+          "ap25": 0.03591359135913592,
+          "ap50": 0.0,
+          "node_f1": 0.13953488372093023,
+          "semantic_accuracy": 0.25,
+          "semantic_denominator": 4,
+          "predicted_nodes": 34,
+          "map_sha256": "1348571deb5f17d99a9db27249be9b66f35e85b60c742f3c2e08dd29860750ac"
+        },
+        "FWD_OP": {
+          "instance_ap_mean_25_50": 0.02848034803480348,
+          "ap25": 0.05696069606960696,
+          "ap50": 0.0,
+          "node_f1": 0.1797752808988764,
+          "semantic_accuracy": 0.5,
+          "semantic_denominator": 4,
+          "predicted_nodes": 37,
+          "map_sha256": "645653b4f3255fe1740a6910a59ba8bb787399380ab70d4b1a9f882c8b5eda89"
+        },
+        "FWD_OM_pure": {
+          "instance_ap_mean_25_50": 0.05541080423831857,
+          "ap25": 0.10422094841063054,
+          "ap50": 0.0066006600660066,
+          "node_f1": 0.28169014084507044,
+          "semantic_accuracy": 0.6666666666666666,
+          "semantic_denominator": 3,
+          "predicted_nodes": 19,
+          "map_sha256": "aafc9faf5317b391ec1a0d7f6f440bf2205ed2a36239648931e25954f8aa9b1c"
+        },
+        "MF_OP": {
+          "instance_ap_mean_25_50": 0.020792079207920793,
+          "ap25": 0.041584158415841586,
+          "ap50": 0.0,
+          "node_f1": 0.13333333333333333,
+          "semantic_accuracy": 0.3333333333333333,
+          "semantic_denominator": 3,
+          "predicted_nodes": 38,
+          "map_sha256": "ef8cd2740db383808e10c281ecf2673e78873b4aefce8919168fd7d800a9033b"
+        },
+        "MF_OM_pure": {
+          "instance_ap_mean_25_50": 0.017680339462517684,
+          "ap25": 0.03253182461103254,
+          "ap50": 0.0028288543140028285,
+          "node_f1": 0.12903225806451613,
+          "semantic_accuracy": 0.0,
+          "semantic_denominator": 3,
+          "predicted_nodes": 41,
+          "map_sha256": "1663917e21ea40b8298ddeedc616f7262d6bbd0d0ee768117bfb6625b0670a89"
+        },
+        "MF_OM_all_native": {
+          "instance_ap_mean_25_50": 0.11237717699663703,
+          "ap25": 0.1437365747959995,
+          "ap50": 0.08101777919727457,
+          "node_f1": 0.2692307692307692,
+          "semantic_accuracy": 0.14285714285714285,
+          "semantic_denominator": 7,
+          "predicted_nodes": 52,
+          "map_sha256": "1e76d509b39f53c82fd55ac3b5fe96bd6dade0dc4acba551fb2d69ff3df5246a"
+        },
+        "MF_OM_all_OA": {
+          "instance_ap_mean_25_50": 0.668399342689872,
+          "ap25": 0.7557082238836128,
+          "ap50": 0.5810904614961312,
+          "node_f1": 0.8627450980392157,
+          "semantic_accuracy": 0.2857142857142857,
+          "semantic_denominator": 14,
+          "predicted_nodes": 50,
+          "map_sha256": "b4b033a10cb20101dbc23c26ae93d1f5ff5fcb41d3038df639aecef665c78240"
+        },
+        "OG": {
+          "instance_ap_mean_25_50": 1.0,
+          "ap25": 1.0,
+          "ap50": 1.0,
+          "node_f1": 1.0,
+          "semantic_accuracy": 1.0,
+          "semantic_denominator": 15,
+          "predicted_nodes": 52,
+          "map_sha256": "1c0a2e13f6c2ff7094e73ffa6921fff9d1ae1d0b5463e82f33807ad99a6ec1d5"
+        }
+      }
+    }
+  },
+  "fross_5mm_0p1m": {
+    "room0": {
+      "B0": {
+        "f1": 0.18404907975460122,
+        "precision": 0.20833333333333334,
+        "recall": 0.16483516483516483,
+        "mean_selected_purity": 0.8577410894560124,
+        "mean_selected_gt_coverage": 0.11438463855959678
+      },
+      "FWD_OA": {
+        "f1": 0.19230769230769232,
+        "precision": 0.23076923076923078,
+        "recall": 0.16483516483516483,
+        "mean_selected_purity": 0.6862813864565379,
+        "mean_selected_gt_coverage": 0.15305180453885867
+      },
+      "FWD_OP": {
+        "f1": 0.2085889570552147,
+        "precision": 0.2361111111111111,
+        "recall": 0.18681318681318682,
+        "mean_selected_purity": 0.689290834595183,
+        "mean_selected_gt_coverage": 0.19292492728447497
+      },
+      "FWD_OM_pure": {
+        "f1": 0.31746031746031744,
+        "precision": 0.5714285714285714,
+        "recall": 0.21978021978021978,
+        "mean_selected_purity": 0.8333228765731194,
+        "mean_selected_gt_coverage": 0.4085480935829657
+      },
+      "MF_OP": {
+        "f1": 0.147239263803681,
+        "precision": 0.16666666666666666,
+        "recall": 0.13186813186813187,
+        "mean_selected_purity": 0.8948758235856383,
+        "mean_selected_gt_coverage": 0.12302430726730158
+      },
+      "MF_OM_pure": {
+        "f1": 0.24489795918367346,
+        "precision": 0.32142857142857145,
+        "recall": 0.1978021978021978,
+        "mean_selected_purity": 0.8661059046146714,
+        "mean_selected_gt_coverage": 0.35282193598759337
+      },
+      "MF_OM_all_native": {
+        "f1": 0.36363636363636365,
+        "precision": 0.3764705882352941,
+        "recall": 0.3516483516483517,
+        "mean_selected_purity": 0.8055923684085033,
+        "mean_selected_gt_coverage": 0.48356531487078797
+      },
+      "MF_OM_all_OA": {
+        "f1": 0.6043956043956044,
+        "precision": 0.6043956043956044,
+        "recall": 0.6043956043956044,
+        "mean_selected_purity": 0.7612762326237977,
+        "mean_selected_gt_coverage": 0.703393688937631
+      },
+      "OG": {
+        "f1": 0.989010989010989,
+        "precision": 0.989010989010989,
+        "recall": 0.989010989010989,
+        "mean_selected_purity": 0.8437977947044263,
+        "mean_selected_gt_coverage": 0.8437977947044263
+      }
+    },
+    "office0": {
+      "B0": {
+        "f1": 0.13793103448275862,
+        "precision": 0.17142857142857143,
+        "recall": 0.11538461538461539,
+        "mean_selected_purity": 0.8250171817701107,
+        "mean_selected_gt_coverage": 0.08044356743580369
+      },
+      "FWD_OA": {
+        "f1": 0.18604651162790697,
+        "precision": 0.23529411764705882,
+        "recall": 0.15384615384615385,
+        "mean_selected_purity": 0.7009407204731799,
+        "mean_selected_gt_coverage": 0.08721693015559044
+      },
+      "FWD_OP": {
+        "f1": 0.1797752808988764,
+        "precision": 0.21621621621621623,
+        "recall": 0.15384615384615385,
+        "mean_selected_purity": 0.6879735299320981,
+        "mean_selected_gt_coverage": 0.08822878520490622
+      },
+      "FWD_OM_pure": {
+        "f1": 0.30985915492957744,
+        "precision": 0.5789473684210527,
+        "recall": 0.21153846153846154,
+        "mean_selected_purity": 0.7154979839618463,
+        "mean_selected_gt_coverage": 0.3071910199104153
+      },
+      "MF_OP": {
+        "f1": 0.17777777777777778,
+        "precision": 0.21052631578947367,
+        "recall": 0.15384615384615385,
+        "mean_selected_purity": 0.7251922352578068,
+        "mean_selected_gt_coverage": 0.05852421829389232
+      },
+      "MF_OM_pure": {
+        "f1": 0.25806451612903225,
+        "precision": 0.2926829268292683,
+        "recall": 0.23076923076923078,
+        "mean_selected_purity": 0.8001505323895235,
+        "mean_selected_gt_coverage": 0.17883046016807
+      },
+      "MF_OM_all_native": {
+        "f1": 0.34615384615384615,
+        "precision": 0.34615384615384615,
+        "recall": 0.34615384615384615,
+        "mean_selected_purity": 0.8355294667075158,
+        "mean_selected_gt_coverage": 0.331677671706003
+      },
+      "MF_OM_all_OA": {
+        "f1": 0.5882352941176471,
+        "precision": 0.6,
+        "recall": 0.5769230769230769,
+        "mean_selected_purity": 0.7239164839642702,
+        "mean_selected_gt_coverage": 0.7123473054743361
+      },
+      "OG": {
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "mean_selected_purity": 0.8784588956200232,
+        "mean_selected_gt_coverage": 0.8784588956200232
+      }
+    }
+  },
+  "fross_two_scene_average": {
+    "B0": {
+      "f1": 0.16099005711867992
+    },
+    "FWD_OA": {
+      "f1": 0.18917710196779963
+    },
+    "FWD_OP": {
+      "f1": 0.19418211897704557
+    },
+    "FWD_OM_pure": {
+      "f1": 0.31365973619494747
+    },
+    "MF_OP": {
+      "f1": 0.1625085207907294
+    },
+    "MF_OM_pure": {
+      "f1": 0.2514812376563529
+    },
+    "MF_OM_all_native": {
+      "f1": 0.3548951048951049
+    },
+    "MF_OM_all_OA": {
+      "f1": 0.5963154492566257
+    },
+    "OG": {
+      "f1": 0.9945054945054945
+    }
+  },
+  "runtime": {
+    "room0": {
+      "MF_OP": {
+        "frames": 400,
+        "objects": 72,
+        "observations": 9063,
+        "elapsed_seconds": 905.3444442823529,
+        "peak_rss_mb": 28004.17578125
+      },
+      "MF_OM_pure": {
+        "frames": 400,
+        "objects": 56,
+        "observations": 2231,
+        "elapsed_seconds": 373.16171030607074,
+        "peak_rss_mb": 4769.5703125
+      },
+      "MF_OM_all_native": {
+        "frames": 400,
+        "objects": 85,
+        "observations": 11577,
+        "elapsed_seconds": 1078.142860009335,
+        "peak_rss_mb": 19133.40625
+      },
+      "MF_OM_all_OA": {
+        "reused": true,
+        "source": "/home/chenkejun/beauty/conceptgraphs/results/experiments/repairability_validation_20260830/ladder_full/room0_om_all",
+        "reason": "same maximal-partition stream plus GT-identity association; exact 10-frame geometry/object/observation parity passed in both scenes"
+      }
+    },
+    "office0": {
+      "MF_OP": {
+        "frames": 400,
+        "objects": 38,
+        "observations": 4067,
+        "elapsed_seconds": 472.43822092283517,
+        "peak_rss_mb": 12864.30078125
+      },
+      "MF_OM_pure": {
+        "frames": 400,
+        "objects": 41,
+        "observations": 1340,
+        "elapsed_seconds": 247.23438622616231,
+        "peak_rss_mb": 3380.01953125
+      },
+      "MF_OM_all_native": {
+        "frames": 400,
+        "objects": 52,
+        "observations": 7372,
+        "elapsed_seconds": 543.2644646763802,
+        "peak_rss_mb": 8591.421875
+      },
+      "MF_OM_all_OA": {
+        "reused": true,
+        "source": "/home/chenkejun/beauty/conceptgraphs/results/experiments/repairability_validation_20260830/ladder_full/office0_om_all",
+        "reason": "same maximal-partition stream plus GT-identity association; exact 10-frame geometry/object/observation parity passed in both scenes"
+      }
+    }
+  },
+  "label_ontology_control": {
+    "primary_structure_metrics_are_class_agnostic": true,
+    "mapping_sha256": "c9d3a8246faee97c6f679323652945b4292da250d2abcd3036a5a235da1d8014",
+    "official_only_is_strict_baseline": true,
+    "desk_lamp_present_in_current_two_scene_predictions": false,
+    "reviewed_lamp_aliases": {
+      "bedside lamp": "lamp",
+      "ceiling lamp": "lamp",
+      "ceiling light": "lamp",
+      "desk lamp": "lamp",
+      "floor lamp": "lamp",
+      "table lamp": "lamp"
+    },
+    "reviewed_aliases_observed": {
+      "room0": [
+        "ceiling light"
+      ],
+      "office0": []
+    },
+    "semantic_increment_ontology_robust": false
+  },
+  "decision": {
+    "op_alone_stable": false,
+    "om_pure_vs_b0_stable": true,
+    "om_pure_increment_after_op_stable": false,
+    "maximal_partition_stable_large_gain": true,
+    "association_remains_major_bottleneck_after_mask_repair": true,
+    "recommended_order": "partition/decontaminate observations first, then association/replay, then semantic verification"
+  },
+  "limitations": [
+    "Only room0 and office0 were run by explicit user constraint; no population confidence interval is valid.",
+    "OM_pure, OM_all, OA, and OG are Oracle capabilities using GT and are not deployable methods.",
+    "The large OM_all-to-OA interaction means mask and association effects are not additive independent main effects.",
+    "Semantic denominators are small and ontology-sensitive; semantic values are not used to choose the mask/association order.",
+    "FROSS-style correspondence is an evaluation-only sensitivity audit, not the official FROSS benchmark pipeline."
+  ],
+  "artifacts": {
+    "root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_20260830",
+    "previous_formal_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/repairability_validation_20260830",
+    "runner": "/home/chenkejun/beauty/conceptgraphs/code/experiments/mask_first_order_20260830/scripts/run_mask_first_ladder.py",
+    "label_audit": "/home/chenkejun/beauty/conceptgraphs/results/experiments/repairability_validation_20260830/dataset_label_audit/audit.json"
+  }
+}
