@@ -1,0 +1,989 @@
+{
+  "changed_matched_pairs_current_to_reviewed": [
+    {
+      "condition": "OM_pure",
+      "count": 1,
+      "gt_canonical_change": "unknown->unknown",
+      "gt_raw": "wall",
+      "predicted_canonical_change": "unknown->lamp",
+      "predicted_raw": "ceiling light",
+      "scene": "room0"
+    },
+    {
+      "condition": "OP_raw",
+      "count": 1,
+      "gt_canonical_change": "unknown->unknown",
+      "gt_raw": "wall",
+      "predicted_canonical_change": "unknown->lamp",
+      "predicted_raw": "ceiling light",
+      "scene": "room0"
+    }
+  ],
+  "current_policy_exact_reproduction": {
+    "downstream_proxy": {
+      "office0": true,
+      "room0": true
+    },
+    "semantic": {
+      "office0": true,
+      "room0": true
+    }
+  },
+  "dataset_audit": {
+    "office0": {
+      "checks": {
+        "b0_and_detection_configs_identical": true,
+        "b0_json_exists": true,
+        "b0_map_exists": true,
+        "b0_runs_to_end": true,
+        "b0_scene_matches": true,
+        "b0_starts_at_zero": true,
+        "b0_stride_matches_gt": true,
+        "b0_uses_cuda": true,
+        "b0_visual_render_disabled": true,
+        "dataset_results_is_symlink": true,
+        "dataset_results_resolves_to_requested_scene": true,
+        "dataset_scene_directory_exists": true,
+        "depth_indices_are_contiguous": true,
+        "depth_names_well_formed": true,
+        "exactly_one_replicassg_scan_entry": true,
+        "gt_frames_equal_b0_online_frame_schedule": true,
+        "gt_sidecar_names_well_formed": true,
+        "gt_sidecars_equal_manifest_frames": true,
+        "objects_file_hash_matches_gt_render": true,
+        "replicassg_object_ids_unique": true,
+        "replicassg_scene_alias_matches": true,
+        "rgb_count_equals_depth_count": true,
+        "rgb_indices_are_contiguous": true,
+        "rgb_names_well_formed": true,
+        "sequence_matches_scene": true,
+        "trajectory_hash_matches_gt_render": true,
+        "trajectory_rows_equal_rgb_count": true,
+        "visible_instance_ids_exist_in_objects_file": true
+      },
+      "counts": {
+        "depth_frames": 2000,
+        "online_frames": 400,
+        "replicassg_objects": 69,
+        "rgb_frames": 2000,
+        "trajectory_rows": 2000,
+        "visible_replicassg_objects": 54
+      },
+      "critical_failures": [],
+      "frame_schedule": {
+        "last": 1995,
+        "start": 0,
+        "stride": 5
+      },
+      "gt_alignment_summary": {
+        "max_median_abs_depth_m": 0.0018451213836669922,
+        "max_p90_abs_depth_m": 0.004546642303466797,
+        "max_p99_abs_depth_m": 0.011116955280304125,
+        "min_within_5cm": 0.9953490827050687
+      },
+      "noncritical_metadata_note": {
+        "interpretation": "The frozen office config inherited a room0 visualization-camera path, but vis_render=false and mapping selects RGB/depth/poses from dataset_root+scene_id.",
+        "render_camera_path": "/home/chenkejun/beauty/conceptgraphs/code/experiments/oracle_three_error_20260828/conceptgraph/dataset/dataconfigs/replica/replica_room0.json"
+      },
+      "pass": true,
+      "paths": {
+        "b0_config": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/b0_office0_fresh_final/config_params.json",
+        "b0_json": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/b0_office0_fresh_final/obj_json_b0_office0_fresh_final.json",
+        "dataset_results_resolved": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/results",
+        "dataset_scene_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0",
+        "gt_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/gt_full/office0/manifest.json",
+        "trajectory": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/traj.txt"
+      },
+      "source_hashes": {
+        "b0_config": "70b40c328fbbcf74d20b7075b5c203f3b9548a44f14853ca83d06837828bd722",
+        "gt_manifest": "a2a3aebe02b95694479b2abb8a2e65e0e86a6fc3e4bfb4f1e906690434a21862",
+        "objects_json": "3bceb3d838c7992ec7099dc4b46b49346b4961154376bff5748b1d1b7c5e96d5",
+        "trajectory": "6fdf15ff9a85626e0fd2f5f65ade95cd403d8043054701f3398aaf277d5cf602"
+      }
+    },
+    "room0": {
+      "checks": {
+        "b0_and_detection_configs_identical": true,
+        "b0_json_exists": true,
+        "b0_map_exists": true,
+        "b0_runs_to_end": true,
+        "b0_scene_matches": true,
+        "b0_starts_at_zero": true,
+        "b0_stride_matches_gt": true,
+        "b0_uses_cuda": true,
+        "b0_visual_render_disabled": true,
+        "dataset_results_is_symlink": true,
+        "dataset_results_resolves_to_requested_scene": true,
+        "dataset_scene_directory_exists": true,
+        "depth_indices_are_contiguous": true,
+        "depth_names_well_formed": true,
+        "exactly_one_replicassg_scan_entry": true,
+        "gt_frames_equal_b0_online_frame_schedule": true,
+        "gt_sidecar_names_well_formed": true,
+        "gt_sidecars_equal_manifest_frames": true,
+        "objects_file_hash_matches_gt_render": true,
+        "replicassg_object_ids_unique": true,
+        "replicassg_scene_alias_matches": true,
+        "rgb_count_equals_depth_count": true,
+        "rgb_indices_are_contiguous": true,
+        "rgb_names_well_formed": true,
+        "sequence_matches_scene": true,
+        "trajectory_hash_matches_gt_render": true,
+        "trajectory_rows_equal_rgb_count": true,
+        "visible_instance_ids_exist_in_objects_file": true
+      },
+      "counts": {
+        "depth_frames": 2000,
+        "online_frames": 400,
+        "replicassg_objects": 95,
+        "rgb_frames": 2000,
+        "trajectory_rows": 2000,
+        "visible_replicassg_objects": 91
+      },
+      "critical_failures": [],
+      "frame_schedule": {
+        "last": 1995,
+        "start": 0,
+        "stride": 5
+      },
+      "gt_alignment_summary": {
+        "max_median_abs_depth_m": 0.003373861312866211,
+        "max_p90_abs_depth_m": 0.009215831756591797,
+        "max_p99_abs_depth_m": 0.025578978061676028,
+        "min_within_5cm": 0.9943713235294117
+      },
+      "noncritical_metadata_note": {
+        "interpretation": "The frozen office config inherited a room0 visualization-camera path, but vis_render=false and mapping selects RGB/depth/poses from dataset_root+scene_id.",
+        "render_camera_path": "/home/chenkejun/beauty/conceptgraphs/code/experiments/oracle_three_error_20260828/conceptgraph/dataset/dataconfigs/replica/replica_room0.json"
+      },
+      "pass": true,
+      "paths": {
+        "b0_config": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/b0_room0_fresh/config_params.json",
+        "b0_json": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/b0_room0_fresh/obj_json_b0_room0_fresh.json",
+        "dataset_results_resolved": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/results",
+        "dataset_scene_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0",
+        "gt_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/gt_full/room0/manifest.json",
+        "trajectory": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/traj.txt"
+      },
+      "source_hashes": {
+        "b0_config": "8dd74f08f3995bf41a96456557f4756a75e195ad5b0776027cef94f18de1ab6c",
+        "gt_manifest": "31a2c8d2dbc35506114560caf56cc091de4161fde03737fdbdef7808d94c3578",
+        "objects_json": "3bceb3d838c7992ec7099dc4b46b49346b4961154376bff5748b1d1b7c5e96d5",
+        "trajectory": "5692a60076e426b403dc64025ff38c443606a506704545ee192d4dbadedaaca2"
+      }
+    }
+  },
+  "dataset_pairing_pass": true,
+  "downstream_proxy_5cm_sensitivity": {
+    "office0": {
+      "current_aliases": {
+        "B0": {
+          "class_conditioned_f1": 0.0625,
+          "semantic_class_count_mae": 1.1428571428571428,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 17,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 0.6,
+          "unique_class_top1_success_count": 1,
+          "unique_class_top1_success_rate": 0.2,
+          "unique_class_top1_within_1m_count": 1,
+          "unique_class_top1_within_1m_rate": 0.2,
+          "unique_class_top3_success_count": 1,
+          "unique_class_top3_success_rate": 0.2
+        },
+        "OG": {
+          "class_conditioned_f1": 1.0,
+          "semantic_class_count_mae": 0.0,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 15,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 1.0,
+          "unique_class_top1_success_count": 5,
+          "unique_class_top1_success_rate": 1.0,
+          "unique_class_top1_within_1m_count": 5,
+          "unique_class_top1_within_1m_rate": 1.0,
+          "unique_class_top3_success_count": 5,
+          "unique_class_top3_success_rate": 1.0
+        },
+        "OM_all": {
+          "class_conditioned_f1": 0.2051282051282051,
+          "semantic_class_count_mae": 2.6363636363636362,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 24,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 0.2,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 1,
+          "unique_class_top1_within_1m_rate": 0.2,
+          "unique_class_top3_success_count": 1,
+          "unique_class_top3_success_rate": 0.2
+        }
+      },
+      "official_only": {
+        "B0": {
+          "class_conditioned_f1": 0.0,
+          "semantic_class_count_mae": 1.3846153846153846,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 7,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 0.0,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        },
+        "OG": {
+          "class_conditioned_f1": 1.0,
+          "semantic_class_count_mae": 0.0,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 15,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 1.0,
+          "unique_class_top1_success_count": 5,
+          "unique_class_top1_success_rate": 1.0,
+          "unique_class_top1_within_1m_count": 5,
+          "unique_class_top1_within_1m_rate": 1.0,
+          "unique_class_top3_success_count": 5,
+          "unique_class_top3_success_rate": 1.0
+        },
+        "OM_all": {
+          "class_conditioned_f1": 0.0,
+          "semantic_class_count_mae": 1.9090909090909092,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 6,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 0.0,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        }
+      },
+      "reviewed_lamp_aliases": {
+        "B0": {
+          "class_conditioned_f1": 0.0625,
+          "semantic_class_count_mae": 1.1428571428571428,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 17,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 0.6,
+          "unique_class_top1_success_count": 1,
+          "unique_class_top1_success_rate": 0.2,
+          "unique_class_top1_within_1m_count": 1,
+          "unique_class_top1_within_1m_rate": 0.2,
+          "unique_class_top3_success_count": 1,
+          "unique_class_top3_success_rate": 0.2
+        },
+        "OG": {
+          "class_conditioned_f1": 1.0,
+          "semantic_class_count_mae": 0.0,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 15,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 1.0,
+          "unique_class_top1_success_count": 5,
+          "unique_class_top1_success_rate": 1.0,
+          "unique_class_top1_within_1m_count": 5,
+          "unique_class_top1_within_1m_rate": 1.0,
+          "unique_class_top3_success_count": 5,
+          "unique_class_top3_success_rate": 1.0
+        },
+        "OM_all": {
+          "class_conditioned_f1": 0.2051282051282051,
+          "semantic_class_count_mae": 2.6363636363636362,
+          "semantic_evaluable_gt_nodes": 15,
+          "semantic_evaluable_predicted_nodes": 24,
+          "unique_class_query_count": 5,
+          "unique_class_top1_candidate_coverage": 0.2,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 1,
+          "unique_class_top1_within_1m_rate": 0.2,
+          "unique_class_top3_success_count": 1,
+          "unique_class_top3_success_rate": 0.2
+        }
+      }
+    },
+    "room0": {
+      "current_aliases": {
+        "B0": {
+          "class_conditioned_f1": 0.03389830508474576,
+          "semantic_class_count_mae": 2.4444444444444446,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 60,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 0.375,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        },
+        "OG": {
+          "class_conditioned_f1": 1.0,
+          "semantic_class_count_mae": 0.0,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 58,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 1.0,
+          "unique_class_top1_success_count": 8,
+          "unique_class_top1_success_rate": 1.0,
+          "unique_class_top1_within_1m_count": 8,
+          "unique_class_top1_within_1m_rate": 1.0,
+          "unique_class_top3_success_count": 8,
+          "unique_class_top3_success_rate": 1.0
+        },
+        "OM_all": {
+          "class_conditioned_f1": 0.07272727272727274,
+          "semantic_class_count_mae": 4.4,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 52,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 0.25,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        }
+      },
+      "official_only": {
+        "B0": {
+          "class_conditioned_f1": 0.04040404040404041,
+          "semantic_class_count_mae": 2.6470588235294117,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 41,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 0.125,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        },
+        "OG": {
+          "class_conditioned_f1": 1.0,
+          "semantic_class_count_mae": 0.0,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 58,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 1.0,
+          "unique_class_top1_success_count": 8,
+          "unique_class_top1_success_rate": 1.0,
+          "unique_class_top1_within_1m_count": 8,
+          "unique_class_top1_within_1m_rate": 1.0,
+          "unique_class_top3_success_count": 8,
+          "unique_class_top3_success_rate": 1.0
+        },
+        "OM_all": {
+          "class_conditioned_f1": 0.025974025974025972,
+          "semantic_class_count_mae": 3.0,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 19,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 0.125,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        }
+      },
+      "reviewed_lamp_aliases": {
+        "B0": {
+          "class_conditioned_f1": 0.033613445378151266,
+          "semantic_class_count_mae": 2.5,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 61,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 0.375,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        },
+        "OG": {
+          "class_conditioned_f1": 1.0,
+          "semantic_class_count_mae": 0.0,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 58,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 1.0,
+          "unique_class_top1_success_count": 8,
+          "unique_class_top1_success_rate": 1.0,
+          "unique_class_top1_within_1m_count": 8,
+          "unique_class_top1_within_1m_rate": 1.0,
+          "unique_class_top3_success_count": 8,
+          "unique_class_top3_success_rate": 1.0
+        },
+        "OM_all": {
+          "class_conditioned_f1": 0.07272727272727274,
+          "semantic_class_count_mae": 4.4,
+          "semantic_evaluable_gt_nodes": 58,
+          "semantic_evaluable_predicted_nodes": 52,
+          "unique_class_query_count": 8,
+          "unique_class_top1_candidate_coverage": 0.25,
+          "unique_class_top1_success_count": 0,
+          "unique_class_top1_success_rate": 0.0,
+          "unique_class_top1_within_1m_count": 0,
+          "unique_class_top1_within_1m_rate": 0.0,
+          "unique_class_top3_success_count": 0,
+          "unique_class_top3_success_rate": 0.0
+        }
+      }
+    }
+  },
+  "evaluation_role": "dataset/ontology validity and sensitivity audit; expanded aliases are not ground truth",
+  "fixed_geometry_match_semantic_sensitivity": {
+    "office0": {
+      "B0": {
+        "current_aliases": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OA_online": {
+        "current_aliases": {
+          "accuracy": 0.25,
+          "correct": 1,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 4
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.25,
+          "correct": 1,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        }
+      },
+      "OG": {
+        "current_aliases": {
+          "accuracy": 1.0,
+          "correct": 15,
+          "denominator": 15,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 1.0,
+          "correct": 15,
+          "denominator": 15,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 1.0,
+          "correct": 15,
+          "denominator": 15,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OM_all": {
+        "current_aliases": {
+          "accuracy": 0.2857142857142857,
+          "correct": 4,
+          "denominator": 14,
+          "predicted_unknown_with_evaluable_gt": 6
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 14,
+          "predicted_unknown_with_evaluable_gt": 13
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.2857142857142857,
+          "correct": 4,
+          "denominator": 14,
+          "predicted_unknown_with_evaluable_gt": 6
+        }
+      },
+      "OM_pure": {
+        "current_aliases": {
+          "accuracy": 0.6666666666666666,
+          "correct": 2,
+          "denominator": 3,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 3,
+          "predicted_unknown_with_evaluable_gt": 3
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.6666666666666666,
+          "correct": 2,
+          "denominator": 3,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OP_raw": {
+        "current_aliases": {
+          "accuracy": 0.5,
+          "correct": 2,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 4
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.5,
+          "correct": 2,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        }
+      },
+      "OS_hungarian": {
+        "current_aliases": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OS_strict": {
+        "current_aliases": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "denominator": 1,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "legacy_O1": {
+        "current_aliases": {
+          "accuracy": 0.25,
+          "correct": 1,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "official_only": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 4
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.25,
+          "correct": 1,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        }
+      },
+      "legacy_O2": {
+        "current_aliases": {
+          "accuracy": 0.5,
+          "correct": 2,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.25,
+          "correct": 1,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.5,
+          "correct": 2,
+          "denominator": 4,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      }
+    },
+    "room0": {
+      "B0": {
+        "current_aliases": {
+          "accuracy": 0.25,
+          "correct": 2,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.25,
+          "correct": 2,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 3
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.25,
+          "correct": 2,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OA_online": {
+        "current_aliases": {
+          "accuracy": 0.23076923076923078,
+          "correct": 3,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.15384615384615385,
+          "correct": 2,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 3
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.23076923076923078,
+          "correct": 3,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OG": {
+        "current_aliases": {
+          "accuracy": 1.0,
+          "correct": 58,
+          "denominator": 58,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 1.0,
+          "correct": 58,
+          "denominator": 58,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 1.0,
+          "correct": 58,
+          "denominator": 58,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OM_all": {
+        "current_aliases": {
+          "accuracy": 0.061224489795918366,
+          "correct": 3,
+          "denominator": 49,
+          "predicted_unknown_with_evaluable_gt": 21
+        },
+        "official_only": {
+          "accuracy": 0.02040816326530612,
+          "correct": 1,
+          "denominator": 49,
+          "predicted_unknown_with_evaluable_gt": 41
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.061224489795918366,
+          "correct": 3,
+          "denominator": 49,
+          "predicted_unknown_with_evaluable_gt": 21
+        }
+      },
+      "OM_pure": {
+        "current_aliases": {
+          "accuracy": 0.2222222222222222,
+          "correct": 2,
+          "denominator": 9,
+          "predicted_unknown_with_evaluable_gt": 2
+        },
+        "official_only": {
+          "accuracy": 0.2222222222222222,
+          "correct": 2,
+          "denominator": 9,
+          "predicted_unknown_with_evaluable_gt": 4
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.2222222222222222,
+          "correct": 2,
+          "denominator": 9,
+          "predicted_unknown_with_evaluable_gt": 2
+        }
+      },
+      "OP_raw": {
+        "current_aliases": {
+          "accuracy": 0.23076923076923078,
+          "correct": 3,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "official_only": {
+          "accuracy": 0.15384615384615385,
+          "correct": 2,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 4
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.23076923076923078,
+          "correct": 3,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 1
+        }
+      },
+      "OS_hungarian": {
+        "current_aliases": {
+          "accuracy": 0.875,
+          "correct": 7,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.875,
+          "correct": 7,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.875,
+          "correct": 7,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "OS_strict": {
+        "current_aliases": {
+          "accuracy": 0.25,
+          "correct": 2,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.25,
+          "correct": 2,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 3
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.25,
+          "correct": 2,
+          "denominator": 8,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "legacy_O1": {
+        "current_aliases": {
+          "accuracy": 0.23076923076923078,
+          "correct": 3,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 0
+        },
+        "official_only": {
+          "accuracy": 0.15384615384615385,
+          "correct": 2,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 3
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.23076923076923078,
+          "correct": 3,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 0
+        }
+      },
+      "legacy_O2": {
+        "current_aliases": {
+          "accuracy": 0.46153846153846156,
+          "correct": 6,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 1
+        },
+        "official_only": {
+          "accuracy": 0.38461538461538464,
+          "correct": 5,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 4
+        },
+        "reviewed_lamp_aliases": {
+          "accuracy": 0.46153846153846156,
+          "correct": 6,
+          "denominator": 13,
+          "predicted_unknown_with_evaluable_gt": 1
+        }
+      }
+    }
+  },
+  "interpretation_rules": [
+    "Geometry/AP/F1 conclusions do not depend on semantic aliases.",
+    "The official-only policy is the strict cross-dataset baseline.",
+    "Current aliases reproduce prior scores and are retained for comparability.",
+    "Reviewed lamp aliases are reported only as sensitivity, not as a new primary metric.",
+    "A direction claim is called ontology-robust only if it is stable in all three modes."
+  ],
+  "label_inventory": {
+    "office0": {
+      "b0": {
+        "labels": {
+          "book": 1,
+          "ceiling": 1,
+          "chair": 2,
+          "closet door": 1,
+          "coffee table": 1,
+          "floor": 1,
+          "mat": 1,
+          "paper bag": 1,
+          "person": 2,
+          "picture": 2,
+          "pillow": 1,
+          "potted plant": 4,
+          "power outlet": 5,
+          "refrigerator": 1,
+          "sofa chair": 2,
+          "speaker": 2,
+          "storage bin": 1,
+          "stuffed animal": 1,
+          "tissue box": 1,
+          "trash bin": 2,
+          "tv": 1,
+          "window": 1
+        },
+        "object_count": 35
+      },
+      "reviewed_aliases_observed": []
+    },
+    "room0": {
+      "b0": {
+        "labels": {
+          "armchair": 2,
+          "blinds": 2,
+          "book": 4,
+          "bottle": 1,
+          "cabinet": 1,
+          "ceiling": 2,
+          "ceiling light": 1,
+          "chair": 1,
+          "closet door": 2,
+          "coffee kettle": 1,
+          "coffee table": 2,
+          "cup": 1,
+          "end table": 4,
+          "floor": 1,
+          "lamp": 12,
+          "light switch": 1,
+          "paper bag": 1,
+          "pillow": 15,
+          "poster": 1,
+          "potted plant": 2,
+          "power outlet": 3,
+          "radiator": 1,
+          "sofa chair": 6,
+          "stool": 2,
+          "toaster": 1,
+          "window": 2
+        },
+        "object_count": 72
+      },
+      "reviewed_aliases_observed": [
+        "ceiling light"
+      ]
+    }
+  },
+  "mode_conclusions": {
+    "current_aliases": {
+      "om_all_minus_b0_class_conditioned_f1": {
+        "office0": 0.1426282051282051,
+        "room0": 0.038828967642526975
+      },
+      "same_sign_across_scenes": true
+    },
+    "official_only": {
+      "om_all_minus_b0_class_conditioned_f1": {
+        "office0": 0.0,
+        "room0": -0.014430014430014435
+      },
+      "same_sign_across_scenes": false
+    },
+    "reviewed_lamp_aliases": {
+      "om_all_minus_b0_class_conditioned_f1": {
+        "office0": 0.1426282051282051,
+        "room0": 0.03911382734912147
+      },
+      "same_sign_across_scenes": true
+    }
+  },
+  "ontology": {
+    "current_aliases": {
+      "arm chair": "chair",
+      "armchair": "chair",
+      "blinds": "curtain",
+      "closet door": "door",
+      "coffee table": "table",
+      "couch": "chair",
+      "dining table": "table",
+      "end table": "table",
+      "paper bag": "bag",
+      "potted plant": "plant",
+      "sofa": "chair",
+      "sofa chair": "chair",
+      "stool": "chair",
+      "television": "screen",
+      "tv": "screen"
+    },
+    "mapping_path": "/home/chenkejun/beauty/conceptgraphs/code/third_party/ReplicaSSG/files/replica_to_visual_genome.json",
+    "mapping_sha256": "c9d3a8246faee97c6f679323652945b4292da250d2abcd3036a5a235da1d8014",
+    "normalized_source_conflicts": {},
+    "objects_path": "/home/chenkejun/beauty/conceptgraphs/code/third_party/ReplicaSSG/files/objects.json",
+    "objects_sha256": "3bceb3d838c7992ec7099dc4b46b49346b4961154376bff5748b1d1b7c5e96d5",
+    "official_source_label_count": 101,
+    "reviewed_alias_policy": "narrow compound-lamp sensitivity only; never selected post-hoc per sample",
+    "reviewed_lamp_aliases": {
+      "bedside lamp": "lamp",
+      "ceiling lamp": "lamp",
+      "ceiling light": "lamp",
+      "desk lamp": "lamp",
+      "floor lamp": "lamp",
+      "table lamp": "lamp"
+    },
+    "visual_genome_label_count": 150
+  },
+  "pass": true,
+  "schema_version": "1.0.0"
+}
