@@ -1,0 +1,1176 @@
+{
+  "schema_version": 1,
+  "status": "corrected_formal",
+  "withdrawn_results": {
+    "old_habitat_semantic_sidecar_point_metrics": true,
+    "old_o3_referenced_structure_absolute_values": true,
+    "reason": "semantic viewport/visible-surface mismatch"
+  },
+  "point_semantic_percent": {
+    "B0": {
+      "room0": {
+        "scope": "room0",
+        "point_count": 4085377,
+        "num_classes": 23,
+        "miou": 19.929971,
+        "mrecall": 38.733067,
+        "mprecision": 23.764444,
+        "mf1score": 24.747807,
+        "fmiou": 40.68413,
+        "point_accuracy": 51.704433,
+        "acc0.15": 8,
+        "acc0.25": 6,
+        "acc0.50": 5,
+        "acc0.75": 2
+      },
+      "office0": {
+        "scope": "office0",
+        "point_count": 4079896,
+        "num_classes": 19,
+        "miou": 26.502527,
+        "mrecall": 45.819174,
+        "mprecision": 30.970185,
+        "mf1score": 32.196118,
+        "fmiou": 49.162647,
+        "point_accuracy": 60.373451,
+        "acc0.15": 9,
+        "acc0.25": 8,
+        "acc0.50": 6,
+        "acc0.75": 2
+      },
+      "two_scene_micro": {
+        "scope": "B0_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 24.412998,
+        "mrecall": 41.916805,
+        "mprecision": 32.116257,
+        "mf1score": 30.732429,
+        "fmiou": 44.925929,
+        "point_accuracy": 56.036032,
+        "acc0.15": 16,
+        "acc0.25": 11,
+        "acc0.50": 8,
+        "acc0.75": 2
+      }
+    },
+    "MF_OP": {
+      "room0": {
+        "scope": "room0",
+        "point_count": 4085377,
+        "num_classes": 23,
+        "miou": 20.405972,
+        "mrecall": 36.138791,
+        "mprecision": 23.405452,
+        "mf1score": 23.912711,
+        "fmiou": 33.799774,
+        "point_accuracy": 42.704382,
+        "acc0.15": 7,
+        "acc0.25": 6,
+        "acc0.50": 5,
+        "acc0.75": 2
+      },
+      "office0": {
+        "scope": "office0",
+        "point_count": 4079896,
+        "num_classes": 19,
+        "miou": 19.046176,
+        "mrecall": 31.257873,
+        "mprecision": 19.381704,
+        "mf1score": 21.005087,
+        "fmiou": 31.843309,
+        "point_accuracy": 34.966676,
+        "acc0.15": 5,
+        "acc0.25": 4,
+        "acc0.50": 3,
+        "acc0.75": 3
+      },
+      "two_scene_micro": {
+        "scope": "MF_OP_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 21.061976,
+        "mrecall": 35.202031,
+        "mprecision": 25.424452,
+        "mf1score": 24.788695,
+        "fmiou": 31.714784,
+        "point_accuracy": 38.838126,
+        "acc0.15": 10,
+        "acc0.25": 8,
+        "acc0.50": 7,
+        "acc0.75": 3
+      }
+    },
+    "MF_OM_pure": {
+      "room0": {
+        "scope": "room0",
+        "point_count": 4085377,
+        "num_classes": 23,
+        "miou": 27.816538,
+        "mrecall": 41.34249,
+        "mprecision": 32.224641,
+        "mf1score": 31.676405,
+        "fmiou": 55.092331,
+        "point_accuracy": 62.59344,
+        "acc0.15": 9,
+        "acc0.25": 8,
+        "acc0.50": 8,
+        "acc0.75": 4
+      },
+      "office0": {
+        "scope": "office0",
+        "point_count": 4079896,
+        "num_classes": 19,
+        "miou": 12.373612,
+        "mrecall": 32.988026,
+        "mprecision": 13.332457,
+        "mf1score": 16.066621,
+        "fmiou": 27.097018,
+        "point_accuracy": 32.127608,
+        "acc0.15": 6,
+        "acc0.25": 4,
+        "acc0.50": 1,
+        "acc0.75": 1
+      },
+      "two_scene_micro": {
+        "scope": "MF_OM_pure_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 21.114199,
+        "mrecall": 38.293971,
+        "mprecision": 25.684166,
+        "mf1score": 25.488258,
+        "fmiou": 40.819159,
+        "point_accuracy": 47.370749,
+        "acc0.15": 12,
+        "acc0.25": 9,
+        "acc0.50": 7,
+        "acc0.75": 3
+      }
+    },
+    "MF_OM_all": {
+      "room0": {
+        "scope": "room0",
+        "point_count": 4085377,
+        "num_classes": 23,
+        "miou": 27.311429,
+        "mrecall": 41.571737,
+        "mprecision": 30.958821,
+        "mf1score": 31.355712,
+        "fmiou": 55.130478,
+        "point_accuracy": 62.627268,
+        "acc0.15": 9,
+        "acc0.25": 8,
+        "acc0.50": 8,
+        "acc0.75": 3
+      },
+      "office0": {
+        "scope": "office0",
+        "point_count": 4079896,
+        "num_classes": 19,
+        "miou": 17.867678,
+        "mrecall": 33.498336,
+        "mprecision": 25.193646,
+        "mf1score": 22.346485,
+        "fmiou": 13.600198,
+        "point_accuracy": 19.596897,
+        "acc0.15": 7,
+        "acc0.25": 5,
+        "acc0.50": 3,
+        "acc0.75": 2
+      },
+      "two_scene_micro": {
+        "scope": "MF_OM_all_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 25.018099,
+        "mrecall": 39.452333,
+        "mprecision": 32.245129,
+        "mf1score": 29.872882,
+        "fmiou": 34.463412,
+        "point_accuracy": 41.126524,
+        "acc0.15": 13,
+        "acc0.25": 10,
+        "acc0.50": 10,
+        "acc0.75": 3
+      }
+    },
+    "MF_OM_all_OA": {
+      "room0": {
+        "scope": "room0",
+        "point_count": 4085377,
+        "num_classes": 23,
+        "miou": 30.462741,
+        "mrecall": 42.861167,
+        "mprecision": 37.464045,
+        "mf1score": 33.412046,
+        "fmiou": 58.930501,
+        "point_accuracy": 64.47684,
+        "acc0.15": 9,
+        "acc0.25": 8,
+        "acc0.50": 8,
+        "acc0.75": 5
+      },
+      "office0": {
+        "scope": "office0",
+        "point_count": 4079896,
+        "num_classes": 19,
+        "miou": 19.741426,
+        "mrecall": 37.080556,
+        "mprecision": 24.316605,
+        "mf1score": 22.812189,
+        "fmiou": 31.529728,
+        "point_accuracy": 36.377251,
+        "acc0.15": 7,
+        "acc0.25": 4,
+        "acc0.50": 3,
+        "acc0.75": 3
+      },
+      "two_scene_micro": {
+        "scope": "MF_OM_all_OA_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 28.077336,
+        "mrecall": 41.651384,
+        "mprecision": 35.070505,
+        "mf1score": 31.432202,
+        "fmiou": 45.118488,
+        "point_accuracy": 50.436477,
+        "acc0.15": 12,
+        "acc0.25": 10,
+        "acc0.50": 9,
+        "acc0.75": 6
+      }
+    },
+    "MF_OM_all_OA_GT_label": {
+      "room0": {
+        "scope": "room0",
+        "point_count": 4085377,
+        "num_classes": 23,
+        "miou": 91.615566,
+        "mrecall": 95.920365,
+        "mprecision": 94.91765,
+        "mf1score": 94.678812,
+        "fmiou": 96.63087,
+        "point_accuracy": 98.196739,
+        "acc0.15": 23,
+        "acc0.25": 23,
+        "acc0.50": 22,
+        "acc0.75": 21
+      },
+      "office0": {
+        "scope": "office0",
+        "point_count": 4079103,
+        "num_classes": 19,
+        "miou": 87.147917,
+        "mrecall": 95.174394,
+        "mprecision": 91.613944,
+        "mf1score": 91.099569,
+        "fmiou": 92.341811,
+        "point_accuracy": 95.216252,
+        "acc0.15": 18,
+        "acc0.25": 18,
+        "acc0.50": 18,
+        "acc0.75": 17
+      },
+      "two_scene_micro": {
+        "scope": "MF_OM_all_OA_gtlabel_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 90.299397,
+        "mrecall": 96.315503,
+        "mprecision": 93.685373,
+        "mf1score": 93.633135,
+        "fmiou": 94.44869,
+        "point_accuracy": 96.698249,
+        "acc0.15": 30,
+        "acc0.25": 30,
+        "acc0.50": 30,
+        "acc0.75": 30
+      }
+    }
+  },
+  "point_semantic_provenance": {
+    "B0": {
+      "result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_B0/semseg_results.json",
+      "result_sha256": "4a2ba76df32e8beca28c37c1890c57c97832be639d177a59a307557888d8bf4b",
+      "inputs": [
+        {
+          "scene_id": "room0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/b0_room0_fresh/pcd_b0_room0_fresh.pkl.gz",
+          "map_pickle_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1",
+          "semantic_gt": "data/ReplicaSemanticGT/room_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/room0/rgb_cloud"
+        },
+        {
+          "scene_id": "office0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/b0_office0_fresh_final/pcd_b0_office0_fresh_final.pkl.gz",
+          "map_pickle_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475",
+          "semantic_gt": "data/ReplicaSemanticGT/office_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/office0/rgb_cloud"
+        }
+      ],
+      "protocol": {
+        "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+        "class_prompt": "an image of {class}",
+        "clip_model": "ViT-H-14",
+        "clip_pretrained": "laion2b_s32b_b79k",
+        "clip_device": "cpu",
+        "nearest_neighbor_backend": "scipy.spatial.cKDTree exact k=1 on CPU",
+        "feature_source": "native_clip",
+        "label_control_definition": null,
+        "slam_reconstruction_source": "frozen main stride5 rgb_cloud, shared scene geometry",
+        "metric_formula_compatibility": "mirrors conceptgraph.utils.eval.compute_metrics",
+        "n_exclude": [
+          6
+        ]
+      },
+      "runtime_seconds": 51.347,
+      "scopes": [
+        "B0_two_scene_micro",
+        "office0",
+        "room0"
+      ]
+    },
+    "MF_OP": {
+      "result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OP/semseg_results.json",
+      "result_sha256": "f2b0cc05fd14bbeb276e8ac3a244ef7db8c2e2d2aa02456f1ac1ce8b1bac22b6",
+      "inputs": [
+        {
+          "scene_id": "room0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_op/pcd_mf_op_native.pkl.gz",
+          "map_pickle_sha256": "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de",
+          "semantic_gt": "data/ReplicaSemanticGT/room_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/room0/rgb_cloud"
+        },
+        {
+          "scene_id": "office0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_op/pcd_mf_op_native.pkl.gz",
+          "map_pickle_sha256": "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3",
+          "semantic_gt": "data/ReplicaSemanticGT/office_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/office0/rgb_cloud"
+        }
+      ],
+      "protocol": {
+        "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+        "class_prompt": "an image of {class}",
+        "clip_model": "ViT-H-14",
+        "clip_pretrained": "laion2b_s32b_b79k",
+        "clip_device": "cpu",
+        "nearest_neighbor_backend": "scipy.spatial.cKDTree exact k=1 on CPU",
+        "feature_source": "native_clip",
+        "label_control_definition": null,
+        "slam_reconstruction_source": "frozen main stride5 rgb_cloud, shared scene geometry",
+        "metric_formula_compatibility": "mirrors conceptgraph.utils.eval.compute_metrics",
+        "n_exclude": [
+          6
+        ]
+      },
+      "runtime_seconds": 41.271,
+      "scopes": [
+        "MF_OP_two_scene_micro",
+        "office0",
+        "room0"
+      ]
+    },
+    "MF_OM_pure": {
+      "result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_pure/semseg_results.json",
+      "result_sha256": "d3d0f64ccea59efbd8458173954d6e285be5a5d7ed8fa84b58c25778a705b039",
+      "inputs": [
+        {
+          "scene_id": "room0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_pure/pcd_mf_om_pure_native.pkl.gz",
+          "map_pickle_sha256": "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631",
+          "semantic_gt": "data/ReplicaSemanticGT/room_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/room0/rgb_cloud"
+        },
+        {
+          "scene_id": "office0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_pure/pcd_mf_om_pure_native.pkl.gz",
+          "map_pickle_sha256": "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91",
+          "semantic_gt": "data/ReplicaSemanticGT/office_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/office0/rgb_cloud"
+        }
+      ],
+      "protocol": {
+        "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+        "class_prompt": "an image of {class}",
+        "clip_model": "ViT-H-14",
+        "clip_pretrained": "laion2b_s32b_b79k",
+        "clip_device": "cpu",
+        "nearest_neighbor_backend": "scipy.spatial.cKDTree exact k=1 on CPU",
+        "feature_source": "native_clip",
+        "label_control_definition": null,
+        "slam_reconstruction_source": "frozen main stride5 rgb_cloud, shared scene geometry",
+        "metric_formula_compatibility": "mirrors conceptgraph.utils.eval.compute_metrics",
+        "n_exclude": [
+          6
+        ]
+      },
+      "runtime_seconds": 35.88,
+      "scopes": [
+        "MF_OM_pure_two_scene_micro",
+        "office0",
+        "room0"
+      ]
+    },
+    "MF_OM_all": {
+      "result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_all/semseg_results.json",
+      "result_sha256": "45450a9ccc02fe830610941af025e744ab6fc90d1d6acca26ea813dcefa89cde",
+      "inputs": [
+        {
+          "scene_id": "room0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_native/pcd_mf_om_all_native.pkl.gz",
+          "map_pickle_sha256": "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664",
+          "semantic_gt": "data/ReplicaSemanticGT/room_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/room0/rgb_cloud"
+        },
+        {
+          "scene_id": "office0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_native/pcd_mf_om_all_native.pkl.gz",
+          "map_pickle_sha256": "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e",
+          "semantic_gt": "data/ReplicaSemanticGT/office_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/office0/rgb_cloud"
+        }
+      ],
+      "protocol": {
+        "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+        "class_prompt": "an image of {class}",
+        "clip_model": "ViT-H-14",
+        "clip_pretrained": "laion2b_s32b_b79k",
+        "clip_device": "cpu",
+        "nearest_neighbor_backend": "scipy.spatial.cKDTree exact k=1 on CPU",
+        "feature_source": "native_clip",
+        "label_control_definition": null,
+        "slam_reconstruction_source": "frozen main stride5 rgb_cloud, shared scene geometry",
+        "metric_formula_compatibility": "mirrors conceptgraph.utils.eval.compute_metrics",
+        "n_exclude": [
+          6
+        ]
+      },
+      "runtime_seconds": 49.089,
+      "scopes": [
+        "MF_OM_all_two_scene_micro",
+        "office0",
+        "room0"
+      ]
+    },
+    "MF_OM_all_OA": {
+      "result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_all_OA/semseg_results.json",
+      "result_sha256": "25c335beaa6ae7b54fc39d59484fe025dc7497e79716b38db73cc23c70cbac8a",
+      "inputs": [
+        {
+          "scene_id": "room0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_oa/pcd_mf_om_all_oa.pkl.gz",
+          "map_pickle_sha256": "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6",
+          "semantic_gt": "data/ReplicaSemanticGT/room_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/room0/rgb_cloud"
+        },
+        {
+          "scene_id": "office0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_oa/pcd_mf_om_all_oa.pkl.gz",
+          "map_pickle_sha256": "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d",
+          "semantic_gt": "data/ReplicaSemanticGT/office_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/office0/rgb_cloud"
+        }
+      ],
+      "protocol": {
+        "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+        "class_prompt": "an image of {class}",
+        "clip_model": "ViT-H-14",
+        "clip_pretrained": "laion2b_s32b_b79k",
+        "clip_device": "cpu",
+        "nearest_neighbor_backend": "scipy.spatial.cKDTree exact k=1 on CPU",
+        "feature_source": "native_clip",
+        "label_control_definition": null,
+        "slam_reconstruction_source": "frozen main stride5 rgb_cloud, shared scene geometry",
+        "metric_formula_compatibility": "mirrors conceptgraph.utils.eval.compute_metrics",
+        "n_exclude": [
+          6
+        ]
+      },
+      "runtime_seconds": 54.197,
+      "scopes": [
+        "MF_OM_all_OA_two_scene_micro",
+        "office0",
+        "room0"
+      ]
+    },
+    "MF_OM_all_OA_GT_label": {
+      "result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_MF_OM_all_OA/semseg_results.json",
+      "result_sha256": "1b4c866bbc06ec0bab87ff107101ca5fb2ff1e3296068d25773cde94ce4c4021",
+      "inputs": [
+        {
+          "scene_id": "room0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_oa/pcd_mf_om_all_oa.pkl.gz",
+          "map_pickle_sha256": "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6",
+          "semantic_gt": "data/ReplicaSemanticGT/room_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/room0/rgb_cloud"
+        },
+        {
+          "scene_id": "office0",
+          "map_pickle": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_oa/pcd_mf_om_all_oa.pkl.gz",
+          "map_pickle_sha256": "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d",
+          "semantic_gt": "data/ReplicaSemanticGT/office_0/Sequence_1/saved-maps-gt",
+          "slam_rgb_cloud": "results/main/replica_stride5/Replica/office0/rgb_cloud"
+        }
+      ],
+      "protocol": {
+        "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+        "class_prompt": "an image of {class}",
+        "clip_model": "ViT-H-14",
+        "clip_pretrained": "laion2b_s32b_b79k",
+        "clip_device": "cpu",
+        "nearest_neighbor_backend": "scipy.spatial.cKDTree exact k=1 on CPU",
+        "feature_source": "oracle_gt_label",
+        "label_control_definition": "exact stored oracle_gt_label -> matching Replica class prompt; out-of-ontology labels -> other; official exclusion suppression retained",
+        "slam_reconstruction_source": "frozen main stride5 rgb_cloud, shared scene geometry",
+        "metric_formula_compatibility": "mirrors conceptgraph.utils.eval.compute_metrics",
+        "n_exclude": [
+          6
+        ]
+      },
+      "runtime_seconds": 50.521,
+      "scopes": [
+        "MF_OM_all_OA_gtlabel_two_scene_micro",
+        "office0",
+        "room0"
+      ]
+    }
+  },
+  "structure_class_agnostic": {
+    "0p025": {
+      "room0": {
+        "gt_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/og_corrected/room0_o3/pcd_o3.pkl.gz",
+        "gt_map_sha256": "e1035e0b1d96230ac12f7ce66330fcbc72b92f03cd9de241c005a358c5242b52",
+        "observable_gt_nodes": 90,
+        "results": {
+          "B0": {
+            "instance_ap_mean_25_50": 0.3672836359819678,
+            "ap25": 0.4103169317859704,
+            "ap50": 0.32425034017796517,
+            "node_f1": 0.49382716049382713,
+            "predicted_nodes": 72,
+            "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+          },
+          "MF_OP": {
+            "instance_ap_mean_25_50": 0.3962048449859241,
+            "ap25": 0.4467124037321086,
+            "ap50": 0.34569728623973967,
+            "node_f1": 0.5508982035928144,
+            "predicted_nodes": 77,
+            "map_sha256": "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de"
+          },
+          "MF_OM_pure": {
+            "instance_ap_mean_25_50": 0.6716713579246254,
+            "ap25": 0.676524619342552,
+            "ap50": 0.6668180965066988,
+            "node_f1": 0.7391304347826086,
+            "predicted_nodes": 94,
+            "map_sha256": "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631"
+          },
+          "MF_OM_all_native": {
+            "instance_ap_mean_25_50": 0.5573341362276352,
+            "ap25": 0.5646486877971472,
+            "ap50": 0.5500195846581231,
+            "node_f1": 0.6042553191489362,
+            "predicted_nodes": 145,
+            "map_sha256": "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664"
+          },
+          "MF_OM_all_OA": {
+            "instance_ap_mean_25_50": 0.9508485281293624,
+            "ap25": 0.9801980198019802,
+            "ap50": 0.9214990364567446,
+            "node_f1": 0.994413407821229,
+            "predicted_nodes": 89,
+            "map_sha256": "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6"
+          },
+          "OG": {
+            "instance_ap_mean_25_50": 1.0,
+            "ap25": 1.0,
+            "ap50": 1.0,
+            "node_f1": 1.0,
+            "predicted_nodes": 90,
+            "map_sha256": "e1035e0b1d96230ac12f7ce66330fcbc72b92f03cd9de241c005a358c5242b52"
+          }
+        },
+        "artifact": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/structure_corrected/room0/metrics_0p025.json",
+        "artifact_sha256": "572e0a00bd81f2e3a1a0a3edb1179734bb2cb9cde2f3ebecb0fa487cbf674081"
+      },
+      "office0": {
+        "gt_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/og_corrected/office0_o3/pcd_o3.pkl.gz",
+        "gt_map_sha256": "cd174870a3f114d48cc5cb7568b6748bc46e594fd97b5bc61b97a60f53dd0322",
+        "observable_gt_nodes": 47,
+        "results": {
+          "B0": {
+            "instance_ap_mean_25_50": 0.3529487850839551,
+            "ap25": 0.414942922863715,
+            "ap50": 0.2909546473041953,
+            "node_f1": 0.5121951219512195,
+            "predicted_nodes": 35,
+            "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+          },
+          "MF_OP": {
+            "instance_ap_mean_25_50": 0.3796323511661511,
+            "ap25": 0.4497252804098144,
+            "ap50": 0.3095394219224878,
+            "node_f1": 0.5287356321839081,
+            "predicted_nodes": 40,
+            "map_sha256": "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3"
+          },
+          "MF_OM_pure": {
+            "instance_ap_mean_25_50": 0.6064507025151975,
+            "ap25": 0.6278648477312397,
+            "ap50": 0.5850365572991553,
+            "node_f1": 0.6407766990291263,
+            "predicted_nodes": 56,
+            "map_sha256": "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91"
+          },
+          "MF_OM_all_native": {
+            "instance_ap_mean_25_50": 0.6435481196255803,
+            "ap25": 0.6442452112706095,
+            "ap50": 0.6428510279805512,
+            "node_f1": 0.5714285714285714,
+            "predicted_nodes": 72,
+            "map_sha256": "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e"
+          },
+          "MF_OM_all_OA": {
+            "instance_ap_mean_25_50": 0.9803033494838846,
+            "ap25": 1.0,
+            "ap50": 0.9606066989677693,
+            "node_f1": 1.0,
+            "predicted_nodes": 47,
+            "map_sha256": "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d"
+          },
+          "OG": {
+            "instance_ap_mean_25_50": 1.0,
+            "ap25": 1.0,
+            "ap50": 1.0,
+            "node_f1": 1.0,
+            "predicted_nodes": 47,
+            "map_sha256": "cd174870a3f114d48cc5cb7568b6748bc46e594fd97b5bc61b97a60f53dd0322"
+          }
+        },
+        "artifact": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/structure_corrected/office0/metrics_0p025.json",
+        "artifact_sha256": "dd16e8011d0d2b0f4018c34a5a786c9fbc430274ef9ffd7bf906479ab14c261a"
+      }
+    },
+    "0p05": {
+      "room0": {
+        "gt_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/og_corrected/room0_o3/pcd_o3.pkl.gz",
+        "gt_map_sha256": "e1035e0b1d96230ac12f7ce66330fcbc72b92f03cd9de241c005a358c5242b52",
+        "observable_gt_nodes": 90,
+        "results": {
+          "B0": {
+            "instance_ap_mean_25_50": 0.367013244570357,
+            "ap25": 0.4103169317859704,
+            "ap50": 0.32370955735474355,
+            "node_f1": 0.49382716049382713,
+            "predicted_nodes": 72,
+            "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+          },
+          "MF_OP": {
+            "instance_ap_mean_25_50": 0.40221753218018386,
+            "ap25": 0.45815402409305145,
+            "ap50": 0.3462810402673163,
+            "node_f1": 0.562874251497006,
+            "predicted_nodes": 77,
+            "map_sha256": "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de"
+          },
+          "MF_OM_pure": {
+            "instance_ap_mean_25_50": 0.6716713579246254,
+            "ap25": 0.676524619342552,
+            "ap50": 0.6668180965066988,
+            "node_f1": 0.7391304347826086,
+            "predicted_nodes": 94,
+            "map_sha256": "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631"
+          },
+          "MF_OM_all_native": {
+            "instance_ap_mean_25_50": 0.5637263472931511,
+            "ap25": 0.5774331099281791,
+            "ap50": 0.5500195846581231,
+            "node_f1": 0.6127659574468085,
+            "predicted_nodes": 145,
+            "map_sha256": "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664"
+          },
+          "MF_OM_all_OA": {
+            "instance_ap_mean_25_50": 0.9508485281293624,
+            "ap25": 0.9801980198019802,
+            "ap50": 0.9214990364567446,
+            "node_f1": 0.994413407821229,
+            "predicted_nodes": 89,
+            "map_sha256": "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6"
+          },
+          "OG": {
+            "instance_ap_mean_25_50": 1.0,
+            "ap25": 1.0,
+            "ap50": 1.0,
+            "node_f1": 1.0,
+            "predicted_nodes": 90,
+            "map_sha256": "e1035e0b1d96230ac12f7ce66330fcbc72b92f03cd9de241c005a358c5242b52"
+          }
+        },
+        "artifact": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/structure_corrected/room0/metrics_0p05.json",
+        "artifact_sha256": "563055f6d9e5db7b2e4b49c8f601edf665458577bde081c6a00f51782084dc6d"
+      },
+      "office0": {
+        "gt_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/og_corrected/office0_o3/pcd_o3.pkl.gz",
+        "gt_map_sha256": "cd174870a3f114d48cc5cb7568b6748bc46e594fd97b5bc61b97a60f53dd0322",
+        "observable_gt_nodes": 47,
+        "results": {
+          "B0": {
+            "instance_ap_mean_25_50": 0.37910637821883425,
+            "ap25": 0.4672581091334732,
+            "ap50": 0.2909546473041953,
+            "node_f1": 0.5853658536585366,
+            "predicted_nodes": 35,
+            "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+          },
+          "MF_OP": {
+            "instance_ap_mean_25_50": 0.38343661336577006,
+            "ap25": 0.45733380480905234,
+            "ap50": 0.3095394219224878,
+            "node_f1": 0.5287356321839081,
+            "predicted_nodes": 40,
+            "map_sha256": "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3"
+          },
+          "MF_OM_pure": {
+            "instance_ap_mean_25_50": 0.6183989153065936,
+            "ap25": 0.6517612733140321,
+            "ap50": 0.5850365572991553,
+            "node_f1": 0.6407766990291263,
+            "predicted_nodes": 56,
+            "map_sha256": "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91"
+          },
+          "MF_OM_all_native": {
+            "instance_ap_mean_25_50": 0.6469608184036788,
+            "ap25": 0.6510706088268065,
+            "ap50": 0.6428510279805512,
+            "node_f1": 0.5714285714285714,
+            "predicted_nodes": 72,
+            "map_sha256": "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e"
+          },
+          "MF_OM_all_OA": {
+            "instance_ap_mean_25_50": 0.9803033494838846,
+            "ap25": 1.0,
+            "ap50": 0.9606066989677693,
+            "node_f1": 1.0,
+            "predicted_nodes": 47,
+            "map_sha256": "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d"
+          },
+          "OG": {
+            "instance_ap_mean_25_50": 1.0,
+            "ap25": 1.0,
+            "ap50": 1.0,
+            "node_f1": 1.0,
+            "predicted_nodes": 47,
+            "map_sha256": "cd174870a3f114d48cc5cb7568b6748bc46e594fd97b5bc61b97a60f53dd0322"
+          }
+        },
+        "artifact": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/structure_corrected/office0/metrics_0p05.json",
+        "artifact_sha256": "398613ccc2f29a4f09caa19fcfb4a15e368e347749fe8a3eef42fefc4a8877ff"
+      }
+    },
+    "0p10": {
+      "room0": {
+        "gt_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/og_corrected/room0_o3/pcd_o3.pkl.gz",
+        "gt_map_sha256": "e1035e0b1d96230ac12f7ce66330fcbc72b92f03cd9de241c005a358c5242b52",
+        "observable_gt_nodes": 90,
+        "results": {
+          "B0": {
+            "instance_ap_mean_25_50": 0.4165264794703516,
+            "ap25": 0.43090193292791346,
+            "ap50": 0.4021510260127897,
+            "node_f1": 0.5185185185185185,
+            "predicted_nodes": 72,
+            "map_sha256": "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1"
+          },
+          "MF_OP": {
+            "instance_ap_mean_25_50": 0.4304809748332131,
+            "ap25": 0.47427605453191585,
+            "ap50": 0.38668589513451035,
+            "node_f1": 0.5748502994011976,
+            "predicted_nodes": 77,
+            "map_sha256": "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de"
+          },
+          "MF_OM_pure": {
+            "instance_ap_mean_25_50": 0.6797676397175789,
+            "ap25": 0.692717182928459,
+            "ap50": 0.6668180965066988,
+            "node_f1": 0.75,
+            "predicted_nodes": 94,
+            "map_sha256": "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631"
+          },
+          "MF_OM_all_native": {
+            "instance_ap_mean_25_50": 0.5795574201137212,
+            "ap25": 0.601478888369573,
+            "ap50": 0.5576359518578695,
+            "node_f1": 0.6212765957446809,
+            "predicted_nodes": 145,
+            "map_sha256": "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664"
+          },
+          "MF_OM_all_OA": {
+            "instance_ap_mean_25_50": 0.9508485281293624,
+            "ap25": 0.9801980198019802,
+            "ap50": 0.9214990364567446,
+            "node_f1": 0.994413407821229,
+            "predicted_nodes": 89,
+            "map_sha256": "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6"
+          },
+          "OG": {
+            "instance_ap_mean_25_50": 1.0,
+            "ap25": 1.0,
+            "ap50": 1.0,
+            "node_f1": 1.0,
+            "predicted_nodes": 90,
+            "map_sha256": "e1035e0b1d96230ac12f7ce66330fcbc72b92f03cd9de241c005a358c5242b52"
+          }
+        },
+        "artifact": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/structure_corrected/room0/metrics_0p10.json",
+        "artifact_sha256": "ad6b1a30a3747366f4ce565f36b41e65c217696a181c50c0c3b9b1c0f1c1e8e0"
+      },
+      "office0": {
+        "gt_map": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/og_corrected/office0_o3/pcd_o3.pkl.gz",
+        "gt_map_sha256": "cd174870a3f114d48cc5cb7568b6748bc46e594fd97b5bc61b97a60f53dd0322",
+        "observable_gt_nodes": 47,
+        "results": {
+          "B0": {
+            "instance_ap_mean_25_50": 0.42794544701371573,
+            "ap25": 0.5254670489673402,
+            "ap50": 0.3304238450600913,
+            "node_f1": 0.6341463414634146,
+            "predicted_nodes": 35,
+            "map_sha256": "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+          },
+          "MF_OP": {
+            "instance_ap_mean_25_50": 0.4047240142733485,
+            "ap25": 0.45733380480905234,
+            "ap50": 0.3521142237376446,
+            "node_f1": 0.5287356321839081,
+            "predicted_nodes": 40,
+            "map_sha256": "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3"
+          },
+          "MF_OM_pure": {
+            "instance_ap_mean_25_50": 0.6329356380865148,
+            "ap25": 0.6517612733140321,
+            "ap50": 0.6141100028589973,
+            "node_f1": 0.6407766990291263,
+            "predicted_nodes": 56,
+            "map_sha256": "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91"
+          },
+          "MF_OM_all_native": {
+            "instance_ap_mean_25_50": 0.647657910048708,
+            "ap25": 0.6510706088268065,
+            "ap50": 0.6442452112706095,
+            "node_f1": 0.5714285714285714,
+            "predicted_nodes": 72,
+            "map_sha256": "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e"
+          },
+          "MF_OM_all_OA": {
+            "instance_ap_mean_25_50": 0.9803033494838846,
+            "ap25": 1.0,
+            "ap50": 0.9606066989677693,
+            "node_f1": 1.0,
+            "predicted_nodes": 47,
+            "map_sha256": "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d"
+          },
+          "OG": {
+            "instance_ap_mean_25_50": 1.0,
+            "ap25": 1.0,
+            "ap50": 1.0,
+            "node_f1": 1.0,
+            "predicted_nodes": 47,
+            "map_sha256": "cd174870a3f114d48cc5cb7568b6748bc46e594fd97b5bc61b97a60f53dd0322"
+          }
+        },
+        "artifact": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/structure_corrected/office0/metrics_0p10.json",
+        "artifact_sha256": "aff4c998877508a1bfe97a29de5b0bd5c2cfa424cbd43b15add770bd7e7617d5"
+      }
+    }
+  },
+  "formal_maps": {
+    "room0_mf_op": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 1624.4296159613878,
+      "association_policy": "frozen_native_online",
+      "cumulative_capabilities": [
+        "OP"
+      ],
+      "effective_observation_stream_sha256": "28161d65e3d479668f2a1da35c1021000dfdb5817d6157c1cf548ed0e42f351c",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_op/manifest.json",
+      "manifest_sha256": "cedf9d822a6b0f213acb7a01c5436b0c6af9b47b84bfbeb5aa08dc752500b5b6",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_op/pcd_mf_op_native.pkl.gz",
+          "sha256": "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de",
+          "bytes": 61962728
+        }
+      ]
+    },
+    "room0_mf_pure": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 1440.041614310816,
+      "association_policy": "frozen_native_online",
+      "cumulative_capabilities": [
+        "OP",
+        "OM_pure"
+      ],
+      "effective_observation_stream_sha256": "3de955acc5e3b5000b31b9e41853d0f0eeadf7e62202693c925a3c6d6deb243d",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_pure/manifest.json",
+      "manifest_sha256": "75370ff7aea064374dfdae8374f76b1b8928a56255970561837537871a0385b1",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_pure/pcd_mf_om_pure_native.pkl.gz",
+          "sha256": "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631",
+          "bytes": 55419206
+        }
+      ]
+    },
+    "room0_mf_all_native": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 1527.0636587254703,
+      "association_policy": "frozen_native_online",
+      "cumulative_capabilities": [
+        "OP",
+        "OM_pure",
+        "OM_all"
+      ],
+      "effective_observation_stream_sha256": "194830804108249cc7269b82cabde0dcc8fab99b47181c2de91a61bfa62afbd3",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_native/manifest.json",
+      "manifest_sha256": "bfa978beaa2f8d5fba5af0ed675ed0fb5b443aeae143c7bbee39e1a9ec5db8f1",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_native/pcd_mf_om_all_native.pkl.gz",
+          "sha256": "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664",
+          "bytes": 64766140
+        }
+      ]
+    },
+    "room0_mf_all_oa": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 1209.9831301420927,
+      "association_policy": "oracle_gt_identity",
+      "cumulative_capabilities": [
+        "OP",
+        "OM_pure",
+        "OM_all",
+        "OA"
+      ],
+      "effective_observation_stream_sha256": "194830804108249cc7269b82cabde0dcc8fab99b47181c2de91a61bfa62afbd3",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_oa/manifest.json",
+      "manifest_sha256": "b0e509a807d8c2e347d4f32e3655b16eec3832ff8a446720000bbd8ae2055efb",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/room0_mf_all_oa/pcd_mf_om_all_oa.pkl.gz",
+          "sha256": "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6",
+          "bytes": 61323830
+        }
+      ]
+    },
+    "office0_mf_op": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 808.8936311155558,
+      "association_policy": "frozen_native_online",
+      "cumulative_capabilities": [
+        "OP"
+      ],
+      "effective_observation_stream_sha256": "1493ab23313a93b57c204fee4ee92f32b09c2e32b0b70bcca6cc2f606cdb2de4",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_op/manifest.json",
+      "manifest_sha256": "14e4b1d8bb11288dc60251d5875f3a241c988f1d5a4f3fb138a718db86e9fafd",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_op/pcd_mf_op_native.pkl.gz",
+          "sha256": "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3",
+          "bytes": 30430133
+        }
+      ]
+    },
+    "office0_mf_pure": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 664.4263247754425,
+      "association_policy": "frozen_native_online",
+      "cumulative_capabilities": [
+        "OP",
+        "OM_pure"
+      ],
+      "effective_observation_stream_sha256": "a1e1fa9b4459b43cdfcc3b894ab81dc0f7c9a3668fe59c35298c1447b2f2bcde",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_pure/manifest.json",
+      "manifest_sha256": "ec1c7e1feb0be63a5f4d8aae9e138d4fe3737d61b2871ff191484c9e56a5938f",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_pure/pcd_mf_om_pure_native.pkl.gz",
+          "sha256": "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91",
+          "bytes": 25515379
+        }
+      ]
+    },
+    "office0_mf_all_native": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 751.9463354125619,
+      "association_policy": "frozen_native_online",
+      "cumulative_capabilities": [
+        "OP",
+        "OM_pure",
+        "OM_all"
+      ],
+      "effective_observation_stream_sha256": "5f3faaec9899925a693afe7ed8bfa9233c4a4536f2b7ffb33af5b221d780c46c",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_native/manifest.json",
+      "manifest_sha256": "352d9b5520647534c240c27e3a696f495c2fc1b49733a4861c277709363f250a",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_native/pcd_mf_om_all_native.pkl.gz",
+          "sha256": "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e",
+          "bytes": 31315663
+        }
+      ]
+    },
+    "office0_mf_all_oa": {
+      "ready": true,
+      "incomplete": false,
+      "frame_count": 400,
+      "elapsed_seconds": 643.5436542509124,
+      "association_policy": "oracle_gt_identity",
+      "cumulative_capabilities": [
+        "OP",
+        "OM_pure",
+        "OM_all",
+        "OA"
+      ],
+      "effective_observation_stream_sha256": "5f3faaec9899925a693afe7ed8bfa9233c4a4536f2b7ffb33af5b221d780c46c",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_oa/manifest.json",
+      "manifest_sha256": "edd3f419a3e786873c0ee45e2a6c93ed4d49fa2bd0730c725e0949e815394f65",
+      "maps": [
+        {
+          "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/formal_corrected/office0_mf_all_oa/pcd_mf_om_all_oa.pkl.gz",
+          "sha256": "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d",
+          "bytes": 29680375
+        }
+      ]
+    }
+  },
+  "sidecars": {
+    "room0": {
+      "frame_count": 400,
+      "method": "current-frame depth unprojection to nearest ReplicaSSG annotated face centre",
+      "max_distance_m": 0.03,
+      "alignment_summary": {
+        "max_distance_p95_m": 0.008447910472750661,
+        "max_distance_p99_m": 0.009259766153991222,
+        "max_median_abs_depth_m": 0.005840643774718046,
+        "max_p90_abs_depth_m": 0.007912303879857063,
+        "max_p99_abs_depth_m": 0.009259766153991222,
+        "min_accepted_fraction": 1.0,
+        "min_within_5cm": 1.0
+      },
+      "trajectory_sha256": "5692a60076e426b403dc64025ff38c443606a506704545ee192d4dbadedaaca2",
+      "semantic_mesh_sha256": "87eb4eb7b65265df3f1706e0a8ec083aab9469d76033d082b0bf7be0e3660092",
+      "objects_json_sha256": "3bceb3d838c7992ec7099dc4b46b49346b4961154376bff5748b1d1b7c5e96d5",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/sidecars_geometry_full/room0/manifest.json",
+      "manifest_sha256": "4c51b29578dc59426fff2ab794323bae5a8b3822285b99cfe67654336587a28b"
+    },
+    "office0": {
+      "frame_count": 400,
+      "method": "current-frame depth unprojection to nearest ReplicaSSG annotated face centre",
+      "max_distance_m": 0.03,
+      "alignment_summary": {
+        "max_distance_p95_m": 0.008105814922600985,
+        "max_distance_p99_m": 0.008888493897393346,
+        "max_median_abs_depth_m": 0.005522261373698711,
+        "max_p90_abs_depth_m": 0.007570165069773793,
+        "max_p99_abs_depth_m": 0.008888493897393346,
+        "min_accepted_fraction": 1.0,
+        "min_within_5cm": 1.0
+      },
+      "trajectory_sha256": "6fdf15ff9a85626e0fd2f5f65ade95cd403d8043054701f3398aaf277d5cf602",
+      "semantic_mesh_sha256": "ed314f83ce1cf99ce6e87fd4317debbadc7801278f2ca5f85b3209eaa59f8a6d",
+      "objects_json_sha256": "3bceb3d838c7992ec7099dc4b46b49346b4961154376bff5748b1d1b7c5e96d5",
+      "manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/sidecars_geometry_full/office0/manifest.json",
+      "manifest_sha256": "7d1a426e85b7d7c126db0cc361578190470a5c1828bfcc3e4a370d0cc5aab13e"
+    }
+  },
+  "checks": {
+    "b0_exact_parity": true,
+    "b0_parity": {
+      "exact": true,
+      "old": {
+        "scope": "B0_two_scene_pooled",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 24.412998,
+        "mrecall": 41.916805,
+        "mprecision": 32.116257,
+        "mf1score": 30.732429,
+        "fmiou": 44.925929,
+        "point_accuracy": 56.036032,
+        "acc0.15": 16,
+        "acc0.25": 11,
+        "acc0.50": 8,
+        "acc0.75": 2
+      },
+      "current": {
+        "scope": "B0_two_scene_micro",
+        "point_count": 8165273,
+        "num_classes": 31,
+        "miou": 24.412998,
+        "mrecall": 41.916805,
+        "mprecision": 32.116257,
+        "mf1score": 30.732429,
+        "fmiou": 44.925929,
+        "point_accuracy": 56.036032,
+        "acc0.15": 16,
+        "acc0.25": 11,
+        "acc0.50": 8,
+        "acc0.75": 2
+      },
+      "checked_fields": [
+        "point_count",
+        "miou",
+        "mrecall",
+        "mprecision",
+        "mf1score",
+        "fmiou",
+        "point_accuracy"
+      ]
+    },
+    "formal_ready_count": 8,
+    "formal_incomplete_count": 0,
+    "formal_frame_counts": [
+      400
+    ],
+    "all_formal_online_400_ready": true,
+    "official_evaluator_copies_equal": true,
+    "evaluator_sha256": "487fb3dbca2a02419bd0e937b1b7f15e92c208b0e8c0b5a1e4b2903ae0869788",
+    "official_evaluator_a_sha256": "cb5cceefb9accc89bf8364a867413e9c1b3992eb8d9cef1a9b74c0cb2818953b",
+    "official_evaluator_b_sha256": "cb5cceefb9accc89bf8364a867413e9c1b3992eb8d9cef1a9b74c0cb2818953b"
+  },
+  "interpretation": {
+    "native_point_semantic_is_not_monotonic": true,
+    "om_pure_structure_gain_clear": true,
+    "om_all_increment_over_om_pure_is_not_stable": true,
+    "oracle_association_is_largest_structure_increment": true,
+    "oa_gt_label_isolation_miou_percent": 90.299397,
+    "oa_native_miou_percent": 28.077336,
+    "dominant_remaining_confound": "synthetic masks reuse representative proposal CLIP feature",
+    "recommended_next_test": "re-encode every changed mask crop with the frozen ali-dev CLIP encoder before online association; keep geometry and frame order fixed"
+  },
+  "limitations": [
+    "two scenes only",
+    "Oracle masks and association are not deployable methods",
+    "native synthetic-mask observations retain stale CLIP features",
+    "GT-label control is a geometry/identity upper bound"
+  ]
+}

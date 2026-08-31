@@ -1,5 +1,13 @@
 # Mask-first 累积顺序实验（room0 + office0）
 
+> **重要纠错（2026-09-01）**：本页原始绝对数值依赖的 Habitat semantic sidecar
+> 与 RGB/depth 可见视角不一致，因此旧点语义结果、旧 O3 结构绝对值及据此计算的
+> 恢复比例均已撤回，不能继续引用。校正后的两场景 400 帧在线复算、完整指标与
+> 哈希清单见 [`corrected_reaudit/README.md`](corrected_reaudit/README.md) 和
+> [`corrected_reaudit/final_summary/MASK_FIRST_SEMANTIC_REAUDIT_CN.md`](corrected_reaudit/final_summary/MASK_FIRST_SEMANTIC_REAUDIT_CN.md)。
+> 校正结果保留“OM_pure 有效、association 增量很大”的方向，但不再支持
+> “OM_all 相对 OM_pure 稳定提升”。以下内容仅保留为旧实验审计记录。
+
 ## 最核心结果
 
 把 mask partition/去污染放在前面是正确的，但它不能替代关联修复。完整 OM_all 在原生关联下已稳定改善结构；随后加 OA 又产生最大单步提升，说明高质量 mask 之后 association 仍是主要限制。OP 单独恢复被拒绝观测不稳定，不能作为独立主方向。
