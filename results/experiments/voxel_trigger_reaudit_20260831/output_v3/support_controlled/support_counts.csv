@@ -1,0 +1,13 @@
+﻿family,fraction_ge_0p1,minimum_support,n,scene
+association,6,3,17,room0
+mask,24,3,25,room0
+association,5,5,15,room0
+mask,22,5,23,room0
+association,5,10,10,room0
+mask,19,10,20,room0
+association,15,3,22,office0
+mask,20,3,23,office0
+association,15,5,19,office0
+mask,19,5,22,office0
+association,14,10,17,office0
+mask,18,10,21,office0

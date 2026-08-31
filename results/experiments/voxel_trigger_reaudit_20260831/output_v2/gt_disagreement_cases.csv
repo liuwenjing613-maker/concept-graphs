@@ -1,0 +1,100 @@
+﻿combined_score,geometry_gt,geometry_partition_5cm,map_label,object_index,original_unified,scene,sidecar_gt,strict_unified
+0.45652173913043476,wall,,stool,0,True,room0,wall,True
+0.855072463768116,table,,pillow,1,True,room0,rug,True
+0.45652173913043476,ceiling,,stool,2,True,room0,ceiling,False
+0.45652173913043476,,,lamp,3,True,room0,rug,True
+0.9420289855072463,table,,end table,4,True,room0,rug,True
+0.7681159420289855,cabinet,,closet door,5,True,room0,floor,True
+0.45652173913043476,wall,,window,6,True,room0,wall,False
+0.8840579710144928,wall,,toaster,7,False,room0,wall,False
+0.7391304347826086,floor,,power outlet,8,False,room0,floor,False
+0.8405797101449275,floor,,light switch,9,False,room0,floor,False
+0.9710144927536232,undefined,,coffee kettle,10,True,room0,wall,False
+0.9855072463768116,lamp,,book,11,True,room0,unknown,True
+0.6376811594202898,ceiling,,cabinet,12,True,room0,ceiling,False
+0.9855072463768116,rug,,poster,13,True,room0,rug,True
+0.5652173913043478,floor,,closet door,14,False,room0,floor,False
+0.927536231884058,floor,,sofa chair,15,True,room0,wall,False
+0.7246376811594203,ceiling,,potted plant,16,True,room0,ceiling,False
+0.9130434782608695,floor,,lamp,17,True,room0,rug,True
+0.45652173913043476,ceiling,,power outlet,18,True,room0,ceiling,False
+0.0,wall,,ceiling,19,True,room0,,False
+0.9565217391304348,stool,,sofa chair,20,True,room0,,True
+0.6811594202898551,unknown,,window,21,True,room0,unknown,False
+0.7681159420289855,ceiling,,pillow,22,True,room0,ceiling,False
+0.7246376811594203,ceiling,,sofa chair,23,True,room0,ceiling,False
+0.7536231884057971,floor,,end table,24,False,room0,,False
+0.9855072463768116,ceiling,,sofa chair,25,False,room0,unknown,False
+0.9710144927536232,wall,,ceiling light,26,False,room0,,False
+0.8985507246376812,ceiling,,paper bag,27,False,room0,ceiling,False
+0.8260869565217391,table,,pillow,28,True,room0,table,True
+0.7608695652173914,table,,pillow,29,False,room0,,False
+0.9347826086956522,chair,,pillow,30,False,room0,,False
+0.9347826086956522,chair,,pillow,31,True,room0,rug,True
+0.9855072463768116,chair,True,pillow,32,False,room0,rug,False
+0.7608695652173914,chair,,pillow,33,True,room0,rug,True
+0.5289855072463768,lamp,,coffee table,34,True,room0,ceiling,True
+0.8840579710144928,lamp,,cup,35,True,room0,ceiling,True
+0.9130434782608695,blinds,True,sofa chair,36,False,room0,,False
+0.6811594202898551,lamp,True,bottle,37,False,room0,,False
+0.7101449275362319,blinds,,blinds,39,True,room0,,True
+0.8840579710144928,blinds,True,pillow,40,False,room0,blinds,False
+0.5362318840579711,rug,,lamp,42,False,room0,rug,False
+0.0,wall,,ceiling,44,True,room0,,False
+0.45652173913043476,chair,,coffee table,45,True,room0,,True
+0.45652173913043476,chair,,radiator,46,True,room0,,True
+1.0,vent,,chair,47,True,room0,blinds,True
+0.9565217391304348,vent,,armchair,48,True,room0,ceiling,True
+0.9710144927536232,,,pillow,49,False,room0,,False
+0.9565217391304348,,,pillow,50,True,room0,ceiling,True
+0.5652173913043478,ceiling,,pillow,51,True,room0,ceiling,True
+0.45652173913043476,,,lamp,52,True,room0,ceiling,False
+0.7898550724637681,ceiling,,pillow,53,True,room0,unknown,False
+0.7898550724637681,ceiling,,pillow,54,True,room0,ceiling,False
+0.927536231884058,blinds,,book,55,True,room0,lamp,True
+0.9710144927536232,ceiling,,lamp,56,False,room0,unknown,False
+0.9420289855072463,,,book,57,True,room0,ceiling,True
+0.9927536231884058,lamp,,lamp,58,False,room0,unknown,False
+0.6811594202898551,ceiling,,lamp,59,True,room0,unknown,False
+0.9565217391304348,ceiling,,lamp,60,False,room0,ceiling,False
+0.45652173913043476,window,,sofa chair,61,False,room0,blinds,False
+0.8115942028985508,,,book,62,True,room0,unknown,True
+0.45652173913043476,lamp,False,end table,63,True,room0,ceiling,True
+0.7028985507246377,ceiling,,power outlet,64,True,room0,unknown,True
+0.9130434782608695,ceiling,,lamp,65,False,room0,ceiling,False
+0.0,ceiling,,floor,66,False,room0,,False
+1.0,ceiling,,lamp,67,False,room0,unknown,False
+0.6594202898550725,rug,,end table,68,True,room0,,True
+0.9927536231884058,lamp,,lamp,69,False,room0,,False
+1.0,ceiling,,lamp,70,False,room0,ceiling,False
+0.927536231884058,ceiling,,blinds,71,True,room0,ceiling,False
+0.5454545454545454,ceiling,,trash bin,0,True,office0,table,True
+0.7121212121212122,chair,,sofa chair,1,True,office0,chair,True
+0.9090909090909091,ceiling,,trash bin,2,True,office0,ceiling,True
+0.5757575757575758,,,chair,3,True,office0,table,True
+0.9242424242424242,chair,,tv,4,True,office0,table,True
+0.9696969696969697,wall,,coffee table,5,True,office0,chair,True
+0.7878787878787878,ceiling,,power outlet,6,True,office0,ceiling,True
+0.7575757575757576,ceiling,,closet door,7,True,office0,table,True
+0.9393939393939394,panel,,chair,8,True,office0,chair,True
+0.9242424242424242,table,,speaker,9,True,office0,table,True
+0.4696969696969697,chair,,picture,10,True,office0,chair,True
+0.5454545454545454,chair,,picture,11,False,office0,table,False
+0.7272727272727273,unknown,,stuffed animal,13,True,office0,rug,True
+0.5757575757575758,,,refrigerator,15,True,office0,rug,True
+0.4696969696969697,,,potted plant,16,True,office0,rug,True
+0.4696969696969697,unknown,,power outlet,17,True,office0,rug,True
+0.4696969696969697,chair,,mat,18,True,office0,chair,True
+0.9393939393939394,table,,sofa chair,21,True,office0,chair,True
+1.0,,,power outlet,22,False,office0,unknown,False
+0.7727272727272727,,,paper bag,23,True,office0,rug,True
+0.4696969696969697,,,power outlet,24,True,office0,rug,True
+0.8484848484848485,wall,,tissue box,25,True,office0,wall,True
+0.0,unknown,,floor,26,False,office0,,False
+1.0,,,book,27,True,office0,wall,True
+0.9393939393939394,table,,window,28,False,office0,,False
+0.9848484848484849,unknown,,power outlet,29,False,office0,rug,False
+0.9090909090909091,ceiling,,person,30,False,office0,chair,False
+0.8787878787878788,table,,pillow,31,False,office0,sofa,False
+0.4696969696969697,table,,person,32,False,office0,table,False
+0.0,ceiling,,ceiling,34,True,office0,,False

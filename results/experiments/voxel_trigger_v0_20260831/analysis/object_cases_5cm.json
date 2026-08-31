@@ -1,0 +1,46 @@
+{
+  "office0": [
+    {
+      "case": "TP: high score, audited error",
+      "object_index": 12,
+      "row_position": 12
+    },
+    {
+      "case": "FP: high score, audited clean",
+      "object_index": 22,
+      "row_position": 22
+    },
+    {
+      "case": "FN: low score, audited error",
+      "object_index": 24,
+      "row_position": 24
+    },
+    {
+      "case": "TN: low score, audited clean",
+      "object_index": 32,
+      "row_position": 32
+    }
+  ],
+  "room0": [
+    {
+      "case": "TP: high score, audited error",
+      "object_index": 47,
+      "row_position": 47
+    },
+    {
+      "case": "FP: high score, audited clean",
+      "object_index": 67,
+      "row_position": 67
+    },
+    {
+      "case": "FN: low score, audited error",
+      "object_index": 63,
+      "row_position": 63
+    },
+    {
+      "case": "TN: low score, audited clean",
+      "object_index": 61,
+      "row_position": 61
+    }
+  ]
+}

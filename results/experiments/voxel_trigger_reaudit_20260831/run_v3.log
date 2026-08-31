@@ -1,0 +1,683 @@
+nohup: ignoring input
+/opt/anaconda3/lib/python3.11/site-packages/pandas/core/computation/expressions.py:23: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.10.1' currently installed).
+  from pandas.core.computation.check import NUMEXPR_INSTALLED
+[room0] loading frozen artifacts
+/home/chenkejun/beauty/conceptgraphs/code/experiments/voxel_trigger_reaudit_20260831/reaudit_voxel_trigger.py:90: DeprecationWarning: numpy.core.numeric is deprecated and has been renamed to numpy._core.numeric. The numpy._core namespace contains private NumPy internals and its use is discouraged, as NumPy internals can change without warning in any release. In practice, most real-world usage of numpy.core is to access functionality in the public NumPy API. If that is the case, use the public NumPy API. If not, you are using NumPy internals. If you would still like to access an internal attribute, use numpy._core.numeric._frombuffer.
+  return pickle.load(handle)
+[room0] building one exclusive geometry query
+[room0] exclusive geometry GT at 0.025 m
+[room0] exclusive geometry GT at 0.050 m
+[room0] exclusive geometry GT at 0.075 m
+[room0] auditing voxel scale 0.025
+[room0] auditing voxel scale 0.050
+[room0] auditing voxel scale 0.100
+[office0] loading frozen artifacts
+/home/chenkejun/beauty/conceptgraphs/code/experiments/voxel_trigger_reaudit_20260831/reaudit_voxel_trigger.py:90: DeprecationWarning: numpy.core.numeric is deprecated and has been renamed to numpy._core.numeric. The numpy._core namespace contains private NumPy internals and its use is discouraged, as NumPy internals can change without warning in any release. In practice, most real-world usage of numpy.core is to access functionality in the public NumPy API. If that is the case, use the public NumPy API. If not, you are using NumPy internals. If you would still like to access an internal attribute, use numpy._core.numeric._frombuffer.
+  return pickle.load(handle)
+[office0] building one exclusive geometry query
+[office0] exclusive geometry GT at 0.025 m
+[office0] exclusive geometry GT at 0.050 m
+[office0] exclusive geometry GT at 0.075 m
+[office0] auditing voxel scale 0.025
+[office0] auditing voxel scale 0.050
+[office0] auditing voxel scale 0.100
+{
+  "elapsed_seconds": 64.945357022807,
+  "construction": [
+    {
+      "scene": "room0",
+      "scale": 0.025,
+      "voxel_count": 150048,
+      "links": 7374153,
+      "seen_matches_offsets": true,
+      "voxel_keys_match_coords": true,
+      "unique_observation_per_voxel": true,
+      "label_hist_exact": true,
+      "same_frame_extra_links": 1299536,
+      "same_frame_extra_link_fraction": 0.17622851058284253,
+      "voxels_with_same_frame_multiobs_fraction": 0.4088558328001706,
+      "voxels_with_same_frame_multilabel_fraction": 0.40479046705054383,
+      "multi_owner_voxel_fraction": 0.04557874813393047,
+      "median_unique_frames": 14.0,
+      "mean_unique_frames": 40.48449162934528
+    },
+    {
+      "scene": "room0",
+      "scale": 0.05,
+      "voxel_count": 40416,
+      "links": 2656932,
+      "seen_matches_offsets": true,
+      "voxel_keys_match_coords": true,
+      "unique_observation_per_voxel": true,
+      "label_hist_exact": true,
+      "same_frame_extra_links": 526843,
+      "same_frame_extra_link_fraction": 0.19828998258141345,
+      "voxels_with_same_frame_multiobs_fraction": 0.4318091844813935,
+      "voxels_with_same_frame_multilabel_fraction": 0.4256977434679335,
+      "multi_owner_voxel_fraction": 0.0673743072050673,
+      "median_unique_frames": 20.0,
+      "mean_unique_frames": 52.70410233570863
+    },
+    {
+      "scene": "room0",
+      "scale": 0.1,
+      "voxel_count": 10396,
+      "links": 785890,
+      "seen_matches_offsets": true,
+      "voxel_keys_match_coords": true,
+      "unique_observation_per_voxel": true,
+      "label_hist_exact": true,
+      "same_frame_extra_links": 174411,
+      "same_frame_extra_link_fraction": 0.22192800519156625,
+      "voxels_with_same_frame_multiobs_fraction": 0.45873412851096573,
+      "voxels_with_same_frame_multilabel_fraction": 0.4507502885725279,
+      "multi_owner_voxel_fraction": 0.10956136975759907,
+      "median_unique_frames": 24.0,
+      "mean_unique_frames": 58.818680261639095
+    },
+    {
+      "scene": "office0",
+      "scale": 0.025,
+      "voxel_count": 73037,
+      "links": 3107264,
+      "seen_matches_offsets": true,
+      "voxel_keys_match_coords": true,
+      "unique_observation_per_voxel": true,
+      "label_hist_exact": true,
+      "same_frame_extra_links": 632251,
+      "same_frame_extra_link_fraction": 0.20347514726782145,
+      "voxels_with_same_frame_multiobs_fraction": 0.4924764160630913,
+      "voxels_with_same_frame_multilabel_fraction": 0.4906280378438326,
+      "multi_owner_voxel_fraction": 0.07245642619494229,
+      "median_unique_frames": 19.0,
+      "mean_unique_frames": 33.887112011720085
+    },
+    {
+      "scene": "office0",
+      "scale": 0.05,
+      "voxel_count": 20431,
+      "links": 1020198,
+      "seen_matches_offsets": true,
+      "voxel_keys_match_coords": true,
+      "unique_observation_per_voxel": true,
+      "label_hist_exact": true,
+      "same_frame_extra_links": 214875,
+      "same_frame_extra_link_fraction": 0.21062087947633695,
+      "voxels_with_same_frame_multiobs_fraction": 0.4894033576427977,
+      "voxels_with_same_frame_multilabel_fraction": 0.4874944936615927,
+      "multi_owner_voxel_fraction": 0.09833096764720278,
+      "median_unique_frames": 21.0,
+      "mean_unique_frames": 39.41671969066614
+    },
+    {
+      "scene": "office0",
+      "scale": 0.1,
+      "voxel_count": 5427,
+      "links": 295798,
+      "seen_matches_offsets": true,
+      "voxel_keys_match_coords": true,
+      "unique_observation_per_voxel": true,
+      "label_hist_exact": true,
+      "same_frame_extra_links": 65295,
+      "same_frame_extra_link_fraction": 0.22074185761905085,
+      "voxels_with_same_frame_multiobs_fraction": 0.5028560899207666,
+      "voxels_with_same_frame_multilabel_fraction": 0.500092131932928,
+      "multi_owner_voxel_fraction": 0.13782937166021744,
+      "median_unique_frames": 30.0,
+      "mean_unique_frames": 42.47337387138382
+    }
+  ],
+  "target_counts": [
+    {
+      "scene": "room0",
+      "target": "sidecar_original_unified",
+      "n": 72,
+      "positives": 47,
+      "prevalence": 0.6527777777777778
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_strict_unified",
+      "n": 72,
+      "positives": 30,
+      "prevalence": 0.4166666666666667
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_original_mask",
+      "n": 72,
+      "positives": 33,
+      "prevalence": 0.4583333333333333
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_strict_mask",
+      "n": 72,
+      "positives": 27,
+      "prevalence": 0.375
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_original_association",
+      "n": 44,
+      "positives": 27,
+      "prevalence": 0.6136363636363636
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_strict_association",
+      "n": 20,
+      "positives": 7,
+      "prevalence": 0.35
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_conservative_unified",
+      "n": 72,
+      "positives": 26,
+      "prevalence": 0.3611111111111111
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_conservative_mask",
+      "n": 72,
+      "positives": 24,
+      "prevalence": 0.3333333333333333
+    },
+    {
+      "scene": "room0",
+      "target": "sidecar_conservative_association",
+      "n": 16,
+      "positives": 6,
+      "prevalence": 0.375
+    },
+    {
+      "scene": "room0",
+      "target": "geometry_partition_2cm",
+      "n": 8,
+      "positives": 7,
+      "prevalence": 0.875
+    },
+    {
+      "scene": "room0",
+      "target": "geometry_overmerge_2cm",
+      "n": 8,
+      "positives": 1,
+      "prevalence": 0.125
+    },
+    {
+      "scene": "room0",
+      "target": "geometry_partition_5cm",
+      "n": 8,
+      "positives": 7,
+      "prevalence": 0.875
+    },
+    {
+      "scene": "room0",
+      "target": "geometry_overmerge_5cm",
+      "n": 8,
+      "positives": 1,
+      "prevalence": 0.125
+    },
+    {
+      "scene": "room0",
+      "target": "geometry_partition_7cm",
+      "n": 8,
+      "positives": 7,
+      "prevalence": 0.875
+    },
+    {
+      "scene": "room0",
+      "target": "geometry_overmerge_7cm",
+      "n": 8,
+      "positives": 1,
+      "prevalence": 0.125
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_original_unified",
+      "n": 35,
+      "positives": 25,
+      "prevalence": 0.7142857142857143
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_strict_unified",
+      "n": 35,
+      "positives": 24,
+      "prevalence": 0.6857142857142857
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_original_mask",
+      "n": 35,
+      "positives": 23,
+      "prevalence": 0.6571428571428571
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_strict_mask",
+      "n": 35,
+      "positives": 22,
+      "prevalence": 0.6285714285714286
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_original_association",
+      "n": 24,
+      "positives": 18,
+      "prevalence": 0.75
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_strict_association",
+      "n": 23,
+      "positives": 16,
+      "prevalence": 0.6956521739130435
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_conservative_unified",
+      "n": 35,
+      "positives": 23,
+      "prevalence": 0.6571428571428571
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_conservative_mask",
+      "n": 35,
+      "positives": 18,
+      "prevalence": 0.5142857142857142
+    },
+    {
+      "scene": "office0",
+      "target": "sidecar_conservative_association",
+      "n": 22,
+      "positives": 15,
+      "prevalence": 0.6818181818181818
+    },
+    {
+      "scene": "office0",
+      "target": "geometry_partition_2cm",
+      "n": 5,
+      "positives": 3,
+      "prevalence": 0.6
+    },
+    {
+      "scene": "office0",
+      "target": "geometry_overmerge_2cm",
+      "n": 5,
+      "positives": 2,
+      "prevalence": 0.4
+    },
+    {
+      "scene": "office0",
+      "target": "geometry_partition_5cm",
+      "n": 5,
+      "positives": 3,
+      "prevalence": 0.6
+    },
+    {
+      "scene": "office0",
+      "target": "geometry_overmerge_5cm",
+      "n": 5,
+      "positives": 2,
+      "prevalence": 0.4
+    },
+    {
+      "scene": "office0",
+      "target": "geometry_partition_7cm",
+      "n": 5,
+      "positives": 3,
+      "prevalence": 0.6
+    },
+    {
+      "scene": "office0",
+      "target": "geometry_overmerge_7cm",
+      "n": 5,
+      "positives": 2,
+      "prevalence": 0.4
+    }
+  ],
+  "gt_agreement": [
+    {
+      "scene": "room0",
+      "left": "sidecar_original",
+      "right": "sidecar_strict",
+      "n": 72,
+      "left_positive": 47,
+      "right_positive": 30,
+      "both_positive": 30,
+      "agreement": 0.7638888888888888,
+      "positive_jaccard": 0.6382978723404256
+    },
+    {
+      "scene": "room0",
+      "left": "sidecar_original",
+      "right": "geometry_5cm",
+      "n": 8,
+      "left_positive": 4,
+      "right_positive": 7,
+      "both_positive": 3,
+      "agreement": 0.375,
+      "positive_jaccard": 0.375
+    },
+    {
+      "scene": "room0",
+      "left": "sidecar_strict",
+      "right": "geometry_5cm",
+      "n": 8,
+      "left_positive": 4,
+      "right_positive": 7,
+      "both_positive": 3,
+      "agreement": 0.375,
+      "positive_jaccard": 0.375
+    },
+    {
+      "scene": "office0",
+      "left": "sidecar_original",
+      "right": "sidecar_strict",
+      "n": 35,
+      "left_positive": 25,
+      "right_positive": 24,
+      "both_positive": 24,
+      "agreement": 0.9714285714285714,
+      "positive_jaccard": 0.96
+    },
+    {
+      "scene": "office0",
+      "left": "sidecar_original",
+      "right": "geometry_5cm",
+      "n": 5,
+      "left_positive": 3,
+      "right_positive": 3,
+      "both_positive": 3,
+      "agreement": 1.0,
+      "positive_jaccard": 1.0
+    },
+    {
+      "scene": "office0",
+      "left": "sidecar_strict",
+      "right": "geometry_5cm",
+      "n": 5,
+      "left_positive": 3,
+      "right_positive": 3,
+      "both_positive": 3,
+      "agreement": 1.0,
+      "positive_jaccard": 1.0
+    }
+  ],
+  "best_cross_scene_candidates_5cm": [
+    {
+      "target": "geometry_partition_2cm",
+      "score": "combined_top2_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "mean_owner_entropy",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "multi_owner_voxel_fraction",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "pair_conflict",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "voxel_mean_disagreement",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "combined_top2_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "mean_owner_entropy",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "multi_owner_voxel_fraction",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "pair_conflict",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "voxel_mean_disagreement",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "combined_top2_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "mean_owner_entropy",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "multi_owner_voxel_fraction",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "pair_conflict",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "voxel_mean_disagreement",
+      "room0_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "min_auroc": 1.0,
+      "mean_auroc": 1.0,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "sidecar_original_unified",
+      "score": "size_num_detections",
+      "room0_auroc": 0.9203703703703704,
+      "office0_auroc": 1.0,
+      "min_auroc": 0.9203703703703704,
+      "mean_auroc": 0.9601851851851853,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "frozen_combined_max",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.9166666666666666,
+      "min_auroc": 0.9166666666666666,
+      "mean_auroc": 0.9583333333333333,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "owner_overlap_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.9166666666666666,
+      "min_auroc": 0.9166666666666666,
+      "mean_auroc": 0.9583333333333333,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "frozen_combined_max",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.9166666666666666,
+      "min_auroc": 0.9166666666666666,
+      "mean_auroc": 0.9583333333333333,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "owner_overlap_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.9166666666666666,
+      "min_auroc": 0.9166666666666666,
+      "mean_auroc": 0.9583333333333333,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "frozen_combined_max",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.9166666666666666,
+      "min_auroc": 0.9166666666666666,
+      "mean_auroc": 0.9583333333333333,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "owner_overlap_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.9166666666666666,
+      "min_auroc": 0.9166666666666666,
+      "mean_auroc": 0.9583333333333333,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "sidecar_conservative_unified",
+      "score": "size_num_detections",
+      "room0_auroc": 0.84391771019678,
+      "office0_auroc": 0.9934782608695651,
+      "min_auroc": 0.84391771019678,
+      "mean_auroc": 0.9186979855331725,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "combined_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.9166666666666666,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "framebalanced_mean_disagreement",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.9166666666666666,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "combined_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.9166666666666666,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_5cm",
+      "score": "framebalanced_mean_disagreement",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.9166666666666666,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "combined_mean",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.9166666666666666,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_7cm",
+      "score": "framebalanced_mean_disagreement",
+      "room0_auroc": 1.0,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.9166666666666666,
+      "both_positive_ap_lift": true
+    },
+    {
+      "target": "geometry_partition_2cm",
+      "score": "foreign_owner_link_fraction",
+      "room0_auroc": 0.8571428571428571,
+      "office0_auroc": 0.8333333333333333,
+      "min_auroc": 0.8333333333333333,
+      "mean_auroc": 0.8452380952380951,
+      "both_positive_ap_lift": true
+    }
+  ],
+  "interpretation_rule": "Only a pre-defined score with AUROC>0.60 and positive AP lift in both scenes, stable across reasonable GT definitions, is evidence for a usable trigger. Single-scene or post-hoc best features are exploratory only."
+}

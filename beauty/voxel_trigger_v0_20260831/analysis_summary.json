@@ -1,0 +1,1656 @@
+{
+  "bootstrap_5cm": [
+    {
+      "ap_95ci": [
+        0.3234629925049176,
+        0.644214411011303
+      ],
+      "auroc_95ci": [
+        0.3889298609076686,
+        0.6680990766238928
+      ],
+      "repetitions": 1000,
+      "scene": "room0",
+      "score": "voxel_semantic",
+      "task": "mask_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.39655540984460574,
+        0.7265890484150858
+      ],
+      "auroc_95ci": [
+        0.19523652720385673,
+        0.5545974420623789
+      ],
+      "repetitions": 1000,
+      "scene": "room0",
+      "score": "voxel_semantic",
+      "task": "association_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.5227272727272727,
+        0.7878787878787878
+      ],
+      "auroc_95ci": [
+        0.44072963021826655,
+        0.6062723214285713
+      ],
+      "repetitions": 1000,
+      "scene": "room0",
+      "score": "fragmentation",
+      "task": "association_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.4456221800497196,
+        0.7172342295189363
+      ],
+      "auroc_95ci": [
+        0.21331618962432913,
+        0.47038675643826855
+      ],
+      "repetitions": 1000,
+      "scene": "room0",
+      "score": "combined",
+      "task": "unified_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": null,
+      "auroc_95ci": null,
+      "repetitions": 0,
+      "scene": "room0",
+      "score": "pair_r1",
+      "task": "false_split_pair",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.45323360533468066,
+        0.8618703486876975
+      ],
+      "auroc_95ci": [
+        0.19998120300751882,
+        0.70679005205321
+      ],
+      "repetitions": 1000,
+      "scene": "office0",
+      "score": "voxel_semantic",
+      "task": "mask_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.6235764305722289,
+        0.9934789666854884
+      ],
+      "auroc_95ci": [
+        0.28109375000000003,
+        0.9565217391304348
+      ],
+      "repetitions": 1000,
+      "scene": "office0",
+      "score": "voxel_semantic",
+      "task": "association_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.6130952380952381,
+        0.9242424242424242
+      ],
+      "auroc_95ci": [
+        0.5,
+        0.6666666666666666
+      ],
+      "repetitions": 1000,
+      "scene": "office0",
+      "score": "fragmentation",
+      "task": "association_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.5136301371574735,
+        0.8964436446689458
+      ],
+      "auroc_95ci": [
+        0.2032967032967033,
+        0.6921340811965813
+      ],
+      "repetitions": 1000,
+      "scene": "office0",
+      "score": "combined",
+      "task": "unified_repeated",
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_95ci": [
+        0.15,
+        0.5833333333333334
+      ],
+      "auroc_95ci": [
+        0.23326923076923078,
+        0.5850234375000001
+      ],
+      "repetitions": 1000,
+      "scene": "office0",
+      "score": "pair_r1",
+      "task": "false_split_pair",
+      "voxel_size_m": 0.05
+    }
+  ],
+  "decision": {
+    "false_split_pair_component": "STOP_AS_CURRENT_LABEL_TIMES_PROXIMITY_SCORE",
+    "overall": "STOP",
+    "pair_signal_auroc_above_random_all_scenes_scales": false,
+    "reason": "The pre-registered unified GO gate fails. After collision-free observation-sidecar attribution, no voxel-derived component shows stable cross-scene and cross-scale improvement; the non-spatial owner-label entropy baseline is stronger for repeated mixed masks.",
+    "unified_object_trigger": "STOP_AS_CURRENT_MAX_COMBINATION"
+  },
+  "frozen_gate": {
+    "diagnostic_validity": "invalid_for_final_claim_due_to_coarse_gt_voxel_collision",
+    "direction_count_by_scene": {
+      "office0": 1,
+      "room0": 1
+    },
+    "go_pass": false,
+    "primary_gate_pass": false,
+    "rows": [
+      {
+        "ap_minus_prevalence": -0.05682344238576664,
+        "average_precision": 0.8127417750055377,
+        "bottom20_error_rate": 0.8571428571428571,
+        "prevalence": 0.8695652173913043,
+        "scene": "room0",
+        "top20_error_rate": 0.7857142857142857,
+        "top_to_bottom_ratio": 0.9166666666666667,
+        "voxel_size_m": 0.025
+      },
+      {
+        "ap_minus_prevalence": 0.024065921415206915,
+        "average_precision": 0.9081238924296997,
+        "bottom20_error_rate": 0.7857142857142857,
+        "prevalence": 0.8840579710144928,
+        "scene": "room0",
+        "top20_error_rate": 0.9285714285714286,
+        "top_to_bottom_ratio": 1.1818181818181819,
+        "voxel_size_m": 0.05
+      },
+      {
+        "ap_minus_prevalence": -0.010276692902973061,
+        "average_precision": 0.8737812781115197,
+        "bottom20_error_rate": 0.7857142857142857,
+        "prevalence": 0.8840579710144928,
+        "scene": "room0",
+        "top20_error_rate": 0.8571428571428571,
+        "top_to_bottom_ratio": 1.0909090909090908,
+        "voxel_size_m": 0.1
+      },
+      {
+        "ap_minus_prevalence": -0.018124408668909853,
+        "average_precision": 0.7394513489068477,
+        "bottom20_error_rate": 0.7142857142857143,
+        "prevalence": 0.7575757575757576,
+        "scene": "office0",
+        "top20_error_rate": 0.7142857142857143,
+        "top_to_bottom_ratio": 1.0,
+        "voxel_size_m": 0.025
+      },
+      {
+        "ap_minus_prevalence": 0.005399600399600413,
+        "average_precision": 0.762975357975358,
+        "bottom20_error_rate": 0.7142857142857143,
+        "prevalence": 0.7575757575757576,
+        "scene": "office0",
+        "top20_error_rate": 0.7142857142857143,
+        "top_to_bottom_ratio": 1.0,
+        "voxel_size_m": 0.05
+      },
+      {
+        "ap_minus_prevalence": 0.1493707917469529,
+        "average_precision": 0.9372495796257407,
+        "bottom20_error_rate": 0.5714285714285714,
+        "prevalence": 0.7878787878787878,
+        "scene": "office0",
+        "top20_error_rate": 1.0,
+        "top_to_bottom_ratio": 1.75,
+        "voxel_size_m": 0.1
+      }
+    ]
+  },
+  "gt_usage": "evaluation_only; scores and voxel payload unchanged",
+  "gt_voxel_overlap_warning": {
+    "reason": "Independent coarse voxelization lets one predicted voxel intersect multiple neighboring GT instances; per-instance intersections are therefore not mutually exclusive and inflated the frozen identity-error target.",
+    "replacement": "Per-observation 2D Replica instance sidecars, with repeated-evidence and coverage sensitivity reported explicitly.",
+    "status": "excluded_from_final_claim"
+  },
+  "output": "/home/chenkejun/beauty/conceptgraphs/results/experiments/voxel_trigger_v0_20260831/analysis",
+  "primary_corrected_metrics": [
+    {
+      "ap_minus_prevalence": 0.15027457453593407,
+      "auroc": 0.702037351443124,
+      "average_precision": 0.5995499368547746,
+      "bottom20pct": {
+        "error_rate": 0.14285714285714285,
+        "k": 14,
+        "true_errors": 2
+      },
+      "n": 69,
+      "positives": 31,
+      "prevalence": 0.4492753623188406,
+      "scene": "room0",
+      "score": "nonspatial",
+      "target_level": "object",
+      "task": "mask_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.335483870967742,
+        "precision": 0.6,
+        "true_errors": 6
+      },
+      "top20pct": {
+        "k": 14,
+        "lift_vs_prevalence": 1.4308755760368665,
+        "precision": 0.6428571428571429,
+        "true_errors": 9
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.335483870967742,
+        "precision": 0.6,
+        "true_errors": 3
+      },
+      "top_to_bottom_ratio": 4.500000000000001,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": 0.017324964248226382,
+      "auroc": 0.5237691001697793,
+      "average_precision": 0.46660032656706696,
+      "bottom20pct": {
+        "error_rate": 0.5,
+        "k": 14,
+        "true_errors": 7
+      },
+      "n": 69,
+      "positives": 31,
+      "prevalence": 0.4492753623188406,
+      "scene": "room0",
+      "score": "voxel_semantic",
+      "target_level": "object",
+      "task": "mask_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.8903225806451613,
+        "precision": 0.4,
+        "true_errors": 4
+      },
+      "top20pct": {
+        "k": 14,
+        "lift_vs_prevalence": 1.1129032258064515,
+        "precision": 0.5,
+        "true_errors": 7
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.8903225806451613,
+        "precision": 0.4,
+        "true_errors": 2
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.10809757066316805,
+      "auroc": 0.326797385620915,
+      "average_precision": 0.5055387929731956,
+      "bottom20pct": {
+        "error_rate": 0.6666666666666666,
+        "k": 9,
+        "true_errors": 6
+      },
+      "n": 44,
+      "positives": 27,
+      "prevalence": 0.6136363636363636,
+      "scene": "room0",
+      "score": "nonspatial",
+      "target_level": "object",
+      "task": "association_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.6518518518518519,
+        "precision": 0.4,
+        "true_errors": 4
+      },
+      "top20pct": {
+        "k": 9,
+        "lift_vs_prevalence": 0.5432098765432098,
+        "precision": 0.3333333333333333,
+        "true_errors": 3
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.32592592592592595,
+        "precision": 0.2,
+        "true_errors": 1
+      },
+      "top_to_bottom_ratio": 0.5,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.08800702442138852,
+      "auroc": 0.36274509803921573,
+      "average_precision": 0.5256293392149751,
+      "bottom20pct": {
+        "error_rate": 0.6666666666666666,
+        "k": 9,
+        "true_errors": 6
+      },
+      "n": 44,
+      "positives": 27,
+      "prevalence": 0.6136363636363636,
+      "scene": "room0",
+      "score": "voxel_semantic",
+      "target_level": "object",
+      "task": "association_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.6518518518518519,
+        "precision": 0.4,
+        "true_errors": 4
+      },
+      "top20pct": {
+        "k": 9,
+        "lift_vs_prevalence": 0.7242798353909464,
+        "precision": 0.4444444444444444,
+        "true_errors": 4
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.32592592592592595,
+        "precision": 0.2,
+        "true_errors": 1
+      },
+      "top_to_bottom_ratio": 0.6666666666666666,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": 0.042929292929292706,
+      "auroc": 0.5294117647058824,
+      "average_precision": 0.6565656565656564,
+      "bottom20pct": {
+        "error_rate": 0.7777777777777778,
+        "k": 9,
+        "true_errors": 7
+      },
+      "n": 44,
+      "positives": 27,
+      "prevalence": 0.6136363636363636,
+      "scene": "room0",
+      "score": "fragmentation",
+      "target_level": "object",
+      "task": "association_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.1407407407407406,
+        "precision": 0.7,
+        "true_errors": 7
+      },
+      "top20pct": {
+        "k": 9,
+        "lift_vs_prevalence": 1.2674897119341564,
+        "precision": 0.7777777777777778,
+        "true_errors": 7
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.3037037037037038,
+        "precision": 0.8,
+        "true_errors": 4
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.09715421547933667,
+      "auroc": 0.3310185185185185,
+      "average_precision": 0.5550196975641416,
+      "bottom20pct": {
+        "error_rate": 0.7857142857142857,
+        "k": 14,
+        "true_errors": 11
+      },
+      "n": 69,
+      "positives": 45,
+      "prevalence": 0.6521739130434783,
+      "scene": "room0",
+      "score": "combined",
+      "target_level": "object",
+      "task": "unified_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.6133333333333334,
+        "precision": 0.4,
+        "true_errors": 4
+      },
+      "top20pct": {
+        "k": 14,
+        "lift_vs_prevalence": 0.5476190476190477,
+        "precision": 0.35714285714285715,
+        "true_errors": 5
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.3066666666666667,
+        "precision": 0.2,
+        "true_errors": 1
+      },
+      "top_to_bottom_ratio": 0.4545454545454546,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.08964278571382212,
+      "auroc": 0.3213443396226415,
+      "average_precision": 0.6784731563151634,
+      "bottom20pct": {
+        "error_rate": 0.8571428571428571,
+        "k": 14,
+        "true_errors": 12
+      },
+      "n": 69,
+      "positives": 53,
+      "prevalence": 0.7681159420289855,
+      "scene": "room0",
+      "score": "combined",
+      "target_level": "object",
+      "task": "unified_plus_spurious",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.6509433962264152,
+        "precision": 0.5,
+        "true_errors": 5
+      },
+      "top20pct": {
+        "k": 14,
+        "lift_vs_prevalence": 0.5579514824797843,
+        "precision": 0.42857142857142855,
+        "true_errors": 6
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.5207547169811321,
+        "precision": 0.4,
+        "true_errors": 2
+      },
+      "top_to_bottom_ratio": 0.5,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": null,
+      "auroc": null,
+      "average_precision": null,
+      "bottom20pct": {
+        "error_rate": 1.0,
+        "k": 3,
+        "true_errors": 3
+      },
+      "n": 12,
+      "positives": 12,
+      "prevalence": 1.0,
+      "scene": "room0",
+      "score": "pair_r1",
+      "target_level": "pair_candidate",
+      "task": "false_split_pair",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.0,
+        "precision": 1.0,
+        "true_errors": 10
+      },
+      "top20pct": {
+        "k": 3,
+        "lift_vs_prevalence": 1.0,
+        "precision": 1.0,
+        "true_errors": 3
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.0,
+        "precision": 1.0,
+        "true_errors": 5
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": null,
+      "auroc": null,
+      "average_precision": null,
+      "bottom20pct": {
+        "error_rate": 1.0,
+        "k": 3,
+        "true_errors": 3
+      },
+      "n": 12,
+      "positives": 12,
+      "prevalence": 1.0,
+      "scene": "room0",
+      "score": "pair_r2",
+      "target_level": "pair_candidate",
+      "task": "false_split_pair",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.0,
+        "precision": 1.0,
+        "true_errors": 10
+      },
+      "top20pct": {
+        "k": 3,
+        "lift_vs_prevalence": 1.0,
+        "precision": 1.0,
+        "true_errors": 3
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.0,
+        "precision": 1.0,
+        "true_errors": 5
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": 0.24112005887442123,
+      "auroc": 0.884297520661157,
+      "average_precision": 0.9077867255410879,
+      "bottom20pct": {
+        "error_rate": 0.0,
+        "k": 7,
+        "true_errors": 0
+      },
+      "n": 33,
+      "positives": 22,
+      "prevalence": 0.6666666666666666,
+      "scene": "office0",
+      "score": "nonspatial",
+      "target_level": "object",
+      "task": "mask_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.35,
+        "precision": 0.9,
+        "true_errors": 9
+      },
+      "top20pct": {
+        "k": 7,
+        "lift_vs_prevalence": 1.2857142857142858,
+        "precision": 0.8571428571428571,
+        "true_errors": 6
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.2000000000000002,
+        "precision": 0.8,
+        "true_errors": 4
+      },
+      "top_to_bottom_ratio": null,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.04766656065580133,
+      "auroc": 0.4504132231404959,
+      "average_precision": 0.6190001060108653,
+      "bottom20pct": {
+        "error_rate": 0.5714285714285714,
+        "k": 7,
+        "true_errors": 4
+      },
+      "n": 33,
+      "positives": 22,
+      "prevalence": 0.6666666666666666,
+      "scene": "office0",
+      "score": "voxel_semantic",
+      "target_level": "object",
+      "task": "mask_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.75,
+        "precision": 0.5,
+        "true_errors": 5
+      },
+      "top20pct": {
+        "k": 7,
+        "lift_vs_prevalence": 0.8571428571428571,
+        "precision": 0.5714285714285714,
+        "true_errors": 4
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.9,
+        "precision": 0.6,
+        "true_errors": 3
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": 0.18477872436205778,
+      "auroc": 0.837962962962963,
+      "average_precision": 0.9347787243620578,
+      "bottom20pct": {
+        "error_rate": 0.4,
+        "k": 5,
+        "true_errors": 2
+      },
+      "n": 24,
+      "positives": 18,
+      "prevalence": 0.75,
+      "scene": "office0",
+      "score": "nonspatial",
+      "target_level": "object",
+      "task": "association_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.2,
+        "precision": 0.9,
+        "true_errors": 9
+      },
+      "top20pct": {
+        "k": 5,
+        "lift_vs_prevalence": 1.3333333333333333,
+        "precision": 1.0,
+        "true_errors": 5
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.3333333333333333,
+        "precision": 1.0,
+        "true_errors": 5
+      },
+      "top_to_bottom_ratio": 2.5,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": 0.06282910081929705,
+      "auroc": 0.6435185185185185,
+      "average_precision": 0.812829100819297,
+      "bottom20pct": {
+        "error_rate": 0.4,
+        "k": 5,
+        "true_errors": 2
+      },
+      "n": 24,
+      "positives": 18,
+      "prevalence": 0.75,
+      "scene": "office0",
+      "score": "voxel_semantic",
+      "target_level": "object",
+      "task": "association_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.0666666666666667,
+        "precision": 0.8,
+        "true_errors": 8
+      },
+      "top20pct": {
+        "k": 5,
+        "lift_vs_prevalence": 0.7999999999999999,
+        "precision": 0.6,
+        "true_errors": 3
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.7999999999999999,
+        "precision": 0.6,
+        "true_errors": 3
+      },
+      "top_to_bottom_ratio": 1.4999999999999998,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": 0.04166666666666674,
+      "auroc": 0.5833333333333334,
+      "average_precision": 0.7916666666666667,
+      "bottom20pct": {
+        "error_rate": 0.6,
+        "k": 5,
+        "true_errors": 3
+      },
+      "n": 24,
+      "positives": 18,
+      "prevalence": 0.75,
+      "scene": "office0",
+      "score": "fragmentation",
+      "target_level": "object",
+      "task": "association_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 1.3333333333333333,
+        "precision": 1.0,
+        "true_errors": 10
+      },
+      "top20pct": {
+        "k": 5,
+        "lift_vs_prevalence": 1.3333333333333333,
+        "precision": 1.0,
+        "true_errors": 5
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 1.3333333333333333,
+        "precision": 1.0,
+        "true_errors": 5
+      },
+      "top_to_bottom_ratio": 1.6666666666666667,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.030947152048158233,
+      "auroc": 0.45138888888888895,
+      "average_precision": 0.6963255752245691,
+      "bottom20pct": {
+        "error_rate": 0.7142857142857143,
+        "k": 7,
+        "true_errors": 5
+      },
+      "n": 33,
+      "positives": 24,
+      "prevalence": 0.7272727272727273,
+      "scene": "office0",
+      "score": "combined",
+      "target_level": "object",
+      "task": "unified_repeated",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.9624999999999999,
+        "precision": 0.7,
+        "true_errors": 7
+      },
+      "top20pct": {
+        "k": 7,
+        "lift_vs_prevalence": 0.9821428571428571,
+        "precision": 0.7142857142857143,
+        "true_errors": 5
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.825,
+        "precision": 0.6,
+        "true_errors": 3
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.030947152048158233,
+      "auroc": 0.45138888888888895,
+      "average_precision": 0.6963255752245691,
+      "bottom20pct": {
+        "error_rate": 0.7142857142857143,
+        "k": 7,
+        "true_errors": 5
+      },
+      "n": 33,
+      "positives": 24,
+      "prevalence": 0.7272727272727273,
+      "scene": "office0",
+      "score": "combined",
+      "target_level": "object",
+      "task": "unified_plus_spurious",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.9624999999999999,
+        "precision": 0.7,
+        "true_errors": 7
+      },
+      "top20pct": {
+        "k": 7,
+        "lift_vs_prevalence": 0.9821428571428571,
+        "precision": 0.7142857142857143,
+        "true_errors": 5
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.825,
+        "precision": 0.6,
+        "true_errors": 3
+      },
+      "top_to_bottom_ratio": 1.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.021428571428571408,
+      "auroc": 0.3956043956043956,
+      "average_precision": 0.32857142857142857,
+      "bottom20pct": {
+        "error_rate": 0.5,
+        "k": 4,
+        "true_errors": 2
+      },
+      "n": 20,
+      "positives": 7,
+      "prevalence": 0.35,
+      "scene": "office0",
+      "score": "pair_r1",
+      "target_level": "pair_candidate",
+      "task": "false_split_pair",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.28571428571428575,
+        "precision": 0.1,
+        "true_errors": 1
+      },
+      "top20pct": {
+        "k": 4,
+        "lift_vs_prevalence": 0.0,
+        "precision": 0.0,
+        "true_errors": 0
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.5714285714285715,
+        "precision": 0.2,
+        "true_errors": 1
+      },
+      "top_to_bottom_ratio": 0.0,
+      "voxel_size_m": 0.05
+    },
+    {
+      "ap_minus_prevalence": -0.02619047619047621,
+      "auroc": 0.25274725274725274,
+      "average_precision": 0.32380952380952377,
+      "bottom20pct": {
+        "error_rate": 0.75,
+        "k": 4,
+        "true_errors": 3
+      },
+      "n": 20,
+      "positives": 7,
+      "prevalence": 0.35,
+      "scene": "office0",
+      "score": "pair_r2",
+      "target_level": "pair_candidate",
+      "task": "false_split_pair",
+      "top10": {
+        "k": 10,
+        "lift_vs_prevalence": 0.28571428571428575,
+        "precision": 0.1,
+        "true_errors": 1
+      },
+      "top20pct": {
+        "k": 4,
+        "lift_vs_prevalence": 0.0,
+        "precision": 0.0,
+        "true_errors": 0
+      },
+      "top5": {
+        "k": 5,
+        "lift_vs_prevalence": 0.0,
+        "precision": 0.0,
+        "true_errors": 0
+      },
+      "top_to_bottom_ratio": 0.0,
+      "voxel_size_m": 0.05
+    }
+  ],
+  "root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/voxel_trigger_v0_20260831/full",
+  "scale_details": [
+    {
+      "all_foreground_pair_count": 2346,
+      "all_true_pair_count": 39,
+      "candidate_evaluable_pair_count": 6,
+      "candidate_pair_count": 97,
+      "candidate_recall": 0.15384615384615385,
+      "candidate_reduction": 0.9586530264279625,
+      "candidate_true_pair_count": 6,
+      "candidate_unresolved_pair_count": 91,
+      "coverage": {
+        "association_covered": 44,
+        "observation_covered": 69
+      },
+      "foreground_objects": 69,
+      "object_error_counts": {
+        "audit_association_loose": 29,
+        "audit_association_repeated": 27,
+        "audit_mask_any": 44,
+        "audit_mask_repeated": 31,
+        "audit_mask_severe": 30,
+        "audit_merge_membership_repeated": 41,
+        "audit_overmerge_cross_class": 27,
+        "audit_overmerge_repeated": 27,
+        "audit_overmerge_same_class": 0,
+        "audit_split_incident": 16,
+        "audit_spurious_background": 28,
+        "audit_unified_plus_spurious": 53,
+        "audit_unified_repeated": 45
+      },
+      "scene": "room0",
+      "voxel_size_m": 0.025
+    },
+    {
+      "all_foreground_pair_count": 2346,
+      "all_true_pair_count": 39,
+      "candidate_evaluable_pair_count": 12,
+      "candidate_pair_count": 122,
+      "candidate_recall": 0.3076923076923077,
+      "candidate_reduction": 0.947996589940324,
+      "candidate_true_pair_count": 12,
+      "candidate_unresolved_pair_count": 110,
+      "coverage": {
+        "association_covered": 44,
+        "observation_covered": 69
+      },
+      "foreground_objects": 69,
+      "object_error_counts": {
+        "audit_association_loose": 29,
+        "audit_association_repeated": 27,
+        "audit_mask_any": 44,
+        "audit_mask_repeated": 31,
+        "audit_mask_severe": 30,
+        "audit_merge_membership_repeated": 41,
+        "audit_overmerge_cross_class": 27,
+        "audit_overmerge_repeated": 27,
+        "audit_overmerge_same_class": 0,
+        "audit_split_incident": 16,
+        "audit_spurious_background": 28,
+        "audit_unified_plus_spurious": 53,
+        "audit_unified_repeated": 45
+      },
+      "scene": "room0",
+      "voxel_size_m": 0.05
+    },
+    {
+      "all_foreground_pair_count": 2346,
+      "all_true_pair_count": 39,
+      "candidate_evaluable_pair_count": 17,
+      "candidate_pair_count": 154,
+      "candidate_recall": 0.4358974358974359,
+      "candidate_reduction": 0.9343563512361466,
+      "candidate_true_pair_count": 17,
+      "candidate_unresolved_pair_count": 137,
+      "coverage": {
+        "association_covered": 44,
+        "observation_covered": 69
+      },
+      "foreground_objects": 69,
+      "object_error_counts": {
+        "audit_association_loose": 29,
+        "audit_association_repeated": 27,
+        "audit_mask_any": 44,
+        "audit_mask_repeated": 31,
+        "audit_mask_severe": 30,
+        "audit_merge_membership_repeated": 41,
+        "audit_overmerge_cross_class": 27,
+        "audit_overmerge_repeated": 27,
+        "audit_overmerge_same_class": 0,
+        "audit_split_incident": 16,
+        "audit_spurious_background": 28,
+        "audit_unified_plus_spurious": 53,
+        "audit_unified_repeated": 45
+      },
+      "scene": "room0",
+      "voxel_size_m": 0.1
+    },
+    {
+      "all_foreground_pair_count": 528,
+      "all_true_pair_count": 25,
+      "candidate_evaluable_pair_count": 14,
+      "candidate_pair_count": 51,
+      "candidate_recall": 0.2,
+      "candidate_reduction": 0.9034090909090909,
+      "candidate_true_pair_count": 5,
+      "candidate_unresolved_pair_count": 37,
+      "coverage": {
+        "association_covered": 24,
+        "observation_covered": 33
+      },
+      "foreground_objects": 33,
+      "object_error_counts": {
+        "audit_association_loose": 19,
+        "audit_association_repeated": 18,
+        "audit_mask_any": 25,
+        "audit_mask_repeated": 22,
+        "audit_mask_severe": 19,
+        "audit_merge_membership_repeated": 23,
+        "audit_overmerge_cross_class": 18,
+        "audit_overmerge_repeated": 18,
+        "audit_overmerge_same_class": 0,
+        "audit_split_incident": 12,
+        "audit_spurious_background": 4,
+        "audit_unified_plus_spurious": 24,
+        "audit_unified_repeated": 24
+      },
+      "scene": "office0",
+      "voxel_size_m": 0.025
+    },
+    {
+      "all_foreground_pair_count": 528,
+      "all_true_pair_count": 25,
+      "candidate_evaluable_pair_count": 20,
+      "candidate_pair_count": 60,
+      "candidate_recall": 0.28,
+      "candidate_reduction": 0.8863636363636364,
+      "candidate_true_pair_count": 7,
+      "candidate_unresolved_pair_count": 40,
+      "coverage": {
+        "association_covered": 24,
+        "observation_covered": 33
+      },
+      "foreground_objects": 33,
+      "object_error_counts": {
+        "audit_association_loose": 19,
+        "audit_association_repeated": 18,
+        "audit_mask_any": 25,
+        "audit_mask_repeated": 22,
+        "audit_mask_severe": 19,
+        "audit_merge_membership_repeated": 23,
+        "audit_overmerge_cross_class": 18,
+        "audit_overmerge_repeated": 18,
+        "audit_overmerge_same_class": 0,
+        "audit_split_incident": 12,
+        "audit_spurious_background": 4,
+        "audit_unified_plus_spurious": 24,
+        "audit_unified_repeated": 24
+      },
+      "scene": "office0",
+      "voxel_size_m": 0.05
+    },
+    {
+      "all_foreground_pair_count": 528,
+      "all_true_pair_count": 25,
+      "candidate_evaluable_pair_count": 25,
+      "candidate_pair_count": 71,
+      "candidate_recall": 0.36,
+      "candidate_reduction": 0.865530303030303,
+      "candidate_true_pair_count": 9,
+      "candidate_unresolved_pair_count": 46,
+      "coverage": {
+        "association_covered": 24,
+        "observation_covered": 33
+      },
+      "foreground_objects": 33,
+      "object_error_counts": {
+        "audit_association_loose": 19,
+        "audit_association_repeated": 18,
+        "audit_mask_any": 25,
+        "audit_mask_repeated": 22,
+        "audit_mask_severe": 19,
+        "audit_merge_membership_repeated": 23,
+        "audit_overmerge_cross_class": 18,
+        "audit_overmerge_repeated": 18,
+        "audit_overmerge_same_class": 0,
+        "audit_split_incident": 12,
+        "audit_spurious_background": 4,
+        "audit_unified_plus_spurious": 24,
+        "audit_unified_repeated": 24
+      },
+      "scene": "office0",
+      "voxel_size_m": 0.1
+    }
+  ],
+  "schema_version": "voxel-trigger-v0-post-analysis/1.0",
+  "scope_equivalence": [
+    {
+      "all_history_observations": 7507,
+      "final_members_observations": 7507,
+      "scene": "room0",
+      "voxel_map_sha256": "76edee311cb24be59116af4f4327b1c4668fe0b998db6114e44c6bfba5a79d0d",
+      "voxel_map_sha256_equal": true,
+      "voxel_size_m": 0.025
+    },
+    {
+      "all_history_observations": 7507,
+      "final_members_observations": 7507,
+      "scene": "room0",
+      "voxel_map_sha256": "919e05368f5bade024c27c5be1b94167d250c0ac77508363979d703581f1a2ba",
+      "voxel_map_sha256_equal": true,
+      "voxel_size_m": 0.05
+    },
+    {
+      "all_history_observations": 7507,
+      "final_members_observations": 7507,
+      "scene": "room0",
+      "voxel_map_sha256": "0ee3d7037a199d9195a714fe449476a5a34dfff70d81200f3481f8cc11e6bc7e",
+      "voxel_map_sha256_equal": true,
+      "voxel_size_m": 0.1
+    },
+    {
+      "all_history_observations": 3106,
+      "final_members_observations": 3106,
+      "scene": "office0",
+      "voxel_map_sha256": "85ad20f49ca6fdcacf13863ecf2bc993e40b80f4e33d729cc5f45fdc3fe61e4a",
+      "voxel_map_sha256_equal": true,
+      "voxel_size_m": 0.025
+    },
+    {
+      "all_history_observations": 3106,
+      "final_members_observations": 3106,
+      "scene": "office0",
+      "voxel_map_sha256": "523cd080453577ad02d4a49a9730d0e5b6b3e4a57b25f2d03cd9f1dc2af5e909",
+      "voxel_map_sha256_equal": true,
+      "voxel_size_m": 0.05
+    },
+    {
+      "all_history_observations": 3106,
+      "final_members_observations": 3106,
+      "scene": "office0",
+      "voxel_map_sha256": "0ba51a7039ed8b2bef57c70c319a7e887356ddfc48e301b8980f7353d00527e4",
+      "voxel_map_sha256_equal": true,
+      "voxel_size_m": 0.1
+    }
+  ],
+  "voxel_examples_5cm": [
+    {
+      "disagreement": 0.6500802568218298,
+      "label_hist": {
+        "armchair": 217,
+        "chair": 63,
+        "cushion": 1,
+        "folded chair": 5,
+        "pillow": 218,
+        "sofa chair": 119
+      },
+      "obs_ids_preview": [
+        2105,
+        2109,
+        2125,
+        2126,
+        2137,
+        2140,
+        2149,
+        2155,
+        2159,
+        2171,
+        2173,
+        2187
+      ],
+      "obs_ids_total": 623,
+      "scene": "room0",
+      "seen_count": 623,
+      "voxel_coord": [
+        117,
+        4,
+        -16
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.626916524701874,
+      "label_hist": {
+        "armchair": 200,
+        "chair": 59,
+        "cushion": 1,
+        "folded chair": 4,
+        "pillow": 219,
+        "sofa chair": 104
+      },
+      "obs_ids_preview": [
+        2105,
+        2109,
+        2125,
+        2126,
+        2137,
+        2140,
+        2149,
+        2155,
+        2159,
+        2171,
+        2173,
+        2187
+      ],
+      "obs_ids_total": 587,
+      "scene": "room0",
+      "seen_count": 587,
+      "voxel_coord": [
+        114,
+        7,
+        -20
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.6232876712328768,
+      "label_hist": {
+        "armchair": 200,
+        "chair": 59,
+        "cushion": 1,
+        "folded chair": 4,
+        "pillow": 220,
+        "sofa chair": 100
+      },
+      "obs_ids_preview": [
+        2109,
+        2125,
+        2126,
+        2137,
+        2140,
+        2149,
+        2155,
+        2159,
+        2171,
+        2173,
+        2187,
+        2191
+      ],
+      "obs_ids_total": 584,
+      "scene": "room0",
+      "seen_count": 584,
+      "voxel_coord": [
+        114,
+        6,
+        -20
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.75,
+      "label_hist": {
+        "cabinet": 1,
+        "coffee kettle": 1,
+        "coffee maker": 1,
+        "end table": 1
+      },
+      "obs_ids_preview": [
+        20,
+        21,
+        1458,
+        1462
+      ],
+      "obs_ids_total": 4,
+      "scene": "room0",
+      "seen_count": 4,
+      "voxel_coord": [
+        -16,
+        8,
+        -17
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.75,
+      "label_hist": {
+        "closet door": 1,
+        "door": 1,
+        "projector screen": 1,
+        "whiteboard": 1
+      },
+      "obs_ids_preview": [
+        1911,
+        2040,
+        2095,
+        2096
+      ],
+      "obs_ids_total": 4,
+      "scene": "room0",
+      "seen_count": 4,
+      "voxel_coord": [
+        15,
+        -22,
+        0
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.75,
+      "label_hist": {
+        "bag": 1,
+        "paper bag": 1,
+        "stool": 1,
+        "trash can": 1
+      },
+      "obs_ids_preview": [
+        6734,
+        6735,
+        6812,
+        6813
+      ],
+      "obs_ids_total": 4,
+      "scene": "room0",
+      "seen_count": 4,
+      "voxel_coord": [
+        45,
+        51,
+        -25
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.5587188612099644,
+      "label_hist": {
+        "bin": 78,
+        "bucket": 5,
+        "laundry basket": 20,
+        "recycling bin": 5,
+        "storage bin": 42,
+        "trash bin": 124,
+        "trash can": 7
+      },
+      "obs_ids_preview": [
+        1,
+        3,
+        10,
+        19,
+        28,
+        31,
+        40,
+        52,
+        53,
+        63,
+        74,
+        76
+      ],
+      "obs_ids_total": 281,
+      "scene": "office0",
+      "seen_count": 281,
+      "voxel_coord": [
+        10,
+        30,
+        -17
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.5631768953068592,
+      "label_hist": {
+        "bin": 78,
+        "bucket": 5,
+        "cushion": 1,
+        "laundry basket": 19,
+        "pillow": 1,
+        "recycling bin": 5,
+        "storage bin": 42,
+        "trash bin": 121,
+        "trash can": 5
+      },
+      "obs_ids_preview": [
+        1,
+        3,
+        10,
+        19,
+        28,
+        31,
+        40,
+        52,
+        53,
+        63,
+        74,
+        76
+      ],
+      "obs_ids_total": 277,
+      "scene": "office0",
+      "seen_count": 277,
+      "voxel_coord": [
+        11,
+        26,
+        -16
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.555956678700361,
+      "label_hist": {
+        "bin": 78,
+        "bucket": 5,
+        "laundry basket": 19,
+        "recycling bin": 5,
+        "storage bin": 41,
+        "trash bin": 123,
+        "trash can": 6
+      },
+      "obs_ids_preview": [
+        1,
+        3,
+        10,
+        19,
+        28,
+        31,
+        40,
+        52,
+        53,
+        63,
+        74,
+        76
+      ],
+      "obs_ids_total": 277,
+      "scene": "office0",
+      "seen_count": 277,
+      "voxel_coord": [
+        11,
+        31,
+        -17
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.8235294117647058,
+      "label_hist": {
+        "closet door": 5,
+        "closet wall": 6,
+        "door": 1,
+        "monitor": 4,
+        "projector screen": 2,
+        "refrigerator": 6,
+        "tv": 4,
+        "whiteboard": 6
+      },
+      "obs_ids_preview": [
+        283,
+        287,
+        289,
+        295,
+        296,
+        303,
+        304,
+        306,
+        466,
+        470,
+        475,
+        2873
+      ],
+      "obs_ids_total": 34,
+      "scene": "office0",
+      "seen_count": 34,
+      "voxel_coord": [
+        26,
+        -53,
+        -19
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.8125,
+      "label_hist": {
+        "closet door": 5,
+        "closet wall": 6,
+        "coat rack": 1,
+        "door": 1,
+        "monitor": 3,
+        "projector screen": 1,
+        "refrigerator": 5,
+        "tv": 4,
+        "whiteboard": 6
+      },
+      "obs_ids_preview": [
+        289,
+        295,
+        296,
+        303,
+        304,
+        306,
+        447,
+        466,
+        475,
+        482,
+        1404,
+        2873
+      ],
+      "obs_ids_total": 32,
+      "scene": "office0",
+      "seen_count": 32,
+      "voxel_coord": [
+        28,
+        -53,
+        -20
+      ],
+      "voxel_size_m": 0.05
+    },
+    {
+      "disagreement": 0.8,
+      "label_hist": {
+        "closet door": 4,
+        "closet wall": 7,
+        "coat rack": 1,
+        "door": 1,
+        "monitor": 4,
+        "projector screen": 2,
+        "refrigerator": 6,
+        "tv": 4,
+        "whiteboard": 6
+      },
+      "obs_ids_preview": [
+        283,
+        287,
+        289,
+        295,
+        296,
+        303,
+        304,
+        306,
+        447,
+        466,
+        470,
+        475
+      ],
+      "obs_ids_total": 35,
+      "scene": "office0",
+      "seen_count": 35,
+      "voxel_coord": [
+        27,
+        -53,
+        -20
+      ],
+      "voxel_size_m": 0.05
+    }
+  ],
+  "voxel_map_stats": [
+    {
+      "array_bytes": 37588412,
+      "array_bytes_per_voxel": 250.50925037321392,
+      "conflict_voxel_fraction_ge_0p25": 0.24934021113243762,
+      "label_entries": 261223,
+      "mean_voxel_disagreement": 0.11855209221678126,
+      "multi_label_voxel_fraction": 0.44523752399232247,
+      "npz_bytes": 4521253,
+      "obs_id_bytes_fraction": 0.7847262076408016,
+      "observation_links": 7374153,
+      "scene": "room0",
+      "seen_ge2_fraction": 0.8933141394753679,
+      "seen_ge5_fraction": 0.6918985924504159,
+      "seen_mean": 49.145293506078055,
+      "seen_median": 15.0,
+      "seen_p90": 136.0,
+      "voxel_count": 150048,
+      "voxel_size_m": 0.025
+    },
+    {
+      "array_bytes": 12825008,
+      "array_bytes_per_voxel": 317.3250197941409,
+      "conflict_voxel_fraction_ge_0p25": 0.25264746634996044,
+      "label_entries": 72568,
+      "mean_voxel_disagreement": 0.11753198974458087,
+      "multi_label_voxel_fraction": 0.45828384798099764,
+      "npz_bytes": 1117280,
+      "obs_id_bytes_fraction": 0.8286722316274578,
+      "observation_links": 2656932,
+      "scene": "room0",
+      "seen_ge2_fraction": 0.9190914489311164,
+      "seen_ge5_fraction": 0.8167062549485352,
+      "seen_mean": 65.7396080760095,
+      "seen_median": 22.0,
+      "seen_p90": 178.0,
+      "voxel_count": 40416,
+      "voxel_size_m": 0.05
+    },
+    {
+      "array_bytes": 3717224,
+      "array_bytes_per_voxel": 357.5629088110812,
+      "conflict_voxel_fraction_ge_0p25": 0.2694305502116199,
+      "label_entries": 19716,
+      "mean_voxel_disagreement": 0.12672101576471456,
+      "multi_label_voxel_fraction": 0.4835513659099654,
+      "npz_bytes": 301305,
+      "obs_id_bytes_fraction": 0.8456740836710406,
+      "observation_links": 785890,
+      "scene": "room0",
+      "seen_ge2_fraction": 0.9235282801077337,
+      "seen_ge5_fraction": 0.8383031935359754,
+      "seen_mean": 75.59542131589073,
+      "seen_median": 25.0,
+      "seen_p90": 194.0,
+      "voxel_count": 10396,
+      "voxel_size_m": 0.1
+    },
+    {
+      "array_bytes": 16903040,
+      "array_bytes_per_voxel": 231.43119240932677,
+      "conflict_voxel_fraction_ge_0p25": 0.4312471760888317,
+      "label_entries": 194051,
+      "mean_voxel_disagreement": 0.208359673732499,
+      "multi_label_voxel_fraction": 0.5744485671645878,
+      "npz_bytes": 1811182,
+      "obs_id_bytes_fraction": 0.7353148309416531,
+      "observation_links": 3107264,
+      "scene": "office0",
+      "seen_ge2_fraction": 0.7811520188397661,
+      "seen_ge5_fraction": 0.6183578186398675,
+      "seen_mean": 42.54369703027233,
+      "seen_median": 22.0,
+      "seen_p90": 119.0,
+      "voxel_count": 73037,
+      "voxel_size_m": 0.025
+    },
+    {
+      "array_bytes": 5335096,
+      "array_bytes_per_voxel": 261.12750232489844,
+      "conflict_voxel_fraction_ge_0p25": 0.40732220645098133,
+      "label_entries": 54621,
+      "mean_voxel_disagreement": 0.19663540080430525,
+      "multi_label_voxel_fraction": 0.555773089912388,
+      "npz_bytes": 422722,
+      "obs_id_bytes_fraction": 0.7648957019704987,
+      "observation_links": 1020198,
+      "scene": "office0",
+      "seen_ge2_fraction": 0.7725025696245901,
+      "seen_ge5_fraction": 0.6309529636336939,
+      "seen_mean": 49.93382604865156,
+      "seen_median": 25.0,
+      "seen_p90": 135.0,
+      "voxel_count": 20431,
+      "voxel_size_m": 0.05
+    },
+    {
+      "array_bytes": 1521848,
+      "array_bytes_per_voxel": 280.4215957250783,
+      "conflict_voxel_fraction_ge_0p25": 0.4136723788465082,
+      "label_entries": 15185,
+      "mean_voxel_disagreement": 0.20090030098714046,
+      "multi_label_voxel_fraction": 0.5666113875069099,
+      "npz_bytes": 111913,
+      "obs_id_bytes_fraction": 0.7774705489641541,
+      "observation_links": 295798,
+      "scene": "office0",
+      "seen_ge2_fraction": 0.7746452920582274,
+      "seen_ge5_fraction": 0.6364473926662981,
+      "seen_mean": 54.50488299244518,
+      "seen_median": 34.0,
+      "seen_p90": 146.0,
+      "voxel_count": 5427,
+      "voxel_size_m": 0.1
+    }
+  ]
+}

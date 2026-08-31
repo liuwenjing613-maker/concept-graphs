@@ -1,0 +1,7 @@
+﻿agreement,both_positive,left,left_positive,n,positive_jaccard,right,right_positive,scene
+0.7638888888888888,30,sidecar_original,47,72,0.6382978723404256,sidecar_strict,30,room0
+0.375,3,sidecar_original,4,8,0.375,geometry_5cm,7,room0
+0.375,3,sidecar_strict,4,8,0.375,geometry_5cm,7,room0
+0.9714285714285714,24,sidecar_original,25,35,0.96,sidecar_strict,24,office0
+1.0,3,sidecar_original,3,5,1.0,geometry_5cm,3,office0
+1.0,3,sidecar_strict,3,5,1.0,geometry_5cm,3,office0

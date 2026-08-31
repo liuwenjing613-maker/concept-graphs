@@ -1,0 +1,618 @@
+{
+  "best_cross_scene_candidates_5cm": [
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "combined_top2_mean",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "mean_owner_entropy",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "multi_owner_voxel_fraction",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "pair_conflict",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "voxel_mean_disagreement",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "combined_top2_mean",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "mean_owner_entropy",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "multi_owner_voxel_fraction",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "pair_conflict",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "voxel_mean_disagreement",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "combined_top2_mean",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "mean_owner_entropy",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "multi_owner_voxel_fraction",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "pair_conflict",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 1.0,
+      "min_auroc": 1.0,
+      "office0_auroc": 1.0,
+      "room0_auroc": 1.0,
+      "score": "voxel_mean_disagreement",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9583333333333333,
+      "min_auroc": 0.9166666666666666,
+      "office0_auroc": 0.9166666666666666,
+      "room0_auroc": 1.0,
+      "score": "frozen_combined_max",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9583333333333333,
+      "min_auroc": 0.9166666666666666,
+      "office0_auroc": 0.9166666666666666,
+      "room0_auroc": 1.0,
+      "score": "owner_overlap_mean",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9583333333333333,
+      "min_auroc": 0.9166666666666666,
+      "office0_auroc": 0.9166666666666666,
+      "room0_auroc": 1.0,
+      "score": "frozen_combined_max",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9583333333333333,
+      "min_auroc": 0.9166666666666666,
+      "office0_auroc": 0.9166666666666666,
+      "room0_auroc": 1.0,
+      "score": "owner_overlap_mean",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9583333333333333,
+      "min_auroc": 0.9166666666666666,
+      "office0_auroc": 0.9166666666666666,
+      "room0_auroc": 1.0,
+      "score": "frozen_combined_max",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9583333333333333,
+      "min_auroc": 0.9166666666666666,
+      "office0_auroc": 0.9166666666666666,
+      "room0_auroc": 1.0,
+      "score": "owner_overlap_mean",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9166666666666666,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 1.0,
+      "score": "combined_mean",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9166666666666666,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 1.0,
+      "score": "framebalanced_mean_disagreement",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9166666666666666,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 1.0,
+      "score": "combined_mean",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9166666666666666,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 1.0,
+      "score": "framebalanced_mean_disagreement",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9166666666666666,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 1.0,
+      "score": "combined_mean",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.9166666666666666,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 1.0,
+      "score": "framebalanced_mean_disagreement",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.8452380952380951,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 0.8571428571428571,
+      "score": "foreign_owner_link_fraction",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.8452380952380951,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 0.8571428571428571,
+      "score": "foreign_owner_link_fraction",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "both_positive_ap_lift": true,
+      "mean_auroc": 0.8452380952380951,
+      "min_auroc": 0.8333333333333333,
+      "office0_auroc": 0.8333333333333333,
+      "room0_auroc": 0.8571428571428571,
+      "score": "foreign_owner_link_fraction",
+      "target": "geometry_partition_7cm"
+    }
+  ],
+  "construction": [
+    {
+      "label_hist_exact": true,
+      "links": 7374153,
+      "mean_unique_frames": 40.48449162934528,
+      "median_unique_frames": 14.0,
+      "multi_owner_voxel_fraction": 0.04557874813393047,
+      "same_frame_extra_link_fraction": 0.17622851058284253,
+      "same_frame_extra_links": 1299536,
+      "scale": 0.025,
+      "scene": "room0",
+      "seen_matches_offsets": true,
+      "unique_observation_per_voxel": true,
+      "voxel_count": 150048,
+      "voxel_keys_match_coords": true,
+      "voxels_with_same_frame_multilabel_fraction": 0.40479046705054383,
+      "voxels_with_same_frame_multiobs_fraction": 0.4088558328001706
+    },
+    {
+      "label_hist_exact": true,
+      "links": 2656932,
+      "mean_unique_frames": 52.70410233570863,
+      "median_unique_frames": 20.0,
+      "multi_owner_voxel_fraction": 0.0673743072050673,
+      "same_frame_extra_link_fraction": 0.19828998258141345,
+      "same_frame_extra_links": 526843,
+      "scale": 0.05,
+      "scene": "room0",
+      "seen_matches_offsets": true,
+      "unique_observation_per_voxel": true,
+      "voxel_count": 40416,
+      "voxel_keys_match_coords": true,
+      "voxels_with_same_frame_multilabel_fraction": 0.4256977434679335,
+      "voxels_with_same_frame_multiobs_fraction": 0.4318091844813935
+    },
+    {
+      "label_hist_exact": true,
+      "links": 785890,
+      "mean_unique_frames": 58.818680261639095,
+      "median_unique_frames": 24.0,
+      "multi_owner_voxel_fraction": 0.10956136975759907,
+      "same_frame_extra_link_fraction": 0.22192800519156625,
+      "same_frame_extra_links": 174411,
+      "scale": 0.1,
+      "scene": "room0",
+      "seen_matches_offsets": true,
+      "unique_observation_per_voxel": true,
+      "voxel_count": 10396,
+      "voxel_keys_match_coords": true,
+      "voxels_with_same_frame_multilabel_fraction": 0.4507502885725279,
+      "voxels_with_same_frame_multiobs_fraction": 0.45873412851096573
+    },
+    {
+      "label_hist_exact": true,
+      "links": 3107264,
+      "mean_unique_frames": 33.887112011720085,
+      "median_unique_frames": 19.0,
+      "multi_owner_voxel_fraction": 0.07245642619494229,
+      "same_frame_extra_link_fraction": 0.20347514726782145,
+      "same_frame_extra_links": 632251,
+      "scale": 0.025,
+      "scene": "office0",
+      "seen_matches_offsets": true,
+      "unique_observation_per_voxel": true,
+      "voxel_count": 73037,
+      "voxel_keys_match_coords": true,
+      "voxels_with_same_frame_multilabel_fraction": 0.4906280378438326,
+      "voxels_with_same_frame_multiobs_fraction": 0.4924764160630913
+    },
+    {
+      "label_hist_exact": true,
+      "links": 1020198,
+      "mean_unique_frames": 39.41671969066614,
+      "median_unique_frames": 21.0,
+      "multi_owner_voxel_fraction": 0.09833096764720278,
+      "same_frame_extra_link_fraction": 0.21062087947633695,
+      "same_frame_extra_links": 214875,
+      "scale": 0.05,
+      "scene": "office0",
+      "seen_matches_offsets": true,
+      "unique_observation_per_voxel": true,
+      "voxel_count": 20431,
+      "voxel_keys_match_coords": true,
+      "voxels_with_same_frame_multilabel_fraction": 0.4874944936615927,
+      "voxels_with_same_frame_multiobs_fraction": 0.4894033576427977
+    },
+    {
+      "label_hist_exact": true,
+      "links": 295798,
+      "mean_unique_frames": 42.47337387138382,
+      "median_unique_frames": 30.0,
+      "multi_owner_voxel_fraction": 0.13782937166021744,
+      "same_frame_extra_link_fraction": 0.22074185761905085,
+      "same_frame_extra_links": 65295,
+      "scale": 0.1,
+      "scene": "office0",
+      "seen_matches_offsets": true,
+      "unique_observation_per_voxel": true,
+      "voxel_count": 5427,
+      "voxel_keys_match_coords": true,
+      "voxels_with_same_frame_multilabel_fraction": 0.500092131932928,
+      "voxels_with_same_frame_multiobs_fraction": 0.5028560899207666
+    }
+  ],
+  "elapsed_seconds": 65.08586189802736,
+  "gt_agreement": [
+    {
+      "agreement": 0.7638888888888888,
+      "both_positive": 30,
+      "left": "sidecar_original",
+      "left_positive": 47,
+      "n": 72,
+      "positive_jaccard": 0.6382978723404256,
+      "right": "sidecar_strict",
+      "right_positive": 30,
+      "scene": "room0"
+    },
+    {
+      "agreement": 0.375,
+      "both_positive": 3,
+      "left": "sidecar_original",
+      "left_positive": 4,
+      "n": 8,
+      "positive_jaccard": 0.375,
+      "right": "geometry_5cm",
+      "right_positive": 7,
+      "scene": "room0"
+    },
+    {
+      "agreement": 0.375,
+      "both_positive": 3,
+      "left": "sidecar_strict",
+      "left_positive": 4,
+      "n": 8,
+      "positive_jaccard": 0.375,
+      "right": "geometry_5cm",
+      "right_positive": 7,
+      "scene": "room0"
+    },
+    {
+      "agreement": 0.9714285714285714,
+      "both_positive": 24,
+      "left": "sidecar_original",
+      "left_positive": 25,
+      "n": 35,
+      "positive_jaccard": 0.96,
+      "right": "sidecar_strict",
+      "right_positive": 24,
+      "scene": "office0"
+    },
+    {
+      "agreement": 1.0,
+      "both_positive": 3,
+      "left": "sidecar_original",
+      "left_positive": 3,
+      "n": 5,
+      "positive_jaccard": 1.0,
+      "right": "geometry_5cm",
+      "right_positive": 3,
+      "scene": "office0"
+    },
+    {
+      "agreement": 1.0,
+      "both_positive": 3,
+      "left": "sidecar_strict",
+      "left_positive": 3,
+      "n": 5,
+      "positive_jaccard": 1.0,
+      "right": "geometry_5cm",
+      "right_positive": 3,
+      "scene": "office0"
+    }
+  ],
+  "interpretation_rule": "Only a pre-defined score with AUROC>0.60 and positive AP lift in both scenes, stable across reasonable GT definitions, is evidence for a usable trigger. Single-scene or post-hoc best features are exploratory only.",
+  "target_counts": [
+    {
+      "n": 72,
+      "positives": 47,
+      "prevalence": 0.6527777777777778,
+      "scene": "room0",
+      "target": "sidecar_original_unified"
+    },
+    {
+      "n": 72,
+      "positives": 30,
+      "prevalence": 0.4166666666666667,
+      "scene": "room0",
+      "target": "sidecar_strict_unified"
+    },
+    {
+      "n": 72,
+      "positives": 33,
+      "prevalence": 0.4583333333333333,
+      "scene": "room0",
+      "target": "sidecar_original_mask"
+    },
+    {
+      "n": 72,
+      "positives": 27,
+      "prevalence": 0.375,
+      "scene": "room0",
+      "target": "sidecar_strict_mask"
+    },
+    {
+      "n": 44,
+      "positives": 27,
+      "prevalence": 0.6136363636363636,
+      "scene": "room0",
+      "target": "sidecar_original_association"
+    },
+    {
+      "n": 20,
+      "positives": 7,
+      "prevalence": 0.35,
+      "scene": "room0",
+      "target": "sidecar_strict_association"
+    },
+    {
+      "n": 8,
+      "positives": 7,
+      "prevalence": 0.875,
+      "scene": "room0",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "n": 8,
+      "positives": 1,
+      "prevalence": 0.125,
+      "scene": "room0",
+      "target": "geometry_overmerge_2cm"
+    },
+    {
+      "n": 8,
+      "positives": 7,
+      "prevalence": 0.875,
+      "scene": "room0",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "n": 8,
+      "positives": 1,
+      "prevalence": 0.125,
+      "scene": "room0",
+      "target": "geometry_overmerge_5cm"
+    },
+    {
+      "n": 8,
+      "positives": 7,
+      "prevalence": 0.875,
+      "scene": "room0",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "n": 8,
+      "positives": 1,
+      "prevalence": 0.125,
+      "scene": "room0",
+      "target": "geometry_overmerge_7cm"
+    },
+    {
+      "n": 35,
+      "positives": 25,
+      "prevalence": 0.7142857142857143,
+      "scene": "office0",
+      "target": "sidecar_original_unified"
+    },
+    {
+      "n": 35,
+      "positives": 24,
+      "prevalence": 0.6857142857142857,
+      "scene": "office0",
+      "target": "sidecar_strict_unified"
+    },
+    {
+      "n": 35,
+      "positives": 23,
+      "prevalence": 0.6571428571428571,
+      "scene": "office0",
+      "target": "sidecar_original_mask"
+    },
+    {
+      "n": 35,
+      "positives": 22,
+      "prevalence": 0.6285714285714286,
+      "scene": "office0",
+      "target": "sidecar_strict_mask"
+    },
+    {
+      "n": 24,
+      "positives": 18,
+      "prevalence": 0.75,
+      "scene": "office0",
+      "target": "sidecar_original_association"
+    },
+    {
+      "n": 23,
+      "positives": 16,
+      "prevalence": 0.6956521739130435,
+      "scene": "office0",
+      "target": "sidecar_strict_association"
+    },
+    {
+      "n": 5,
+      "positives": 3,
+      "prevalence": 0.6,
+      "scene": "office0",
+      "target": "geometry_partition_2cm"
+    },
+    {
+      "n": 5,
+      "positives": 2,
+      "prevalence": 0.4,
+      "scene": "office0",
+      "target": "geometry_overmerge_2cm"
+    },
+    {
+      "n": 5,
+      "positives": 3,
+      "prevalence": 0.6,
+      "scene": "office0",
+      "target": "geometry_partition_5cm"
+    },
+    {
+      "n": 5,
+      "positives": 2,
+      "prevalence": 0.4,
+      "scene": "office0",
+      "target": "geometry_overmerge_5cm"
+    },
+    {
+      "n": 5,
+      "positives": 3,
+      "prevalence": 0.6,
+      "scene": "office0",
+      "target": "geometry_partition_7cm"
+    },
+    {
+      "n": 5,
+      "positives": 2,
+      "prevalence": 0.4,
+      "scene": "office0",
+      "target": "geometry_overmerge_7cm"
+    }
+  ]
+}
