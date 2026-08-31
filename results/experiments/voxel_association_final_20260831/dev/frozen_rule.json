@@ -1,0 +1,52 @@
+{
+  "bootstrap_iterations": 2000,
+  "eligible_features": [
+    {
+      "feature": "risk_near_threshold",
+      "min_ap_lift": 0.004167980050118453,
+      "min_auroc": 0.556637863315004,
+      "order_index": 1
+    }
+  ],
+  "feature_order": [
+    "risk_low_margin",
+    "risk_near_threshold",
+    "risk_modality_disagreement",
+    "risk_semantic_residual",
+    "risk_spatial_residual"
+  ],
+  "gt_thresholds": {
+    "history_dominant_ratio": 0.8,
+    "history_min_frames": 3,
+    "history_min_observations": 3,
+    "purity": 0.9,
+    "supported_fraction": 0.9,
+    "top_pixels": 25
+  },
+  "preregistered": true,
+  "selected_merge_feature": "risk_near_threshold",
+  "selection": {
+    "feature": "risk_near_threshold",
+    "min_ap_lift": 0.004167980050118453,
+    "min_auroc": 0.556637863315004,
+    "order_index": 1
+  },
+  "split": "dev",
+  "status": "CONTINUE_TO_HOLDOUT",
+  "viability": {
+    "office0": {
+      "n": 497,
+      "negative_clusters": 19,
+      "negatives": 402,
+      "positive_clusters": 15,
+      "positives": 95
+    },
+    "room0": {
+      "n": 796,
+      "negative_clusters": 18,
+      "negatives": 776,
+      "positive_clusters": 8,
+      "positives": 20
+    }
+  }
+}

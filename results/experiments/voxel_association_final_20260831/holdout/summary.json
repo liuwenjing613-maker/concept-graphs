@@ -1,0 +1,13 @@
+{
+  "decision": {
+    "selected_feature": "risk_near_threshold",
+    "status": "STOP_HOLDOUT_UNEVALUABLE"
+  },
+  "records": 408,
+  "runtime_seconds": 12.632917535491288,
+  "scenes": [
+    "room1",
+    "office1"
+  ],
+  "split": "holdout"
+}

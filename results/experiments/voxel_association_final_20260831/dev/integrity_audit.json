@@ -1,0 +1,48 @@
+[
+  {
+    "associations_total": 7507,
+    "evaluable_create": 0,
+    "evaluable_merge": 796,
+    "evaluable_records": 796,
+    "exclusions": {
+      "create_top1_history_lt3_reliable": 12,
+      "merge_target_history_ambiguous": 65,
+      "merge_target_history_lt3_frames": 5,
+      "merge_target_history_lt3_reliable": 59,
+      "observation_gt_unreliable": 6570
+    },
+    "exp_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd",
+    "gt_rows": 7507,
+    "integrity": {
+      "matrix_rows_validated": 937
+    },
+    "object_versions": 12142,
+    "runtime_seconds": 3.401370366103947,
+    "scene": "room0",
+    "summary_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/online_label_trigger_v1_20260831/dev/room0/scene_summary.json"
+  },
+  {
+    "associations_total": 3106,
+    "evaluable_create": 10,
+    "evaluable_merge": 497,
+    "evaluable_records": 507,
+    "exclusions": {
+      "create_top1_history_ambiguous": 1,
+      "create_top1_history_lt3_reliable": 6,
+      "merge_target_history_ambiguous": 285,
+      "merge_target_history_lt3_frames": 10,
+      "merge_target_history_lt3_reliable": 54,
+      "no_candidates": 9,
+      "observation_gt_unreliable": 2234
+    },
+    "exp_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/online_label_trigger_v1_office0_dev_pcd",
+    "gt_rows": 3106,
+    "integrity": {
+      "matrix_rows_validated": 863
+    },
+    "object_versions": 5409,
+    "runtime_seconds": 1.0882569160312414,
+    "scene": "office0",
+    "summary_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/online_label_trigger_v1_20260831/dev/office0/scene_summary.json"
+  }
+]

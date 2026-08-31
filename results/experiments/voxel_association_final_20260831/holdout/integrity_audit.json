@@ -1,0 +1,47 @@
+[
+  {
+    "associations_total": 4473,
+    "evaluable_create": 1,
+    "evaluable_merge": 297,
+    "evaluable_records": 298,
+    "exclusions": {
+      "create_top1_history_lt3_reliable": 6,
+      "merge_target_history_ambiguous": 162,
+      "merge_target_history_lt3_frames": 4,
+      "merge_target_history_lt3_reliable": 49,
+      "no_candidates": 1,
+      "observation_gt_unreliable": 3953
+    },
+    "exp_root": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room1/exps/online_label_trigger_v1_room1_holdout_onlinegen_pcd",
+    "gt_rows": 4473,
+    "integrity": {
+      "matrix_rows_validated": 519
+    },
+    "object_versions": 8208,
+    "runtime_seconds": 1.3916380731388927,
+    "scene": "room1",
+    "summary_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/online_label_trigger_v1_20260831/holdout/room1/scene_summary.json"
+  },
+  {
+    "associations_total": 3272,
+    "evaluable_create": 1,
+    "evaluable_merge": 109,
+    "evaluable_records": 110,
+    "exclusions": {
+      "create_top1_history_lt3_reliable": 2,
+      "merge_target_history_lt3_frames": 2,
+      "merge_target_history_lt3_reliable": 17,
+      "no_candidates": 1,
+      "observation_gt_unreliable": 3140
+    },
+    "exp_root": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office1/exps/online_label_trigger_v1_office1_holdout_onlinegen_pcd",
+    "gt_rows": 3272,
+    "integrity": {
+      "matrix_rows_validated": 131
+    },
+    "object_versions": 4821,
+    "runtime_seconds": 0.4513391815125942,
+    "scene": "office1",
+    "summary_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/online_label_trigger_v1_20260831/holdout/office1/scene_summary.json"
+  }
+]
