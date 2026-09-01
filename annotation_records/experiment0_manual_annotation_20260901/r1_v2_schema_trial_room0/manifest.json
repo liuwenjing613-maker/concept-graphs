@@ -1,0 +1,17 @@
+{
+  "case_count": 15,
+  "evidence_manifest_sha256": "89bb5c2420d295521f3b1bbb2e36afd9a3d535d4bf4af86fe8b2d862a25d6397",
+  "evidence_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence",
+  "failure_count": 0,
+  "failures": [],
+  "mapper_complete": true,
+  "mapper_latest_frame": 399,
+  "purpose": "SCHEMA_AND_ANNOTATION_VALIDITY_ONLY_NOT_PREVALENCE",
+  "ready_through_frame": 399,
+  "scene": "room0",
+  "schema_version": "experiment0-identity-routing-packet/2.0",
+  "source_private_worklist": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_schema_trial_room0/private_v2_trial_worklist.jsonl",
+  "source_private_worklist_sha256": "a3a8947914532aff4dd3e1d75ceb64e4645cc38937b0769dc04234c2f12ecd59",
+  "status": "READY",
+  "worklist_sha256": "c1fac7d07b698aa905d0ce086cc1bd37a469f8417d44345de77aa5a1af3f9bf3"
+}

@@ -1,0 +1,47 @@
+{
+  "base_case_count": 12,
+  "base_selected_counts": {
+    "CORRECT_ATTACH": 2,
+    "CORRECT_NEW": 2,
+    "SHOULD_HAVE_BEEN_NEW": 2,
+    "WRONG_ATTACH_EXISTING": 2,
+    "WRONG_NEW_FALSE_SPLIT": 2
+  },
+  "hidden_repeat_count": 3,
+  "private_final_counts_including_repeats": {
+    "CORRECT_ATTACH": 2,
+    "CORRECT_NEW": 2,
+    "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1,
+    "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+    "SHOULD_HAVE_BEEN_NEW": 3,
+    "WRONG_ATTACH_EXISTING": 3,
+    "WRONG_NEW_FALSE_SPLIT": 3
+  },
+  "purpose": "SCHEMA_AND_ANNOTATION_VALIDITY_ONLY_NOT_PREVALENCE",
+  "requested_per_routing_stratum": 2,
+  "routing_availability": {
+    "CORRECT_ATTACH": 4671,
+    "CORRECT_NEW": 41,
+    "SHOULD_HAVE_BEEN_NEW": 5,
+    "WRONG_ATTACH_EXISTING": 4,
+    "WRONG_NEW_FALSE_SPLIT": 7
+  },
+  "routing_strata": [
+    "CORRECT_ATTACH",
+    "WRONG_ATTACH_EXISTING",
+    "SHOULD_HAVE_BEEN_NEW",
+    "CORRECT_NEW",
+    "WRONG_NEW_FALSE_SPLIT"
+  ],
+  "schema_version": "experiment0-v2-trial-worklist/2.0",
+  "seed": 20260901,
+  "shortfalls": {},
+  "source_sha256": {
+    "routing_records": "76fc5d70a81989540c2def1a28339128c49a5aae58bf410fa7e5bcd7f9318314",
+    "v1_calibration_worklist": "7f8a99ba86e422fe64e6983c36459a0eb4cde007a1ace40bde68e87d3c7760de"
+  },
+  "status": "READY",
+  "total_case_count": 15,
+  "warning": "The balanced trial cannot estimate natural error prevalence. All private strata must remain hidden from the reviewer.",
+  "worklist_sha256": "a3a8947914532aff4dd3e1d75ceb64e4645cc38937b0769dc04234c2f12ecd59"
+}

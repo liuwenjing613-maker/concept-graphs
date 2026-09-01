@@ -1,0 +1,23 @@
+{
+  "action_counts": {
+    "ATTACH_EXISTING": 10,
+    "NEW": 5
+  },
+  "case_count": 15,
+  "checked_case_count": 15,
+  "error_count": 0,
+  "errors": [],
+  "packet_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_schema_trial_room0",
+  "private_stratum_counts": {
+    "CORRECT_ATTACH": 2,
+    "CORRECT_NEW": 2,
+    "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1,
+    "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+    "SHOULD_HAVE_BEEN_NEW": 3,
+    "WRONG_ATTACH_EXISTING": 3,
+    "WRONG_NEW_FALSE_SPLIT": 3
+  },
+  "repeat_checks": 3,
+  "schema_version": "experiment0-v2-packet-integrity/1.0",
+  "status": "PASS"
+}
