@@ -1,0 +1,609 @@
+{
+  "format_version": 1,
+  "title": "Uniform object-level GT-label oracle matrix",
+  "definition": "For every stage, assign exactly one majority GT class to each predicted object using the retained SLAM evaluation points and the same exact SLAM-to-prediction / SLAM-to-GT correspondences as the ali-dev point metric. Geometry, point ownership, object partition, GT denominator, and metric formula remain unchanged. This is an oracle upper bound, not method performance.",
+  "anti_cheating_boundary": "No pointwise GT label replacement. A mixed predicted object receives only one class and therefore remains penalized.",
+  "evaluator": {
+    "path": "/home/chenkejun/beauty/conceptgraphs/code/experiments/mask_first_order_20260830/scripts/eval_mask_point_semantic_gtlabel_matrix.py",
+    "sha256": "4a7d49ff2c12ebf5a2a44159e91b3d340075173e004520d63da877598a429ab7"
+  },
+  "checks": {
+    "formal_results": 5,
+    "input_map_hash_parity": {
+      "B0": true,
+      "MF_OP": true,
+      "MF_OM_pure": true,
+      "MF_OM_all": true,
+      "MF_OM_all_OA": true
+    },
+    "point_denominator_parity": {
+      "B0": {
+        "room0": true,
+        "office0": true
+      },
+      "MF_OP": {
+        "room0": true,
+        "office0": true
+      },
+      "MF_OM_pure": {
+        "room0": true,
+        "office0": true
+      },
+      "MF_OM_all": {
+        "room0": true,
+        "office0": true
+      },
+      "MF_OM_all_OA": {
+        "room0": true,
+        "office0": true
+      }
+    },
+    "one_label_per_object": true,
+    "n_exclude": 6,
+    "all_input_hashes_equal": true,
+    "all_denominators_equal": true,
+    "formal_complete": true
+  },
+  "results_percent": {
+    "B0": {
+      "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_B0/semseg_results.json",
+      "gt_label_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_matrix_20260901/B0/semseg_results.json",
+      "native": {
+        "miou": 24.412997674834422,
+        "mrecall": 41.916805383602366,
+        "mprecision": 32.116256985510184,
+        "mf1score": 30.732428749056602,
+        "fmiou": 44.92592916571034,
+        "point_accuracy": 56.03603210817324
+      },
+      "gt_label": {
+        "miou": 63.31723870399384,
+        "mrecall": 75.1672359090037,
+        "mprecision": 78.81091522069435,
+        "mf1score": 73.02369130842577,
+        "fmiou": 72.08378463796952,
+        "point_accuracy": 83.60427140647961
+      },
+      "gt_label_minus_native": {
+        "miou": 38.904241029159415,
+        "mrecall": 33.25043052540133,
+        "mprecision": 46.69465823518417,
+        "mf1score": 42.291262559369166,
+        "fmiou": 27.157855472259172,
+        "point_accuracy": 27.568239298306374
+      },
+      "scene_gt_label_miou": {
+        "room0": 69.6350802473421,
+        "office0": 53.310378160963225
+      },
+      "point_count": {
+        "room0": 4085377,
+        "office0": 4079896
+      },
+      "object_vote_diagnostics": [
+        {
+          "scene_id": "room0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 72,
+          "objects_with_retained_votes": 63,
+          "objects_without_retained_votes": 9,
+          "assigned_label_counts_nonzero": {
+            "basket": 1,
+            "blanket": 1,
+            "blinds": 2,
+            "book": 3,
+            "cabinet": 1,
+            "candle": 1,
+            "chair": 4,
+            "cushion": 12,
+            "indoor-plant": 2,
+            "lamp": 4,
+            "picture": 2,
+            "pillar": 9,
+            "plate": 1,
+            "pot": 1,
+            "rug": 5,
+            "sofa": 3,
+            "stool": 2,
+            "switch": 1,
+            "table": 4,
+            "vase": 1,
+            "wall-plug": 3
+          },
+          "object_vote_purity_mean": 0.8959426861670639,
+          "object_vote_purity_median": 0.9744058500914077,
+          "object_vote_purity_min": 0.3805428849173708
+        },
+        {
+          "scene_id": "office0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 35,
+          "objects_with_retained_votes": 31,
+          "objects_without_retained_votes": 4,
+          "assigned_label_counts_nonzero": {
+            "bin": 2,
+            "blinds": 5,
+            "chair": 1,
+            "clock": 1,
+            "desk-organizer": 1,
+            "indoor-plant": 1,
+            "panel": 1,
+            "pillar": 3,
+            "plant-stand": 1,
+            "rug": 6,
+            "sofa": 3,
+            "table": 1,
+            "tablet": 1,
+            "tv-screen": 2,
+            "vent": 1,
+            "wall-plug": 1
+          },
+          "object_vote_purity_mean": 0.8190981863045648,
+          "object_vote_purity_median": 0.9250475090360324,
+          "object_vote_purity_min": 0.4026133590131
+        }
+      ],
+      "map_sha256": [
+        "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1",
+        "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
+      ]
+    },
+    "MF_OP": {
+      "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OP/semseg_results.json",
+      "gt_label_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_matrix_20260901/MF_OP/semseg_results.json",
+      "native": {
+        "miou": 21.06197576976107,
+        "mrecall": 35.20203122021455,
+        "mprecision": 25.42445228813584,
+        "mf1score": 24.78869536682654,
+        "fmiou": 31.714783965285203,
+        "point_accuracy": 38.83812580424439
+      },
+      "gt_label": {
+        "miou": 70.61253440971788,
+        "mrecall": 77.70835324785934,
+        "mprecision": 83.98746073548938,
+        "mf1score": 77.96427405797907,
+        "fmiou": 90.35128805532256,
+        "point_accuracy": 94.6670490992769
+      },
+      "gt_label_minus_native": {
+        "miou": 49.55055863995681,
+        "mrecall": 42.506322027644785,
+        "mprecision": 58.56300844735354,
+        "mf1score": 53.17557869115252,
+        "fmiou": 58.63650409003735,
+        "point_accuracy": 55.8289232950325
+      },
+      "scene_gt_label_miou": {
+        "room0": 79.57207987664864,
+        "office0": 60.68686403905876
+      },
+      "point_count": {
+        "room0": 4085377,
+        "office0": 4079896
+      },
+      "object_vote_diagnostics": [
+        {
+          "scene_id": "room0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 77,
+          "objects_with_retained_votes": 69,
+          "objects_without_retained_votes": 8,
+          "assigned_label_counts_nonzero": {
+            "basket": 1,
+            "blanket": 1,
+            "blinds": 2,
+            "book": 2,
+            "cabinet": 1,
+            "candle": 1,
+            "chair": 4,
+            "cushion": 10,
+            "indoor-plant": 2,
+            "lamp": 6,
+            "picture": 2,
+            "pillar": 9,
+            "plate": 1,
+            "pot": 2,
+            "rug": 5,
+            "sofa": 4,
+            "stool": 2,
+            "switch": 1,
+            "table": 6,
+            "vase": 1,
+            "vent": 2,
+            "wall-plug": 4
+          },
+          "object_vote_purity_mean": 0.9382371017449959,
+          "object_vote_purity_median": 0.9825535289452815,
+          "object_vote_purity_min": 0.5371389270976616
+        },
+        {
+          "scene_id": "office0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 40,
+          "objects_with_retained_votes": 37,
+          "objects_without_retained_votes": 3,
+          "assigned_label_counts_nonzero": {
+            "bin": 2,
+            "blinds": 7,
+            "chair": 2,
+            "clock": 1,
+            "desk-organizer": 1,
+            "indoor-plant": 3,
+            "panel": 1,
+            "pillar": 1,
+            "plant-stand": 1,
+            "rug": 4,
+            "sofa": 2,
+            "switch": 1,
+            "table": 3,
+            "tablet": 1,
+            "tv-screen": 5,
+            "vent": 1,
+            "wall-plug": 1
+          },
+          "object_vote_purity_mean": 0.8826027661790353,
+          "object_vote_purity_median": 0.9946350510001325,
+          "object_vote_purity_min": 0.294234592445328
+        }
+      ],
+      "map_sha256": [
+        "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de",
+        "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3"
+      ]
+    },
+    "MF_OM_pure": {
+      "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_pure/semseg_results.json",
+      "gt_label_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_matrix_20260901/MF_OM_pure/semseg_results.json",
+      "native": {
+        "miou": 21.114199222647287,
+        "mrecall": 38.293970894540934,
+        "mprecision": 25.684166468646335,
+        "mf1score": 25.488258151035108,
+        "fmiou": 40.819158653871575,
+        "point_accuracy": 47.370749269497786
+      },
+      "gt_label": {
+        "miou": 92.59230325626685,
+        "mrecall": 95.105520370935,
+        "mprecision": 96.74030692057288,
+        "mf1score": 95.74801288957838,
+        "fmiou": 96.64126537911386,
+        "point_accuracy": 98.27112945274456
+      },
+      "gt_label_minus_native": {
+        "miou": 71.47810403361956,
+        "mrecall": 56.81154947639406,
+        "mprecision": 71.05614045192654,
+        "mf1score": 70.25975473854326,
+        "fmiou": 55.822106725242286,
+        "point_accuracy": 50.900380183246774
+      },
+      "scene_gt_label_miou": {
+        "room0": 95.19804312863198,
+        "office0": 89.5051204855292
+      },
+      "point_count": {
+        "room0": 4085377,
+        "office0": 4079896
+      },
+      "object_vote_diagnostics": [
+        {
+          "scene_id": "room0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 94,
+          "objects_with_retained_votes": 85,
+          "objects_without_retained_votes": 9,
+          "assigned_label_counts_nonzero": {
+            "basket": 1,
+            "blanket": 1,
+            "blinds": 9,
+            "book": 5,
+            "cabinet": 1,
+            "candle": 1,
+            "chair": 3,
+            "cushion": 16,
+            "indoor-plant": 1,
+            "lamp": 6,
+            "picture": 2,
+            "pillar": 6,
+            "plant-stand": 1,
+            "plate": 1,
+            "pot": 2,
+            "rug": 6,
+            "sofa": 4,
+            "stool": 2,
+            "switch": 1,
+            "table": 10,
+            "vase": 1,
+            "vent": 3,
+            "wall-plug": 2
+          },
+          "object_vote_purity_mean": 0.9585586926332178,
+          "object_vote_purity_median": 0.9967993686425816,
+          "object_vote_purity_min": 0.3299284984678243
+        },
+        {
+          "scene_id": "office0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 56,
+          "objects_with_retained_votes": 53,
+          "objects_without_retained_votes": 3,
+          "assigned_label_counts_nonzero": {
+            "bin": 2,
+            "blinds": 8,
+            "camera": 1,
+            "chair": 2,
+            "clock": 1,
+            "desk-organizer": 1,
+            "indoor-plant": 1,
+            "panel": 1,
+            "pillar": 3,
+            "plant-stand": 1,
+            "rug": 5,
+            "sofa": 4,
+            "switch": 1,
+            "table": 5,
+            "tablet": 1,
+            "tissue-paper": 1,
+            "tv-screen": 11,
+            "vent": 1,
+            "wall-plug": 3
+          },
+          "object_vote_purity_mean": 0.9422447246821823,
+          "object_vote_purity_median": 0.9988491119349305,
+          "object_vote_purity_min": 0.3359319631467045
+        }
+      ],
+      "map_sha256": [
+        "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631",
+        "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91"
+      ]
+    },
+    "MF_OM_all": {
+      "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_all/semseg_results.json",
+      "gt_label_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_matrix_20260901/MF_OM_all/semseg_results.json",
+      "native": {
+        "miou": 25.018099174262158,
+        "mrecall": 39.452332954530235,
+        "mprecision": 32.24512938187807,
+        "mf1score": 29.872881529394636,
+        "fmiou": 34.46341156724289,
+        "point_accuracy": 41.12652448975068
+      },
+      "gt_label": {
+        "miou": 87.5089405801398,
+        "mrecall": 91.27584487175663,
+        "mprecision": 92.36539296250473,
+        "mf1score": 91.13734313301009,
+        "fmiou": 96.01810074208188,
+        "point_accuracy": 97.90060907945147
+      },
+      "gt_label_minus_native": {
+        "miou": 62.49084140587763,
+        "mrecall": 51.8235119172264,
+        "mprecision": 60.120263580626656,
+        "mf1score": 61.26446160361546,
+        "fmiou": 61.55468917483899,
+        "point_accuracy": 56.77408458970079
+      },
+      "scene_gt_label_miou": {
+        "room0": 87.46530207739043,
+        "office0": 90.85620474424842
+      },
+      "point_count": {
+        "room0": 4085377,
+        "office0": 4079896
+      },
+      "object_vote_diagnostics": [
+        {
+          "scene_id": "room0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 145,
+          "objects_with_retained_votes": 105,
+          "objects_without_retained_votes": 40,
+          "assigned_label_counts_nonzero": {
+            "blanket": 1,
+            "blinds": 12,
+            "book": 7,
+            "cabinet": 1,
+            "candle": 1,
+            "chair": 6,
+            "cushion": 14,
+            "indoor-plant": 1,
+            "lamp": 6,
+            "picture": 2,
+            "pillar": 18,
+            "plant-stand": 1,
+            "plate": 1,
+            "pot": 2,
+            "rug": 6,
+            "sofa": 5,
+            "stool": 2,
+            "switch": 1,
+            "table": 10,
+            "vase": 1,
+            "vent": 3,
+            "wall-plug": 4
+          },
+          "object_vote_purity_mean": 0.9605381118251606,
+          "object_vote_purity_median": 0.9986648865153538,
+          "object_vote_purity_min": 0.4514304723885562
+        },
+        {
+          "scene_id": "office0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 72,
+          "objects_with_retained_votes": 65,
+          "objects_without_retained_votes": 7,
+          "assigned_label_counts_nonzero": {
+            "bin": 3,
+            "blinds": 10,
+            "camera": 1,
+            "chair": 2,
+            "clock": 1,
+            "desk-organizer": 1,
+            "indoor-plant": 7,
+            "panel": 1,
+            "pillar": 3,
+            "plant-stand": 1,
+            "rug": 16,
+            "sofa": 3,
+            "switch": 1,
+            "table": 4,
+            "tablet": 1,
+            "tissue-paper": 1,
+            "tv-screen": 5,
+            "vent": 2,
+            "wall-plug": 2
+          },
+          "object_vote_purity_mean": 0.9461906566089767,
+          "object_vote_purity_median": 0.9998767865943815,
+          "object_vote_purity_min": 0.48646362098138746
+        }
+      ],
+      "map_sha256": [
+        "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664",
+        "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e"
+      ]
+    },
+    "MF_OM_all_OA": {
+      "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_all_OA/semseg_results.json",
+      "gt_label_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_matrix_20260901/MF_OM_all_OA/semseg_results.json",
+      "native": {
+        "miou": 28.0773363903688,
+        "mrecall": 41.65138377260168,
+        "mprecision": 35.070505036365894,
+        "mf1score": 31.432202160339994,
+        "fmiou": 45.1184878633272,
+        "point_accuracy": 50.436476526871786
+      },
+      "gt_label": {
+        "miou": 95.26529746135289,
+        "mrecall": 97.35763507659286,
+        "mprecision": 97.7678745028475,
+        "mf1score": 97.52160421487466,
+        "fmiou": 96.08476690952439,
+        "point_accuracy": 97.97456863965233
+      },
+      "gt_label_minus_native": {
+        "miou": 67.18796107098409,
+        "mrecall": 55.70625130399117,
+        "mprecision": 62.69736946648161,
+        "mf1score": 66.08940205453466,
+        "fmiou": 50.96627904619719,
+        "point_accuracy": 47.53809211278055
+      },
+      "scene_gt_label_miou": {
+        "room0": 96.02574590730875,
+        "office0": 93.93251934818745
+      },
+      "point_count": {
+        "room0": 4085377,
+        "office0": 4079896
+      },
+      "object_vote_diagnostics": [
+        {
+          "scene_id": "room0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 89,
+          "objects_with_retained_votes": 78,
+          "objects_without_retained_votes": 11,
+          "assigned_label_counts_nonzero": {
+            "basket": 1,
+            "blanket": 1,
+            "blinds": 15,
+            "book": 8,
+            "cabinet": 2,
+            "candle": 1,
+            "chair": 2,
+            "cushion": 9,
+            "indoor-plant": 1,
+            "lamp": 6,
+            "picture": 2,
+            "pillar": 6,
+            "plant-stand": 1,
+            "plate": 1,
+            "pot": 1,
+            "rug": 1,
+            "sofa": 2,
+            "stool": 2,
+            "switch": 1,
+            "table": 8,
+            "vase": 1,
+            "vent": 2,
+            "wall-plug": 4
+          },
+          "object_vote_purity_mean": 0.9702956166372044,
+          "object_vote_purity_median": 0.9974033010706156,
+          "object_vote_purity_min": 0.6115107913669064
+        },
+        {
+          "scene_id": "office0",
+          "n_exclude": 6,
+          "definition": "one majority GT class per predicted object using the same retained SLAM evaluation points and exact nearest correspondences as the official point metric",
+          "predicted_objects": 47,
+          "objects_with_retained_votes": 45,
+          "objects_without_retained_votes": 2,
+          "assigned_label_counts_nonzero": {
+            "bin": 2,
+            "blinds": 5,
+            "camera": 1,
+            "chair": 2,
+            "clock": 1,
+            "desk-organizer": 1,
+            "indoor-plant": 2,
+            "panel": 1,
+            "pillar": 2,
+            "plant-stand": 1,
+            "rug": 3,
+            "sofa": 3,
+            "switch": 2,
+            "table": 4,
+            "tablet": 2,
+            "tissue-paper": 2,
+            "tv-screen": 3,
+            "vent": 2,
+            "wall-plug": 6
+          },
+          "object_vote_purity_mean": 0.945187912763783,
+          "object_vote_purity_median": 0.9993234573661496,
+          "object_vote_purity_min": 0.5950639853747715
+        }
+      ],
+      "map_sha256": [
+        "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6",
+        "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d"
+      ]
+    }
+  },
+  "gt_label_miou_stage_increments_percentage_points": {
+    "B0_to_OP": 7.295295705724044,
+    "OP_to_OM_pure": 21.979768846548964,
+    "OM_pure_to_OM_all": -5.083362676127052,
+    "OM_all_to_OA": 7.756356881213094,
+    "B0_to_OA": 31.94805875735905
+  },
+  "old_stored_oa_control": {
+    "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_MF_OM_all_OA/semseg_results.json",
+    "miou": 90.29939661777598,
+    "definition": "exact stored oracle_gt_label -> matching Replica class prompt; out-of-ontology labels -> other; official exclusion suppression retained",
+    "difference_from_uniform_majority_oracle": 4.965900843576904,
+    "status": "valid stored-online-label diagnostic, but not the uniform rule used for the five-stage causal matrix"
+  },
+  "interpretation": {
+    "why_oa_gt_label_jumps": "OA geometry and association are already near the structural ceiling, while native labels are read from stale/reused CLIP features. Replacing only the single label per object removes this semantic-readout error.",
+    "mask_direction": "OM_pure is the strongest mask-only condition under the uniform label oracle. OM_all regresses relative to OM_pure, confirming that maximal partition/processing is not uniformly safe.",
+    "next_required_control": "Recompute frozen ali-dev CLIP features for every changed crop/bbox, then rerun native association and semantic evaluation on the same maps/order."
+  }
+}
