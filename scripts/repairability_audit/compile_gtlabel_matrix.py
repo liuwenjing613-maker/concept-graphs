@@ -117,6 +117,7 @@ def main() -> int:
             },
             "object_vote_diagnostics": oracle["label_control_records"],
             "map_sha256": oracle_hashes,
+            "runtime_seconds": oracle["runtime_seconds"],
         }
         checks["formal_results"] += 1
 
@@ -161,6 +162,7 @@ def main() -> int:
             ),
         }
 
+    timings = {stage: item["runtime_seconds"] for stage, item in results.items()}
     payload = {
         "format_version": 1,
         "title": "Uniform object-level GT-label oracle matrix",
@@ -182,6 +184,13 @@ def main() -> int:
         "checks": checks,
         "results_percent": results,
         "gt_label_miou_stage_increments_percentage_points": stage_increments,
+        "timing": {
+            "per_stage_seconds": timings,
+            "sum_stage_seconds": sum(timings.values()),
+            "parallel_wall_time_approx_seconds": max(timings.values()),
+            "execution": "five deterministic CPU evaluations launched in parallel",
+            "failed_runs": 0,
+        },
         "old_stored_oa_control": old_stored_oa,
         "interpretation": {
             "why_oa_gt_label_jumps": (
@@ -251,6 +260,7 @@ def main() -> int:
             "- native/GT-label 每组输入地图 SHA256 完全一致。",
             "- room0/office0 的评测点数在 native/GT-label 之间完全一致。",
             "- 未改变地图、点归属、对象数、GT 分母或指标公式。",
+            f"- 五组并行确定性 CPU 评估：各组 {min(timings.values()):.1f}–{max(timings.values()):.1f} 秒，失败 0 组。",
             "- 本阶段只读取已完成的地图，未调用 API，也未重跑建图。",
             "",
             "## 下一步",

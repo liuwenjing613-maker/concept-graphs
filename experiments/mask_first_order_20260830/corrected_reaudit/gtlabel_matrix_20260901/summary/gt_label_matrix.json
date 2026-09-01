@@ -148,7 +148,8 @@
       "map_sha256": [
         "ab33d37eb3e868e529876b73d32ee37274c3502ef436027be1c911156e3ba5c1",
         "f1d37190041f14a3eba5ae8d1d98da086cf327b0e723806e9b4f543b476da475"
-      ]
+      ],
+      "runtime_seconds": 37.039
     },
     "MF_OP": {
       "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OP/semseg_results.json",
@@ -255,7 +256,8 @@
       "map_sha256": [
         "81e7561cf3812c2e3711de20105bfb6ba0326e58252500d33393b8d5196da0de",
         "74078964d4966b50cee75e16eede796b1b3e44d2cd6855b5ba50a06cd4367bb3"
-      ]
+      ],
+      "runtime_seconds": 28.008
     },
     "MF_OM_pure": {
       "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_pure/semseg_results.json",
@@ -365,7 +367,8 @@
       "map_sha256": [
         "cdec44ead01203aa0085b2a6cb573dab1c06876e28c3c1c71d11b45cb3f73631",
         "137a0e3f49e08b875b70ae2e6f54617b85b3a770e5bb83b8327c7a59df4ebc91"
-      ]
+      ],
+      "runtime_seconds": 28.952
     },
     "MF_OM_all": {
       "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_all/semseg_results.json",
@@ -474,7 +477,8 @@
       "map_sha256": [
         "b7d0d074808ea44a347b034052c0e6e192a2adcfedc4a8f553b57456db2bc664",
         "d961428338afa79787cdc16fa74885b235d70acc845e32a3b02be033a801247e"
-      ]
+      ],
+      "runtime_seconds": 30.687
     },
     "MF_OM_all_OA": {
       "native_result": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/native_MF_OM_all_OA/semseg_results.json",
@@ -584,7 +588,8 @@
       "map_sha256": [
         "daf80055a980667066d98d7cb8bcbbfba56752e9020a477f7a84d0cffe62c5d6",
         "d74224dca829daf73e8a46981f16f4a972bfff94ad1152724a371fc102aaf26d"
-      ]
+      ],
+      "runtime_seconds": 31.503
     }
   },
   "gt_label_miou_stage_increments_percentage_points": {
@@ -593,6 +598,19 @@
     "OM_pure_to_OM_all": -5.083362676127052,
     "OM_all_to_OA": 7.756356881213094,
     "B0_to_OA": 31.94805875735905
+  },
+  "timing": {
+    "per_stage_seconds": {
+      "B0": 37.039,
+      "MF_OP": 28.008,
+      "MF_OM_pure": 28.952,
+      "MF_OM_all": 30.687,
+      "MF_OM_all_OA": 31.503
+    },
+    "sum_stage_seconds": 156.189,
+    "parallel_wall_time_approx_seconds": 37.039,
+    "execution": "five deterministic CPU evaluations launched in parallel",
+    "failed_runs": 0
   },
   "old_stored_oa_control": {
     "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/mask_first_order_semantic_audit_20260831/point_semantic_corrected/gtlabel_MF_OM_all_OA/semseg_results.json",
