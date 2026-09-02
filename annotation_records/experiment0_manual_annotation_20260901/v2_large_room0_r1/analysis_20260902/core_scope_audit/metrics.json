@@ -1,0 +1,88 @@
+{
+  "full_stream_auto_root_candidate_audit": {
+    "auto_scope_status_counts": {
+      "AUTO_OUT_PRECONTAMINATED_TARGET": 5,
+      "AUTO_TARGET_CLEANLINESS_UNCERTAIN_NEEDS_HUMAN_REVIEW": 1
+    },
+    "nominal_auto_root_candidate_count": 6,
+    "precontaminated_auto_candidate_count": 5,
+    "reviewable_auto_candidate_count": 1,
+    "reviewable_auto_candidate_unlabeled_count": 1,
+    "strict_auto_candidate_count": 0,
+    "strict_auto_candidate_human_labeled_count": 0,
+    "strict_auto_candidate_unlabeled_count": 0,
+    "uncertain_auto_candidate_count": 1,
+    "uncertain_auto_candidate_human_labeled_count": 0,
+    "uncertain_auto_candidate_unlabeled_count": 1
+  },
+  "human_error_scope_audit": {
+    "attach_error_count": 9,
+    "current_observation_gate_pass_count": 13,
+    "error_event_count": 14,
+    "excluded_false_split_or_non_attach_count": 5,
+    "human_root_reclassified_out_of_scope_count": 7,
+    "packet_exact_version_mismatch_count": 7,
+    "precontaminated_attach_error_count": 9,
+    "scope_status_counts": {
+      "OUT_CASCADE_OR_PRECONTAMINATED_TARGET": 9,
+      "OUT_FALSE_SPLIT_OR_NON_ATTACH": 5
+    },
+    "strict_core_root_count": 0
+  },
+  "interpretation": {
+    "annotation_sufficient_for_main_core_root_count": false,
+    "annotation_valid_for_event_routing": true,
+    "method_feasibility_established": false,
+    "mixed_root_replays_are_main_scope_evidence": false,
+    "next_action": "HUMAN_REVIEW_STRICT_AUTO_CANDIDATES_THEN_REPEAT_ON_NEW_SCENES"
+  },
+  "probability_sample_scope_audit": {
+    "membership_and_pixel_0_90_minimum_attach_count": 107,
+    "membership_and_pixel_0_90_minimum_error_count": 0,
+    "membership_minimum_error_rate": 0.0,
+    "membership_minimum_error_rate_wilson_95": [
+      0.0,
+      0.03465723801874867
+    ],
+    "probability_sample_count": 150,
+    "scope_status_counts": {
+      "CORE_ELIGIBLE_NEGATIVE": 69,
+      "OUT_CURRENT_OBSERVATION_GATE": 19,
+      "OUT_NON_ATTACH": 2,
+      "OUT_TARGET_NOT_CAUSALLY_CLEAN": 60
+    },
+    "source_route_counts": {
+      "CORRECT_ATTACH": 143,
+      "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 2,
+      "SHOULD_HAVE_BEEN_NEW": 4,
+      "WRONG_NEW_FALSE_SPLIT": 1
+    },
+    "strict_core_root_positive_count": 0,
+    "strict_eligible_attach_count": 69,
+    "strict_root_rate": 0.0,
+    "strict_root_rate_wilson_95": [
+      3.469446951953614e-18,
+      0.05273725818905173
+    ]
+  },
+  "runtime_seconds": 1.7437915802001953,
+  "schema_version": "experiment0-core-scope-audit/1.0",
+  "scope_definition": {
+    "analysis_unit": "historical ATTACH_EXISTING decision",
+    "current_observation_gt_purity_min": 0.9,
+    "excluded_primary_errors": [
+      "WRONG_NEW_FALSE_SPLIT",
+      "MIXED_CURRENT_MASK",
+      "POSE_OR_DYNAMIC",
+      "SEMANTIC_OR_RELATION"
+    ],
+    "included_errors": [
+      "SHOULD_HAVE_BEEN_NEW",
+      "WRONG_ATTACH_EXISTING"
+    ],
+    "root_rule": "exact t-minus target is causally clean before the erroneous attachment",
+    "target_history_observation_min": 2,
+    "target_membership_purity_min": 0.9,
+    "target_projected_pixel_purity_min": 0.9
+  }
+}

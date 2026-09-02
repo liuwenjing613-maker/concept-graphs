@@ -1,0 +1,80 @@
+{
+  "aggregate": {
+    "both_eligible_count": 130,
+    "gt_supported_new_count": 1,
+    "gt_supported_old_count": 0,
+    "gt_unresolved_count": 1,
+    "minimum_gt_supported_new_margin": 0.026146431441003815,
+    "minimum_gt_unresolved_margin": 0.019818593083909652,
+    "old_preferred_count": 75,
+    "scalar_threshold_confounded_by_lower_margin_unresolved": true,
+    "selected_count": 2,
+    "selected_gt_adjudication_counts": {
+      "GT_ID_COLLISION_OR_UNRESOLVED": 1,
+      "NEW_BRANCH_SUPPORTED": 1
+    }
+  },
+  "analysis_semantics": "POST_REPLAY_CROSS_CASE_AUDIT_NO_REPLAY_MUTATION",
+  "case_count": 3,
+  "cases": [
+    {
+      "both_boundary_candidates_eligible_count": 26,
+      "case_uid": "mixed_interval_gt15_gt19",
+      "gt_identity_pair_adjudicable": true,
+      "minimum_old_preferred_margin": 0.026146431441003815,
+      "old_preferred_count": 11,
+      "selected_count": 1,
+      "selected_gt_adjudication_counts": {
+        "NEW_BRANCH_SUPPORTED": 1
+      },
+      "selected_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000258_r0010"
+      ],
+      "source": "Q3_ORACLE_FILTER_PLUS_ONE_CLEAN_CREATE",
+      "target_gt_id": 15,
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+      "trigger_frame": 253,
+      "trigger_gt_id": 19,
+      "trigger_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000253_r0011"
+    },
+    {
+      "both_boundary_candidates_eligible_count": 27,
+      "case_uid": "room0_large_r1_0143",
+      "gt_identity_pair_adjudicable": false,
+      "minimum_old_preferred_margin": 0.019818593083909652,
+      "old_preferred_count": 2,
+      "selected_count": 1,
+      "selected_gt_adjudication_counts": {
+        "GT_ID_COLLISION_OR_UNRESOLVED": 1
+      },
+      "selected_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000350_r0010"
+      ],
+      "source": "oracle_minimal_replay_0143_no_assoc_boundary",
+      "target_gt_id": 8,
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000113_r0004",
+      "trigger_frame": 324,
+      "trigger_gt_id": 8,
+      "trigger_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000324_r0009"
+    },
+    {
+      "both_boundary_candidates_eligible_count": 77,
+      "case_uid": "v2_r2_013",
+      "gt_identity_pair_adjudicable": true,
+      "minimum_old_preferred_margin": 0.06195985618997435,
+      "old_preferred_count": 62,
+      "selected_count": 0,
+      "selected_gt_adjudication_counts": {},
+      "selected_obs_uids": [],
+      "source": "oracle_minimal_replay_v2_r2_013_no_assoc_boundary",
+      "target_gt_id": 15,
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+      "trigger_frame": 253,
+      "trigger_gt_id": 19,
+      "trigger_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000253_r0011"
+    }
+  ],
+  "margin_delta": 0.03,
+  "schema_version": "identity-boundary-margin-generalization/1.0",
+  "scientific_conclusion": "PROMISING_BUT_INSUFFICIENT_TO_FREEZE_MARGIN_THRESHOLD"
+}
