@@ -1,0 +1,202 @@
+{
+  "affected_gt_ids": [
+    15,
+    19
+  ],
+  "analysis_semantics": "POST_REPLAY_CORRECTED_GT_EVALUATION_ONLY",
+  "anchor_frame": 138,
+  "decision_trace_count": 5136,
+  "mixed_pair_observations": {
+    "contiguous_frame_ranges": [
+      {
+        "end_frame": 141,
+        "frame_count": 4,
+        "start_frame": 138
+      },
+      {
+        "end_frame": 151,
+        "frame_count": 1,
+        "start_frame": 151
+      },
+      {
+        "end_frame": 158,
+        "frame_count": 1,
+        "start_frame": 158
+      },
+      {
+        "end_frame": 175,
+        "frame_count": 16,
+        "start_frame": 160
+      },
+      {
+        "end_frame": 204,
+        "frame_count": 20,
+        "start_frame": 185
+      },
+      {
+        "end_frame": 221,
+        "frame_count": 16,
+        "start_frame": 206
+      },
+      {
+        "end_frame": 227,
+        "frame_count": 1,
+        "start_frame": 227
+      },
+      {
+        "end_frame": 229,
+        "frame_count": 1,
+        "start_frame": 229
+      },
+      {
+        "end_frame": 234,
+        "frame_count": 4,
+        "start_frame": 231
+      },
+      {
+        "end_frame": 237,
+        "frame_count": 2,
+        "start_frame": 236
+      },
+      {
+        "end_frame": 252,
+        "frame_count": 14,
+        "start_frame": 239
+      },
+      {
+        "end_frame": 257,
+        "frame_count": 3,
+        "start_frame": 255
+      },
+      {
+        "end_frame": 285,
+        "frame_count": 27,
+        "start_frame": 259
+      },
+      {
+        "end_frame": 288,
+        "frame_count": 2,
+        "start_frame": 287
+      },
+      {
+        "end_frame": 291,
+        "frame_count": 2,
+        "start_frame": 290
+      },
+      {
+        "end_frame": 293,
+        "frame_count": 1,
+        "start_frame": 293
+      },
+      {
+        "end_frame": 296,
+        "frame_count": 1,
+        "start_frame": 296
+      },
+      {
+        "end_frame": 317,
+        "frame_count": 2,
+        "start_frame": 316
+      },
+      {
+        "end_frame": 319,
+        "frame_count": 1,
+        "start_frame": 319
+      },
+      {
+        "end_frame": 327,
+        "frame_count": 4,
+        "start_frame": 324
+      },
+      {
+        "end_frame": 331,
+        "frame_count": 1,
+        "start_frame": 331
+      },
+      {
+        "end_frame": 339,
+        "frame_count": 3,
+        "start_frame": 337
+      },
+      {
+        "end_frame": 343,
+        "frame_count": 2,
+        "start_frame": 342
+      }
+    ],
+    "count": 168,
+    "first_frame": 138,
+    "last_frame": 343,
+    "to_original_target_count": 167,
+    "unique_frame_count": 129,
+    "with_decision_count": 167
+  },
+  "next_experiment": {
+    "name": "ORACLE_MIXED_FILTER_PLUS_FIRST_CLEAN_GT19_CREATE",
+    "online_claim_allowed": false,
+    "quarantine_observation_count": 168,
+    "reason": "Separate the segmentation-quality ceiling from routing: filter recurring mixed evidence, create once on the first clean GT19, then measure natural suffix association.",
+    "single_create_trigger_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000253_r0011"
+  },
+  "pure_reliable_observations": {
+    "per_gt": {
+      "15": {
+        "count": 7,
+        "count_after_last_mixed": 0,
+        "first_frame": 222,
+        "frames": [
+          222,
+          223,
+          224,
+          225,
+          226,
+          230,
+          235
+        ],
+        "last_frame": 235,
+        "to_original_target_count": 7
+      },
+      "19": {
+        "count": 17,
+        "count_after_last_mixed": 0,
+        "first_frame": 253,
+        "frames": [
+          253,
+          254,
+          258,
+          286,
+          289,
+          292,
+          294,
+          295,
+          297,
+          298,
+          299,
+          300,
+          301,
+          302,
+          304,
+          305,
+          306
+        ],
+        "last_frame": 306,
+        "to_original_target_count": 17
+      }
+    },
+    "total_count": 24
+  },
+  "replay_state_status": "COMPLETED",
+  "routing": {
+    "all_pure_to_original_target": true,
+    "mixed_applied_target_origin_counts": {
+      "room0_20260831T111035Z_5c9d86fa_f000123_r0016": 167
+    },
+    "pure_applied_target_origin_counts": {
+      "room0_20260831T111035Z_5c9d86fa_f000123_r0016": 24
+    },
+    "pure_to_original_target_count": 24
+  },
+  "schema_version": "mixed-root-temporal-audit/1.0",
+  "scientific_conclusion": "RECURRING_MIXED_SEGMENTATION_AND_NO_SPONTANEOUS_IDENTITY_SPLIT",
+  "target_origin_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016"
+}

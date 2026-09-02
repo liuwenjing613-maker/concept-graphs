@@ -67,6 +67,14 @@ def _atomic_gzip_json(path: Path, value: Any) -> None:
     temporary.replace(path)
 
 
+def _read_gzip_json(path: Path) -> dict[str, Any]:
+    with gzip.open(path, "rt", encoding="utf-8") as handle:
+        value = json.load(handle)
+    if not isinstance(value, dict):
+        raise ValueError(f"{path} does not contain a JSON object")
+    return value
+
+
 def _owner_index(
     membership: Mapping[str, Iterable[str]],
 ) -> dict[str, list[str]]:
@@ -336,7 +344,8 @@ def _markdown(result: Mapping[str, Any]) -> str:
             "",
             f"- anchor 最终 owner 数：{result['anchor']['quarantine_owner_count']}（期望 0）。",
             f"- 其余 observation 不变量：{result['runtime_invariants']['pass']}。",
-            f"- 受影响集合之外改动：{result['collateral']['outside_changed']}。",
+            "- 受影响集合之外改动："
+            f"{result['collateral']['changed_outside_observation_count']}。",
             f"- 源证据结束校验未变：{result['source_evidence_unchanged']}。",
             "- 这是人工/离线发现混合根因后的 oracle 隔离上限，不代表自动混合检测器已经完成。",
             "",
@@ -353,6 +362,11 @@ def main() -> int:
     parser.add_argument("--beauty-summary", type=Path)
     parser.add_argument("--anchor-obs", default=DEFAULT_ANCHOR_OBS)
     parser.add_argument("--target-version", default=DEFAULT_TARGET_VERSION)
+    parser.add_argument(
+        "--resume-state",
+        type=Path,
+        help="Reuse an already completed Q1_state.json.gz and rerun only auditing.",
+    )
     args = parser.parse_args()
 
     output_root = args.output_root.resolve()
@@ -376,68 +390,88 @@ def main() -> int:
     if anchor_obs in set(target_version.get("member_observation_uids") or ()):
         raise ValueError("target version is not a strict pre-anchor version")
 
-    print("[2/5] build strict pre-anchor snapshot", flush=True)
-    prefix_state, prefix_objects = context.prefix_cache.prefix_before(anchor_frame)
-    snapshot = AnchorStateBuilder(provenance, context.engine).build_pre_anchor_state(
-        anchor_event_uid,
-        [str(args.target_version)],
-        strict=True,
-        prefix_state=prefix_state,
-        prefix_objects=prefix_objects,
-    )
-    full_closure = _full_suffix_closure(
-        context,
-        anchor_event_sequence=anchor_sequence,
-        snapshot_watermark_event_sequence=snapshot.watermark_event_sequence,
-    )
-    anchor_related_events = [
-        str(row["event_uid"])
-        for row in provenance.events.values()
-        if str(row.get("obs_uid") or "") == anchor_obs
-    ]
-    quarantine_closure = closure_without_observation(
-        full_closure,
-        obs_uid=anchor_obs,
-        event_uids_for_observation=anchor_related_events,
-    )
     quarantine_current, quarantine_edit = quarantine_observation(
         native_state, anchor_obs
     )
-    _atomic_json(
-        output_root / "intake.json",
-        {
-            "schema_version": SCHEMA_VERSION,
-            "anchor_obs_uid": anchor_obs,
-            "anchor_event_uid": anchor_event_uid,
-            "anchor_event_sequence": anchor_sequence,
-            "anchor_frame": anchor_frame,
-            "target_version_uid": str(args.target_version),
-            "target_probe_obs_uid": target_probe,
-            "snapshot": snapshot.as_dict(),
-            "full_suffix_observation_count": len(full_closure.obs_uids),
-            "quarantine_suffix_observation_count": len(quarantine_closure.obs_uids),
-            "quarantine_edit": quarantine_edit,
-        },
-    )
-    print(
-        f"[snapshot] pass={snapshot.validation['pass']} "
-        f"suffix={len(quarantine_closure.obs_uids)} anchor_removed=1",
-        flush=True,
-    )
+    if args.resume_state:
+        print("[2/5] reuse completed Q1 state; skip mapper replay", flush=True)
+        intake = json.loads(
+            (output_root / "intake.json").read_text(encoding="utf-8")
+        )
+        replay_state = _read_gzip_json(args.resume_state.resolve())
+        snapshot_pass = bool(intake["snapshot"]["validation"]["pass"])
+        quarantine_suffix_count = int(
+            intake["quarantine_suffix_observation_count"]
+        )
+        print(
+            f"[resume] snapshot_pass={snapshot_pass} "
+            f"suffix={quarantine_suffix_count}",
+            flush=True,
+        )
+    else:
+        print("[2/5] build strict pre-anchor snapshot", flush=True)
+        prefix_state, prefix_objects = context.prefix_cache.prefix_before(anchor_frame)
+        snapshot = AnchorStateBuilder(
+            provenance, context.engine
+        ).build_pre_anchor_state(
+            anchor_event_uid,
+            [str(args.target_version)],
+            strict=True,
+            prefix_state=prefix_state,
+            prefix_objects=prefix_objects,
+        )
+        full_closure = _full_suffix_closure(
+            context,
+            anchor_event_sequence=anchor_sequence,
+            snapshot_watermark_event_sequence=snapshot.watermark_event_sequence,
+        )
+        anchor_related_events = [
+            str(row["event_uid"])
+            for row in provenance.events.values()
+            if str(row.get("obs_uid") or "") == anchor_obs
+        ]
+        quarantine_closure = closure_without_observation(
+            full_closure,
+            obs_uid=anchor_obs,
+            event_uids_for_observation=anchor_related_events,
+        )
+        snapshot_pass = bool(snapshot.validation["pass"])
+        quarantine_suffix_count = len(quarantine_closure.obs_uids)
+        _atomic_json(
+            output_root / "intake.json",
+            {
+                "schema_version": SCHEMA_VERSION,
+                "anchor_obs_uid": anchor_obs,
+                "anchor_event_uid": anchor_event_uid,
+                "anchor_event_sequence": anchor_sequence,
+                "anchor_frame": anchor_frame,
+                "target_version_uid": str(args.target_version),
+                "target_probe_obs_uid": target_probe,
+                "snapshot": snapshot.as_dict(),
+                "full_suffix_observation_count": len(full_closure.obs_uids),
+                "quarantine_suffix_observation_count": quarantine_suffix_count,
+                "quarantine_edit": quarantine_edit,
+            },
+        )
+        print(
+            f"[snapshot] pass={snapshot_pass} "
+            f"suffix={quarantine_suffix_count} anchor_removed=1",
+            flush=True,
+        )
 
-    print("[3/5] replay unchanged matcher with anchor quarantined", flush=True)
-    replay_state = context.engine.replay_suffix_from_snapshot(
-        mode=ReplayMode.NATURAL_REPLAY,
-        snapshot_objects=snapshot.objects,
-        snapshot_runtime_ms=snapshot.state["runtime_ms"],
-        snapshot_timing=snapshot.state.get("timing"),
-        anchor_frame=snapshot.anchor_frame,
-        snapshot_watermark_event_sequence=snapshot.watermark_event_sequence,
-        closure=quarantine_closure,
-        current_state=quarantine_current,
-    )
-    replay_state["branch"] = "Q1_MIXED_ANCHOR_QUARANTINE_NATURAL_SUFFIX"
-    _atomic_gzip_json(output_root / "Q1_state.json.gz", replay_state)
+        print("[3/5] replay unchanged matcher with anchor quarantined", flush=True)
+        replay_state = context.engine.replay_suffix_from_snapshot(
+            mode=ReplayMode.NATURAL_REPLAY,
+            snapshot_objects=snapshot.objects,
+            snapshot_runtime_ms=snapshot.state["runtime_ms"],
+            snapshot_timing=snapshot.state.get("timing"),
+            anchor_frame=snapshot.anchor_frame,
+            snapshot_watermark_event_sequence=snapshot.watermark_event_sequence,
+            closure=quarantine_closure,
+            current_state=quarantine_current,
+        )
+        replay_state["branch"] = "Q1_MIXED_ANCHOR_QUARANTINE_NATURAL_SUFFIX"
+        _atomic_gzip_json(output_root / "Q1_state.json.gz", replay_state)
 
     print("[4/5] audit complete partitions with post-replay GT", flush=True)
     gt_rows = _read_jsonl(args.observation_gt.resolve())
@@ -482,10 +516,10 @@ def main() -> int:
     source_unchanged = context.source_hashes_before == provenance.source_hashes()
     quarantine_owner_count = len(replay_owners.get(anchor_obs, ()))
     execution_pass = bool(
-        snapshot.validation["pass"]
+        snapshot_pass
         and invariants["pass"]
         and quarantine_owner_count == 0
-        and collateral["outside_changed"] == 0
+        and collateral["changed_outside_observation_count"] == 0
         and source_unchanged
     )
     result = {
@@ -504,7 +538,7 @@ def main() -> int:
             "target_probe_obs_uid": target_probe,
             "quarantine_owner_count": quarantine_owner_count,
         },
-        "snapshot_pass": bool(snapshot.validation["pass"]),
+        "snapshot_pass": snapshot_pass,
         "branches": {
             "B0_NATIVE": {
                 "partition_hash": _partition_hash(native_state["membership"]),

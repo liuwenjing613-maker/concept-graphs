@@ -1,0 +1,194 @@
+{
+  "anchor": {
+    "event_uid": "room0_20260831T111035Z_5c9d86fa_e00005670",
+    "frame": 138,
+    "obs_uid": "room0_20260831T111035Z_5c9d86fa_f000138_r0016",
+    "quarantine_owner_count": 0,
+    "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+    "target_version_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6@v000015"
+  },
+  "branches": {
+    "B0_NATIVE": {
+      "gt_partition": {
+        "best_entities_are_distinct": false,
+        "best_entity_by_gt": {
+          "15": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+          "19": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        },
+        "evaluation_policy": "POST_REPLAY_CORRECTED_GT_ONLY; purity>=0.8; exclude MIXED and two-foreground observations",
+        "per_gt": {
+          "15": {
+            "best_entity": {
+              "eligible_member_count": 32,
+              "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+              "f1": 0.6382978723404256,
+              "precision": 0.46875,
+              "recall": 1.0,
+              "true_member_count": 15
+            },
+            "duplicate_owner_observation_count": 0,
+            "expected_reliable_observation_count": 15,
+            "owned_observation_count": 15,
+            "owner_entity_count": 1,
+            "top_entities": [
+              {
+                "eligible_member_count": 32,
+                "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+                "f1": 0.6382978723404256,
+                "precision": 0.46875,
+                "recall": 1.0,
+                "true_member_count": 15
+              }
+            ]
+          },
+          "19": {
+            "best_entity": {
+              "eligible_member_count": 32,
+              "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+              "f1": 0.6938775510204082,
+              "precision": 0.53125,
+              "recall": 1.0,
+              "true_member_count": 17
+            },
+            "duplicate_owner_observation_count": 0,
+            "expected_reliable_observation_count": 17,
+            "owned_observation_count": 17,
+            "owner_entity_count": 1,
+            "top_entities": [
+              {
+                "eligible_member_count": 32,
+                "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+                "f1": 0.6938775510204082,
+                "precision": 0.53125,
+                "recall": 1.0,
+                "true_member_count": 17
+              }
+            ]
+          }
+        },
+        "reliable_expected_observation_count": 32,
+        "target_owner_reliable_gt_composition": {
+          "15": 15,
+          "19": 17
+        },
+        "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+        "target_probe_owner_uids": [
+          "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        ]
+      },
+      "partition_hash": "98df5d4137b69949436b9bedc2e7686697f6de2703941d00a444ecf66ab92269"
+    },
+    "Q1_QUARANTINE": {
+      "closure_effective_observation_count": 7018,
+      "closure_initial_observation_count": 5136,
+      "gt_partition": {
+        "best_entities_are_distinct": false,
+        "best_entity_by_gt": {
+          "15": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+          "19": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        },
+        "evaluation_policy": "POST_REPLAY_CORRECTED_GT_ONLY; purity>=0.8; exclude MIXED and two-foreground observations",
+        "per_gt": {
+          "15": {
+            "best_entity": {
+              "eligible_member_count": 32,
+              "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+              "f1": 0.6382978723404256,
+              "precision": 0.46875,
+              "recall": 1.0,
+              "true_member_count": 15
+            },
+            "duplicate_owner_observation_count": 0,
+            "expected_reliable_observation_count": 15,
+            "owned_observation_count": 15,
+            "owner_entity_count": 1,
+            "top_entities": [
+              {
+                "eligible_member_count": 32,
+                "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+                "f1": 0.6382978723404256,
+                "precision": 0.46875,
+                "recall": 1.0,
+                "true_member_count": 15
+              }
+            ]
+          },
+          "19": {
+            "best_entity": {
+              "eligible_member_count": 32,
+              "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+              "f1": 0.6938775510204082,
+              "precision": 0.53125,
+              "recall": 1.0,
+              "true_member_count": 17
+            },
+            "duplicate_owner_observation_count": 0,
+            "expected_reliable_observation_count": 17,
+            "owned_observation_count": 17,
+            "owner_entity_count": 1,
+            "top_entities": [
+              {
+                "eligible_member_count": 32,
+                "entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+                "f1": 0.6938775510204082,
+                "precision": 0.53125,
+                "recall": 1.0,
+                "true_member_count": 17
+              }
+            ]
+          }
+        },
+        "reliable_expected_observation_count": 32,
+        "target_owner_reliable_gt_composition": {
+          "15": 15,
+          "19": 17
+        },
+        "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+        "target_probe_owner_uids": [
+          "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        ]
+      },
+      "partition_hash": "02408dab3e4ad6394138e269c76abc9dfca1deafa33cc86c929cd1a5c0c14f2a",
+      "replayed_observation_count": 5136,
+      "runtime_ms": 443638.0824558437
+    }
+  },
+  "collateral": {
+    "affected_observation_count": 252,
+    "changed_outside_observation_count": 0,
+    "changed_outside_observation_uids": [],
+    "cross_boundary_entity_uids": [],
+    "duplicate_observation_uids": [],
+    "extra_observation_uids": [],
+    "missing_native_observation_uids": [
+      "room0_20260831T111035Z_5c9d86fa_f000138_r0016"
+    ],
+    "outside_observation_count": 7255,
+    "outside_partition_exact_to_native": true,
+    "safe": false
+  },
+  "execution_status": "PASS",
+  "gt19_best_entity_f1_gain": 0.0,
+  "gt_use": "POST_REPLAY_EVALUATION_ONLY",
+  "intervention_semantics": "OMIT_ONE_MIXED_ANCHOR; NO_GT_OR_ROUTE_FOR_LATER_OBSERVATIONS",
+  "runtime_invariants": {
+    "checks": {
+      "R10_sources_immutable": true,
+      "R11_scope_overlay": true,
+      "R1_unique_owner": true,
+      "R2_evidence_and_object_refs": true,
+      "R3_R4_finite_geometry": true,
+      "R6_constraint_satisfied": true,
+      "R7_R8_edges_structural": true
+    },
+    "hard_invariant_failures": [],
+    "pass": true,
+    "schema_version": "1.0.0"
+  },
+  "schema_version": "mixed-root-quarantine-replay/1.0",
+  "scientific_outcome": "QUARANTINE_INSUFFICIENT_FOR_NATURAL_RECOVERY",
+  "snapshot_pass": true,
+  "source_evidence_unchanged": true,
+  "source_hash_policy": "HASH_ONCE_AT_CONTEXT_BUILD_AND_ONCE_AT_END",
+  "total_wall_ms": 29464.94992543012
+}

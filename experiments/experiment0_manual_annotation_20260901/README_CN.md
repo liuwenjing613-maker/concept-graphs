@@ -6,9 +6,11 @@
 - `compile_room0_human_episodes.py`：合并 R1/R2 并生成错误 episode；
 - `run_human_oracle_minimal_replay.py`：B0/B1/B2/B3 严格在线回放；
 - `audit_oracle_create_partition.py`：用完整成员分区审计 CREATE 修复，避免探针过度乐观；
-- `run_mixed_root_quarantine_replay.py`：frame138 混合 mask 隔离反事实（实验中，不是生产修复）。
+- `run_mixed_root_quarantine_replay.py`：frame138 单帧混合 mask 隔离反事实；
+- `analyze_mixed_root_temporal_chain.py`：审计 GT15/GT19 的持续混合、纯净证据与自然路由；
+- `run_mixed_interval_clean_create_replay.py`：混合区间过滤、纯净 CREATE 与低分差身份滞回的 oracle/探索性消融。
 
-当前完整阶段判断见 `EXPERIMENT0_ROOM0_LABEL_ORACLE_STAGE1_REVIEW_20260902_CN.md`。
+标注与第一阶段判断见 `EXPERIMENT0_ROOM0_LABEL_ORACLE_STAGE1_REVIEW_20260902_CN.md`；混合根因的最新结果见 `EXPERIMENT0_ROOM0_MIXED_ROOT_STAGE2_REVIEW_20260902_CN.md`。后两项实验使用校正 GT 选择离线干预样本，只能作为机制上限，不能作为在线方法效果。
 
 先读 `PROTOCOL_CN.md`。当前只生成 room0 校准队列，不解封未见场景。
 
