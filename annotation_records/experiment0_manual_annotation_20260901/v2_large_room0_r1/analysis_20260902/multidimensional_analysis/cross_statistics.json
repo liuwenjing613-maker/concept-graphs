@@ -1,0 +1,560 @@
+{
+  "candidate_ranking": {
+    "correct_existing_rank_counts": {
+      "1": 3,
+      "12": 1,
+      "19": 1,
+      "2": 2
+    },
+    "covered_at_5_plus_new_count": 12,
+    "covered_at_5_plus_new_denominator": 14,
+    "error_top1_top2_margin_median": 0.21872931718826294,
+    "new_overridden_count": 7,
+    "new_overridden_top1_minus_threshold_median": 0.6310506343841553
+  },
+  "causality": {
+    "causal_role_by_original_target_state": {
+      "CASCADE | ALREADY_CONTAMINATED": 5,
+      "CASCADE | NOT_APPLICABLE": 1,
+      "PENDING | NOT_APPLICABLE": 1,
+      "ROOT | ALREADY_CONTAMINATED": 4,
+      "ROOT | NOT_APPLICABLE": 3
+    },
+    "contaminated_attach_error_count": 9,
+    "earliest_strict_contamination_event_not_in_174_cases": [
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00010849",
+        "case_uid": "room0_large_r1_0114",
+        "earliest_event_uid": "room0_20260831T111035Z_5c9d86fa_e00007309",
+        "event_gap": 3540
+      },
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00010066",
+        "case_uid": "v2_r2_005",
+        "earliest_event_uid": "room0_20260831T111035Z_5c9d86fa_e00009856",
+        "event_gap": 210
+      },
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00010006",
+        "case_uid": "v2_r2_010",
+        "earliest_event_uid": "room0_20260831T111035Z_5c9d86fa_e00009856",
+        "event_gap": 150
+      },
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00014199",
+        "case_uid": "v2_r2_011",
+        "earliest_event_uid": "room0_20260831T111035Z_5c9d86fa_e00008322",
+        "event_gap": 5877
+      },
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00011993",
+        "case_uid": "v2_r2_013",
+        "earliest_event_uid": "room0_20260831T111035Z_5c9d86fa_e00005670",
+        "event_gap": 6323
+      }
+    ],
+    "earliest_strict_contamination_event_not_in_174_count": 5,
+    "object_merge_transition_requires_parent_dag_backtrace_cases": [
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00015762",
+        "case_uid": "room0_large_r1_0083",
+        "transition_event_uid": "room0_20260831T111035Z_5c9d86fa_e00014063"
+      },
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00016561",
+        "case_uid": "room0_large_r1_0085",
+        "transition_event_uid": "room0_20260831T111035Z_5c9d86fa_e00008523"
+      },
+      {
+        "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00015562",
+        "case_uid": "room0_large_r1_0143",
+        "transition_event_uid": "room0_20260831T111035Z_5c9d86fa_e00008523"
+      }
+    ],
+    "object_merge_transition_requires_parent_dag_backtrace_count": 3,
+    "root_cascade_pending_counts": {
+      "CASCADE": 6,
+      "PENDING": 1,
+      "ROOT": 7
+    },
+    "unique_direct_contamination_root_count": 4,
+    "unique_direct_earliest_contamination_event_not_in_174_count": 4,
+    "unique_direct_root_with_mixed_or_two_foreground_mask_count": 2,
+    "unique_direct_root_with_mixed_or_two_foreground_mask_event_uids": [
+      "room0_20260831T111035Z_5c9d86fa_e00005670",
+      "room0_20260831T111035Z_5c9d86fa_e00008322"
+    ]
+  },
+  "class_relation": {
+    "by_error_type": {
+      "DIFFERENT_CLASS | SHOULD_HAVE_BEEN_NEW": 2,
+      "DIFFERENT_CLASS | WRONG_ATTACH_EXISTING": 2,
+      "SAME_CLASS | SHOULD_HAVE_BEEN_NEW": 1,
+      "UNKNOWN | SHOULD_HAVE_BEEN_NEW": 4,
+      "UNKNOWN | WRONG_NEW_FALSE_SPLIT": 5
+    },
+    "counts": {
+      "DIFFERENT_CLASS": 4,
+      "SAME_CLASS": 1,
+      "UNKNOWN": 9
+    }
+  },
+  "current_mask": {
+    "all_human_quality_counts": {
+      "BACKGROUND_OR_FRAGMENT": 5,
+      "BORDERLINE_SINGLE_INSTANCE": 2,
+      "CLEAN_SINGLE_INSTANCE": 166,
+      "MIXED_MULTIPLE_INSTANCES": 1
+    },
+    "error_corrected_gt_mask_mixed_true_count": 0,
+    "error_corrected_gt_two_foreground_true_count": 0,
+    "error_gt_purity_bin_counts": {
+      "0.80-0.95": 2,
+      ">=0.95": 12
+    },
+    "error_human_quality_counts": {
+      "BORDERLINE_SINGLE_INSTANCE": 1,
+      "CLEAN_SINGLE_INSTANCE": 13
+    },
+    "error_identity_evidence_counts": {
+      "SUFFICIENT_FOR_IDENTITY": 14
+    },
+    "quality_by_error_type": {
+      "BORDERLINE_SINGLE_INSTANCE | WRONG_NEW_FALSE_SPLIT": 1,
+      "CLEAN_SINGLE_INSTANCE | SHOULD_HAVE_BEEN_NEW": 7,
+      "CLEAN_SINGLE_INSTANCE | WRONG_ATTACH_EXISTING": 2,
+      "CLEAN_SINGLE_INSTANCE | WRONG_NEW_FALSE_SPLIT": 4
+    }
+  },
+  "displayed_candidate_pool": {
+    "already_contaminated_count": 28,
+    "error_case_count_with_at_least_one_contaminated_frozen_candidate": 14,
+    "joint_state_counts": {
+      "ALREADY_CONTAMINATED": 28,
+      "CLEAN_SINGLE_INSTANCE": 27,
+      "UNCERTAIN": 16
+    },
+    "membership_state_counts": {
+      "ALREADY_CONTAMINATED": 17,
+      "CLEAN_SINGLE_INSTANCE": 52,
+      "UNCERTAIN": 2
+    },
+    "note": "Descriptive for the displayed candidates of the 14 error cases, not a prevalence estimate for the full stream.",
+    "unique_frozen_candidate_count": 71
+  },
+  "future_views": {
+    "native_final_owner_stable_count": 10,
+    "note": "Future views and final ownership are diagnostic only and would leak future information if used at the anchor.",
+    "offline_future_status_ok_count": 13,
+    "suffix_count_median_when_available": 8.0,
+    "three_independent_views_within_30_count": 6,
+    "two_independent_views_within_30_count": 8,
+    "window_count_median_when_available": 2.0
+  },
+  "multi_legal_target_analysis": {
+    "cases": [
+      {
+        "candidates": [
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 152,
+            "object_uid": "261e9d5a-655f-41b1-97c8-04638aa94b49",
+            "object_version_uid": "261e9d5a-655f-41b1-97c8-04638aa94b49@v000191",
+            "observation_gt_centroid_mean": [
+              4.395361520818948,
+              2.5218535091467604,
+              -0.7674385220792518
+            ],
+            "observation_gt_member_count": 152,
+            "pixel_mixed_mask_count": 0
+          },
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 4,
+            "object_uid": "4d61b4c5-236c-4c8a-9c1b-057e578759e0",
+            "object_version_uid": "4d61b4c5-236c-4c8a-9c1b-057e578759e0@v000043",
+            "observation_gt_centroid_mean": [
+              4.550392063945621,
+              2.4566380643826315,
+              -0.7452598038767756
+            ],
+            "observation_gt_member_count": 4,
+            "pixel_mixed_mask_count": 0
+          }
+        ],
+        "case_uid": "room0_large_r1_0020",
+        "classification": "SAME_GT_MULTI_OBJECT_FRAGMENTATION_SIGNAL",
+        "event_sequence": 16927,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00016927",
+        "is_error": false,
+        "legal_candidate_count": 2,
+        "observation_gt_id": 13,
+        "offline_same_gt_supporting_candidate_count": 2,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [
+          0.16964497952795143
+        ],
+        "routing_label": "CORRECT_ATTACH"
+      },
+      {
+        "candidates": [
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 134,
+            "object_uid": "261e9d5a-655f-41b1-97c8-04638aa94b49",
+            "object_version_uid": "261e9d5a-655f-41b1-97c8-04638aa94b49@v000169",
+            "observation_gt_centroid_mean": [
+              4.39442021517397,
+              2.521928721045479,
+              -0.7667952382060003
+            ],
+            "observation_gt_member_count": 134,
+            "pixel_mixed_mask_count": 0
+          },
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 4,
+            "object_uid": "4d61b4c5-236c-4c8a-9c1b-057e578759e0",
+            "object_version_uid": "4d61b4c5-236c-4c8a-9c1b-057e578759e0@v000039",
+            "observation_gt_centroid_mean": [
+              4.550392063945621,
+              2.4566380643826315,
+              -0.7452598038767756
+            ],
+            "observation_gt_member_count": 4,
+            "pixel_mixed_mask_count": 0
+          }
+        ],
+        "case_uid": "room0_large_r1_0073",
+        "classification": "SAME_GT_MULTI_OBJECT_FRAGMENTATION_SIGNAL",
+        "event_sequence": 15398,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00015398",
+        "is_error": false,
+        "legal_candidate_count": 2,
+        "observation_gt_id": 13,
+        "offline_same_gt_supporting_candidate_count": 2,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [
+          0.170451935713446
+        ],
+        "routing_label": "CORRECT_ATTACH"
+      },
+      {
+        "candidates": [
+          {
+            "joint_state": "ALREADY_CONTAMINATED",
+            "member_observation_count": 93,
+            "object_uid": "d2098a52-38bc-4b70-a286-79d4f351a4cf",
+            "object_version_uid": "d2098a52-38bc-4b70-a286-79d4f351a4cf@v000048",
+            "observation_gt_centroid_mean": [
+              2.721002756959386,
+              -0.4822910030308078,
+              -0.8025871634379079
+            ],
+            "observation_gt_member_count": 88,
+            "pixel_mixed_mask_count": 3
+          },
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 1,
+            "object_uid": "eb05ccb7-3a2b-4d4b-ba15-99fb50a41ed2",
+            "object_version_uid": "eb05ccb7-3a2b-4d4b-ba15-99fb50a41ed2@v000001",
+            "observation_gt_centroid_mean": [
+              3.7644955693846285,
+              -0.6772954888399427,
+              -0.8185930963371338
+            ],
+            "observation_gt_member_count": 1,
+            "pixel_mixed_mask_count": 0
+          }
+        ],
+        "case_uid": "room0_large_r1_0089",
+        "classification": "SAME_GT_MULTI_OBJECT_FRAGMENTATION_SIGNAL",
+        "event_sequence": 4403,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00004403",
+        "is_error": true,
+        "legal_candidate_count": 2,
+        "observation_gt_id": 9,
+        "offline_same_gt_supporting_candidate_count": 2,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [
+          1.0616780062508602
+        ],
+        "routing_label": "WRONG_NEW_FALSE_SPLIT"
+      },
+      {
+        "candidates": [
+          {
+            "joint_state": "ALREADY_CONTAMINATED",
+            "member_observation_count": 3,
+            "object_uid": "e61feab6-2fbe-432f-a406-f4f4093d9176",
+            "object_version_uid": "e61feab6-2fbe-432f-a406-f4f4093d9176@v000003",
+            "observation_gt_centroid_mean": [
+              -0.578204677437943,
+              0.5115249641651278,
+              -0.7126355231128653
+            ],
+            "observation_gt_member_count": 3,
+            "pixel_mixed_mask_count": 3
+          },
+          {
+            "joint_state": "UNCERTAIN",
+            "member_observation_count": 1,
+            "object_uid": "f77e8f83-6b38-4851-811a-457b5b1711f8",
+            "object_version_uid": "f77e8f83-6b38-4851-811a-457b5b1711f8@v000001",
+            "observation_gt_centroid_mean": [
+              -0.5796988574872965,
+              0.5077840887689711,
+              -0.7126902761675021
+            ],
+            "observation_gt_member_count": 1,
+            "pixel_mixed_mask_count": 1
+          }
+        ],
+        "case_uid": "room0_large_r1_0136",
+        "classification": "SAME_GT_MULTI_OBJECT_FRAGMENTATION_SIGNAL",
+        "event_sequence": 99,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000099",
+        "is_error": false,
+        "legal_candidate_count": 2,
+        "observation_gt_id": 79,
+        "offline_same_gt_supporting_candidate_count": 2,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [
+          0.004028612744661507
+        ],
+        "routing_label": "CORRECT_ATTACH"
+      },
+      {
+        "candidates": [
+          {
+            "joint_state": "ALREADY_CONTAMINATED",
+            "member_observation_count": 41,
+            "object_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+            "object_version_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6@v000053",
+            "observation_gt_centroid_mean": null,
+            "observation_gt_member_count": 0,
+            "pixel_mixed_mask_count": 33
+          },
+          {
+            "joint_state": "ALREADY_CONTAMINATED",
+            "member_observation_count": 57,
+            "object_uid": "890efc21-2891-4c37-b59a-d655bd9a9371",
+            "object_version_uid": "890efc21-2891-4c37-b59a-d655bd9a9371@v000089",
+            "observation_gt_centroid_mean": [
+              1.0848618371933416,
+              3.4764559671304576,
+              0.06416766552494531
+            ],
+            "observation_gt_member_count": 36,
+            "pixel_mixed_mask_count": 43
+          },
+          {
+            "joint_state": "ALREADY_CONTAMINATED",
+            "member_observation_count": 45,
+            "object_uid": "8eb2f0bb-b782-46b6-adb9-60a265a2f9d4",
+            "object_version_uid": "8eb2f0bb-b782-46b6-adb9-60a265a2f9d4@v000052",
+            "observation_gt_centroid_mean": null,
+            "observation_gt_member_count": 0,
+            "pixel_mixed_mask_count": 30
+          }
+        ],
+        "case_uid": "room0_large_r1_0140",
+        "classification": "HUMAN_MULTI_MATCH_NOT_CONFIRMED_BY_OFFLINE_GT",
+        "event_sequence": 7997,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00007997",
+        "is_error": false,
+        "legal_candidate_count": 3,
+        "observation_gt_id": 30,
+        "offline_same_gt_supporting_candidate_count": 1,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [],
+        "routing_label": "CORRECT_ATTACH"
+      },
+      {
+        "candidates": [
+          {
+            "joint_state": "ALREADY_CONTAMINATED",
+            "member_observation_count": 576,
+            "object_uid": "0e265092-354b-49b6-89d7-9061631dae08",
+            "object_version_uid": "0e265092-354b-49b6-89d7-9061631dae08@v000440",
+            "observation_gt_centroid_mean": null,
+            "observation_gt_member_count": 0,
+            "pixel_mixed_mask_count": 4
+          },
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 210,
+            "object_uid": "770f0598-fa50-48f2-9cc2-6f3ed7730ec1",
+            "object_version_uid": "770f0598-fa50-48f2-9cc2-6f3ed7730ec1@v000255",
+            "observation_gt_centroid_mean": [
+              4.179604779895488,
+              -0.39256190685128844,
+              -0.8021118057268021
+            ],
+            "observation_gt_member_count": 210,
+            "pixel_mixed_mask_count": 0
+          }
+        ],
+        "case_uid": "room0_large_r1_0142",
+        "classification": "HUMAN_MULTI_MATCH_NOT_CONFIRMED_BY_OFFLINE_GT",
+        "event_sequence": 16445,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00016445",
+        "is_error": false,
+        "legal_candidate_count": 2,
+        "observation_gt_id": 70,
+        "offline_same_gt_supporting_candidate_count": 1,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [],
+        "routing_label": "CORRECT_ATTACH"
+      },
+      {
+        "candidates": [
+          {
+            "joint_state": "CLEAN_SINGLE_INSTANCE",
+            "member_observation_count": 1,
+            "object_uid": "84eec189-2493-40de-b437-a8311d9cacc6",
+            "object_version_uid": "84eec189-2493-40de-b437-a8311d9cacc6@v000047",
+            "observation_gt_centroid_mean": [
+              5.83666078064109,
+              0.2815678201260737,
+              -0.8696911202557831
+            ],
+            "observation_gt_member_count": 1,
+            "pixel_mixed_mask_count": 0
+          },
+          {
+            "joint_state": "UNCERTAIN",
+            "member_observation_count": 225,
+            "object_uid": "a77625f5-c88d-4ec8-83cd-dbc5b0e9516b",
+            "object_version_uid": "a77625f5-c88d-4ec8-83cd-dbc5b0e9516b@v000270",
+            "observation_gt_centroid_mean": [
+              5.820774349237738,
+              0.46445505883074895,
+              -0.8588085971128826
+            ],
+            "observation_gt_member_count": 224,
+            "pixel_mixed_mask_count": 3
+          }
+        ],
+        "case_uid": "room0_large_r1_0156",
+        "classification": "SAME_GT_MULTI_OBJECT_FRAGMENTATION_SIGNAL",
+        "event_sequence": 17413,
+        "event_uid": "room0_20260831T111035Z_5c9d86fa_e00017413",
+        "is_error": false,
+        "legal_candidate_count": 2,
+        "observation_gt_id": 69,
+        "offline_same_gt_supporting_candidate_count": 2,
+        "offline_same_gt_supporting_candidate_pair_distances_m": [
+          0.18389820579252542
+        ],
+        "routing_label": "CORRECT_ATTACH"
+      }
+    ],
+    "correct_attach_event_count": 154,
+    "human_multi_match_not_confirmed_by_offline_gt_event_count": 2,
+    "legal_candidate_count_distribution": {
+      "1": 147,
+      "2": 6,
+      "3": 1
+    },
+    "multi_legal_target_error_event_count": 1,
+    "multi_legal_target_event_count": 7,
+    "multi_legal_target_event_rate_among_correct_attach": 0.045454545454545456,
+    "note": "A human multi-target label is an over-segmentation signal only when at least two distinct graph objects contain members of the current corrected-GT instance. Selections with only one offline-supporting candidate remain annotation ambiguity, part-whole ambiguity, or false-positive matching rather than confirmed fragmentation.",
+    "same_gt_multi_object_fragmentation_signal_event_count": 5,
+    "unique_same_gt_fragmentation_candidate_set_count": 4
+  },
+  "native_self_heal": {
+    "note": "Computed from the native final map; this is a post-run diagnostic, not causal proof or online evidence.",
+    "status_counts": {
+      "NOT_SELF_HEALED_NO_JOIN_TO_LEGAL_LINEAGE": 4,
+      "NOT_SELF_HEALED_REMAINS_WITH_ORIGINAL_LINEAGE": 7,
+      "SELF_HEALED_TOPOLOGY_ONLY_FINAL_OWNER_CONTAMINATED_OR_UNCERTAIN": 3
+    },
+    "structural_self_heal_count": 3
+  },
+  "page_evidence": {
+    "display_auditable_attach_error_count": 9,
+    "display_omitted_at_least_one_full_history_gt_id_count": 3,
+    "exact_target_version_mismatch_count_all_attach": 38,
+    "exact_target_version_mismatch_count_attach_errors": 7,
+    "note": "A version mismatch can arise from an earlier event in the same frame; member-count delta is reported per event and is not automatically a labeling bug."
+  },
+  "repair_primitive_inference": {
+    "BACKTRACK_OR_SPLIT_CONTAMINATED_TARGET_PLUS_PERSISTENT_NEW_BOUNDARY": 5,
+    "BACKTRACK_TO_SEGMENTATION_ROOT_SPLIT_OBSERVATION_QUARANTINE_AND_REPLAY": 2,
+    "DIRECT_REDIRECT_TO_VERIFIED_CLEAN_TARGET": 2,
+    "EXTRACT_PRIOR_SAME_ID_TO_TEMP_CLUSTER_AND_DELAY_LEGAL_COMMIT": 2,
+    "SPLIT_CONTAMINATED_CANDIDATE_THEN_REDIRECT_OR_REUNIFY": 3
+  },
+  "routing": {
+    "all_original_to_correct_action": {
+      "ATTACH_EXISTING -> ATTACH_EXISTING": 149,
+      "ATTACH_EXISTING -> NEW": 7,
+      "ATTACH_EXISTING -> NOT_APPLICABLE": 3,
+      "NEW -> ATTACH_EXISTING": 5,
+      "NEW -> NEW": 7,
+      "NEW -> NOT_APPLICABLE": 3
+    },
+    "error_original_to_correct_action": {
+      "ATTACH_EXISTING -> ATTACH_EXISTING": 2,
+      "ATTACH_EXISTING -> NEW": 7,
+      "NEW -> ATTACH_EXISTING": 5
+    },
+    "error_routing_label_counts": {
+      "SHOULD_HAVE_BEEN_NEW": 7,
+      "WRONG_ATTACH_EXISTING": 2,
+      "WRONG_NEW_FALSE_SPLIT": 5
+    }
+  },
+  "sampling_blind_spot": {
+    "direct_contamination_roots_absent_from_private_routing_audit_count": 3,
+    "direct_contamination_roots_failing_090_or_mixed_protocol_gate_count": 2,
+    "direct_contamination_roots_present_in_private_routing_audit_count": 1,
+    "error_harvest_count": 4,
+    "note": "The private routing audit first requires a high-purity current observation. Mixed-mask segmentation roots can therefore be absent from error harvest and only enter through the low-rate probability queue.",
+    "probability_inclusion_probability": 0.020093770931011386,
+    "probability_population_count": 7465,
+    "probability_sample_count": 150,
+    "routing_audit_gt_purity_threshold": 0.9,
+    "routing_audit_observation_gt_unreliable_count": 1942
+  },
+  "scope": {
+    "attach_error_count": 9,
+    "attach_event_count": 159,
+    "error_count": 14,
+    "error_with_corrected_gt_count": 14,
+    "independent_event_count": 174
+  },
+  "target_prestate": {
+    "attach_error_human_vs_joint_state": {
+      "ALREADY_CONTAMINATED -> ALREADY_CONTAMINATED": 4,
+      "CLEAN_SINGLE_INSTANCE -> ALREADY_CONTAMINATED": 5
+    },
+    "attach_error_human_vs_membership_state": {
+      "ALREADY_CONTAMINATED -> ALREADY_CONTAMINATED": 3,
+      "ALREADY_CONTAMINATED -> CLEAN_SINGLE_INSTANCE": 1,
+      "CLEAN_SINGLE_INSTANCE -> ALREADY_CONTAMINATED": 5
+    },
+    "attach_error_joint_state_counts": {
+      "ALREADY_CONTAMINATED": 9
+    },
+    "attach_error_membership_state_counts": {
+      "ALREADY_CONTAMINATED": 8,
+      "CLEAN_SINGLE_INSTANCE": 1
+    },
+    "attach_event_joint_state_counts": {
+      "ALREADY_CONTAMINATED": 53,
+      "CLEAN_SINGLE_INSTANCE": 75,
+      "UNCERTAIN": 31
+    },
+    "attach_event_membership_state_counts": {
+      "ALREADY_CONTAMINATED": 43,
+      "CLEAN_SINGLE_INSTANCE": 109,
+      "UNCERTAIN": 7
+    },
+    "error_correct_legal_candidate_state_counts": {
+      "ALL_AVAILABLE_LEGAL_TARGETS_CONTAMINATED_OR_UNCERTAIN": 2,
+      "HAS_CLEAN_LEGAL_TARGET": 3,
+      "LEGAL_TARGET_UNCERTAIN": 2
+    },
+    "persistent_multi_gt_attach_error_count": 8,
+    "persistent_pixel_contamination_attach_error_count": 7,
+    "strict_multi_gt_attach_error_count": 8
+  }
+}

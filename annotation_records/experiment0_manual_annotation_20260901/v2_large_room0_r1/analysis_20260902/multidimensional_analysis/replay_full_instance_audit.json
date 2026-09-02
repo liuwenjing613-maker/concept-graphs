@@ -1,0 +1,572 @@
+{
+  "create_full_instance_metrics": [
+    {
+      "branch": "B2",
+      "case_uid": "room0_large_r1_0143",
+      "changed_outside_observation_count": 0,
+      "endpoint_correct": true,
+      "expected_gt_id": 8,
+      "global_expected_gt_observation_count": 235,
+      "global_expected_gt_owner_count": 3,
+      "global_expected_gt_owner_counts": [
+        {
+          "count": 208,
+          "fraction": 0.8851063829787233,
+          "value": "0e265092-354b-49b6-89d7-9061631dae08"
+        },
+        {
+          "count": 26,
+          "fraction": 0.11063829787234042,
+          "value": "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+        },
+        {
+          "count": 1,
+          "fraction": 0.00425531914893617,
+          "value": "6d6b2da6-46a0-44a6-bc86-1d3826d5acaa"
+        }
+      ],
+      "new_cluster_precision": 1.0,
+      "new_owner_expected_gt_count": 26,
+      "new_owner_f1_global": 0.19923371647509577,
+      "new_owner_global_observation_recall": 0.11063829787234042,
+      "new_owner_joint_state": "CLEAN_SINGLE_INSTANCE",
+      "new_owner_member_count": 26,
+      "new_owner_non_dominant_pixel_fraction_top2": 0.0058793885435914905,
+      "new_owner_pixel_mixed_mask_count": 0,
+      "new_owner_uid": "b6f60935-168f-55c5-82fc-cd11af7baaf4",
+      "note": "Precision/recall are observation-membership metrics. two_owner_capture_recall uses new+original-target owners; global recall uses all corrected-GT observations of that physical instance.",
+      "original_target_dominant_gt_purity": 0.6327586206896552,
+      "original_target_eligible_gt_count": 580,
+      "original_target_joint_state": "ALREADY_CONTAMINATED",
+      "original_target_member_count": 582,
+      "original_target_non_dominant_pixel_fraction_top2": 0.0854894175165809,
+      "original_target_pixel_mixed_mask_count": 4,
+      "original_target_residual_contamination_rate": 0.36724137931034484,
+      "runtime_invariants_pass": true,
+      "same_gt_residual_in_original_target_count": 208,
+      "two_owner_capture_recall": 0.1111111111111111
+    },
+    {
+      "branch": "B3",
+      "case_uid": "room0_large_r1_0143",
+      "changed_outside_observation_count": 0,
+      "endpoint_correct": true,
+      "expected_gt_id": 8,
+      "global_expected_gt_observation_count": 235,
+      "global_expected_gt_owner_count": 3,
+      "global_expected_gt_owner_counts": [
+        {
+          "count": 208,
+          "fraction": 0.8851063829787233,
+          "value": "0e265092-354b-49b6-89d7-9061631dae08"
+        },
+        {
+          "count": 26,
+          "fraction": 0.11063829787234042,
+          "value": "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+        },
+        {
+          "count": 1,
+          "fraction": 0.00425531914893617,
+          "value": "6d6b2da6-46a0-44a6-bc86-1d3826d5acaa"
+        }
+      ],
+      "new_cluster_precision": 1.0,
+      "new_owner_expected_gt_count": 26,
+      "new_owner_f1_global": 0.19923371647509577,
+      "new_owner_global_observation_recall": 0.11063829787234042,
+      "new_owner_joint_state": "CLEAN_SINGLE_INSTANCE",
+      "new_owner_member_count": 26,
+      "new_owner_non_dominant_pixel_fraction_top2": 0.0058793885435914905,
+      "new_owner_pixel_mixed_mask_count": 0,
+      "new_owner_uid": "b6f60935-168f-55c5-82fc-cd11af7baaf4",
+      "note": "Precision/recall are observation-membership metrics. two_owner_capture_recall uses new+original-target owners; global recall uses all corrected-GT observations of that physical instance.",
+      "original_target_dominant_gt_purity": 0.6327586206896552,
+      "original_target_eligible_gt_count": 580,
+      "original_target_joint_state": "ALREADY_CONTAMINATED",
+      "original_target_member_count": 582,
+      "original_target_non_dominant_pixel_fraction_top2": 0.0854894175165809,
+      "original_target_pixel_mixed_mask_count": 4,
+      "original_target_residual_contamination_rate": 0.36724137931034484,
+      "runtime_invariants_pass": true,
+      "same_gt_residual_in_original_target_count": 208,
+      "two_owner_capture_recall": 0.1111111111111111
+    },
+    {
+      "branch": "B2",
+      "case_uid": "v2_r2_013",
+      "changed_outside_observation_count": 0,
+      "endpoint_correct": true,
+      "expected_gt_id": 19,
+      "global_expected_gt_observation_count": 115,
+      "global_expected_gt_owner_count": 2,
+      "global_expected_gt_owner_counts": [
+        {
+          "count": 99,
+          "fraction": 0.8608695652173913,
+          "value": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        },
+        {
+          "count": 16,
+          "fraction": 0.1391304347826087,
+          "value": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+        }
+      ],
+      "new_cluster_precision": 1.0,
+      "new_owner_expected_gt_count": 16,
+      "new_owner_f1_global": 0.24427480916030533,
+      "new_owner_global_observation_recall": 0.1391304347826087,
+      "new_owner_joint_state": "CLEAN_SINGLE_INSTANCE",
+      "new_owner_member_count": 16,
+      "new_owner_non_dominant_pixel_fraction_top2": 0.00911440687606524,
+      "new_owner_pixel_mixed_mask_count": 0,
+      "new_owner_uid": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d",
+      "note": "Precision/recall are observation-membership metrics. two_owner_capture_recall uses new+original-target owners; global recall uses all corrected-GT observations of that physical instance.",
+      "original_target_dominant_gt_purity": 0.5466101694915254,
+      "original_target_eligible_gt_count": 236,
+      "original_target_joint_state": "ALREADY_CONTAMINATED",
+      "original_target_member_count": 236,
+      "original_target_non_dominant_pixel_fraction_top2": 0.5163593769406161,
+      "original_target_pixel_mixed_mask_count": 220,
+      "original_target_residual_contamination_rate": 0.4533898305084746,
+      "runtime_invariants_pass": true,
+      "same_gt_residual_in_original_target_count": 99,
+      "two_owner_capture_recall": 0.1391304347826087
+    },
+    {
+      "branch": "B3",
+      "case_uid": "v2_r2_013",
+      "changed_outside_observation_count": 0,
+      "endpoint_correct": true,
+      "expected_gt_id": 19,
+      "global_expected_gt_observation_count": 115,
+      "global_expected_gt_owner_count": 2,
+      "global_expected_gt_owner_counts": [
+        {
+          "count": 99,
+          "fraction": 0.8608695652173913,
+          "value": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        },
+        {
+          "count": 16,
+          "fraction": 0.1391304347826087,
+          "value": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+        }
+      ],
+      "new_cluster_precision": 1.0,
+      "new_owner_expected_gt_count": 16,
+      "new_owner_f1_global": 0.24427480916030533,
+      "new_owner_global_observation_recall": 0.1391304347826087,
+      "new_owner_joint_state": "CLEAN_SINGLE_INSTANCE",
+      "new_owner_member_count": 16,
+      "new_owner_non_dominant_pixel_fraction_top2": 0.00911440687606524,
+      "new_owner_pixel_mixed_mask_count": 0,
+      "new_owner_uid": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d",
+      "note": "Precision/recall are observation-membership metrics. two_owner_capture_recall uses new+original-target owners; global recall uses all corrected-GT observations of that physical instance.",
+      "original_target_dominant_gt_purity": 0.5466101694915254,
+      "original_target_eligible_gt_count": 236,
+      "original_target_joint_state": "ALREADY_CONTAMINATED",
+      "original_target_member_count": 236,
+      "original_target_non_dominant_pixel_fraction_top2": 0.5163593769406161,
+      "original_target_pixel_mixed_mask_count": 220,
+      "original_target_residual_contamination_rate": 0.4533898305084746,
+      "runtime_invariants_pass": true,
+      "same_gt_residual_in_original_target_count": 99,
+      "two_owner_capture_recall": 0.1391304347826087
+    }
+  ],
+  "replay_runs": [
+    {
+      "b0r_exact_partition_parity": true,
+      "branches": {
+        "B0": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 0.0
+        },
+        "B0R": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 608,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 59,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 111681.6871277988
+        },
+        "B1": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": false,
+          "geometry_valid": false,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": true,
+          "runtime_invariants_pass": null,
+          "runtime_ms": 0.0
+        },
+        "B2": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 608,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 59,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 113577.44188699871
+        },
+        "B3": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 6960,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 1454,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 166714.22124654055
+        }
+      },
+      "case_uid": "room0_large_r1_0143",
+      "correct_action_type": "NEW",
+      "interpretation": {
+        "b1_is_membership_only": true,
+        "b2_is_typed_dependency_closure": true,
+        "b3_is_full_post_anchor_suffix": true,
+        "future_views_are_oracle_evaluation_evidence": true
+      },
+      "metrics_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_0143/room0_large_r1_0143/metrics.json",
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "run_name": "oracle_minimal_replay_0143"
+    },
+    {
+      "b0r_exact_partition_parity": true,
+      "branches": {
+        "B0": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 0.0
+        },
+        "B0R": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 608,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 59,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 115914.82740733773
+        },
+        "B1": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": false,
+          "geometry_valid": false,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": true,
+          "runtime_invariants_pass": null,
+          "runtime_ms": 0.0
+        },
+        "B2": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 608,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 59,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 116212.53450587392
+        },
+        "B3": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 6960,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 1454,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 173510.3343045339
+        }
+      },
+      "case_uid": "room0_large_r1_0143",
+      "correct_action_type": "NEW",
+      "interpretation": {
+        "association_boundary_ablation": true,
+        "b1_is_membership_only": true,
+        "b2_is_typed_dependency_closure": true,
+        "b3_is_full_post_anchor_suffix": true,
+        "component_policy": {
+          "create_association_boundary": false,
+          "create_postprocess_boundary": true,
+          "positive_lineage_redirect": true
+        },
+        "future_views_are_oracle_evaluation_evidence": true
+      },
+      "metrics_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_0143_no_assoc_boundary/room0_large_r1_0143/metrics.json",
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "run_name": "oracle_minimal_replay_0143_no_assoc_boundary"
+    },
+    {
+      "b0r_exact_partition_parity": true,
+      "branches": {
+        "B0": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 0.0
+        },
+        "B0R": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 81,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 61,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 243783.77560526133
+        },
+        "B1": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": true,
+          "geometry_valid": false,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": true,
+          "runtime_invariants_pass": null,
+          "runtime_ms": 0.0
+        },
+        "B2": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 81,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 61,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 240661.55980248004
+        },
+        "B3": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 7009,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 4209,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 411298.8387765363
+        }
+      },
+      "case_uid": "room0_large_r1_0169",
+      "correct_action_type": "ATTACH_EXISTING",
+      "interpretation": {
+        "b1_is_membership_only": true,
+        "b2_is_typed_dependency_closure": true,
+        "b3_is_full_post_anchor_suffix": true,
+        "future_views_are_oracle_evaluation_evidence": true
+      },
+      "metrics_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_0169/room0_large_r1_0169/metrics.json",
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "run_name": "oracle_minimal_replay_0169"
+    },
+    {
+      "b0r_exact_partition_parity": true,
+      "branches": {
+        "B0": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 0.0
+        },
+        "B0R": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 589,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 560,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 212957.51319266856
+        },
+        "B1": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": true,
+          "geometry_valid": false,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": true,
+          "runtime_invariants_pass": null,
+          "runtime_ms": 0.0
+        },
+        "B2": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 589,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 560,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 214669.3696351722
+        },
+        "B3": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 7018,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 5010,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 490465.8860815689
+        }
+      },
+      "case_uid": "v2_r2_007",
+      "correct_action_type": "ATTACH_EXISTING",
+      "interpretation": {
+        "b1_is_membership_only": true,
+        "b2_is_typed_dependency_closure": true,
+        "b3_is_full_post_anchor_suffix": true,
+        "future_views_are_oracle_evaluation_evidence": true
+      },
+      "metrics_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_v2_r2_007/v2_r2_007/metrics.json",
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "run_name": "oracle_minimal_replay_v2_r2_007"
+    },
+    {
+      "b0r_exact_partition_parity": true,
+      "branches": {
+        "B0": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 0.0
+        },
+        "B0R": {
+          "active_object_count": 72,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 252,
+          "endpoint_correct": false,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 120,
+          "root_action_correct": false,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 197416.45966656506
+        },
+        "B1": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": null,
+          "endpoint_correct": false,
+          "geometry_valid": false,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 0,
+          "root_action_correct": true,
+          "runtime_invariants_pass": null,
+          "runtime_ms": 0.0
+        },
+        "B2": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 252,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 120,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 203884.33444872499
+        },
+        "B3": {
+          "active_object_count": 73,
+          "changed_outside_observation_count": 0,
+          "closure_effective_observation_count": 7004,
+          "endpoint_correct": true,
+          "geometry_valid": true,
+          "outside_partition_exact_to_native": true,
+          "replayed_observation_count": 2739,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 301804.7916293144
+        }
+      },
+      "case_uid": "v2_r2_013",
+      "correct_action_type": "NEW",
+      "interpretation": {
+        "association_boundary_ablation": true,
+        "b1_is_membership_only": true,
+        "b2_is_typed_dependency_closure": true,
+        "b3_is_full_post_anchor_suffix": true,
+        "component_policy": {
+          "create_association_boundary": false,
+          "create_postprocess_boundary": true,
+          "positive_lineage_redirect": true
+        },
+        "future_views_are_oracle_evaluation_evidence": true
+      },
+      "metrics_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_v2_r2_013_no_assoc_boundary/v2_r2_013/metrics.json",
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "run_name": "oracle_minimal_replay_v2_r2_013_no_assoc_boundary"
+    }
+  ]
+}

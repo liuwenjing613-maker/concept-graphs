@@ -1,0 +1,97 @@
+{
+  "analysis_only": true,
+  "definitions": {
+    "global_observation_recall": "new-owner positives / all corrected-GT observations of the physical instance in the 7507-observation ledger",
+    "joint_clean": "membership-clean and no corrected-GT mixed/two-foreground mask member",
+    "joint_contaminated": "membership-contaminated, or >=2 mixed masks across >=2 frames with >=5% aggregate non-dominant top-2 GT pixels",
+    "joint_uncertain": "GT coverage <80%, no eligible GT, or membership/pixel mixture below the persistent threshold",
+    "material_mixture": "second GT member fraction >=5%",
+    "membership_clean": "eligible corrected GT members contain exactly one dominant observation-level GT id",
+    "membership_contaminated": "second observation-level GT id has >=2 observations across >=2 frames",
+    "two_owner_capture_recall": "new-owner positives / (new-owner positives + residual positives in original target owner)"
+  },
+  "output_dir": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_multidimensional_analysis_20260902",
+  "outputs": [
+    "cross_statistics.json",
+    "error_candidate_compositions.jsonl",
+    "error_multidimensional_table.csv",
+    "error_multidimensional_table.jsonl",
+    "event_multidimensional_table.jsonl",
+    "replay_full_instance_audit.json",
+    "run_manifest.json"
+  ],
+  "production_logic_changed": false,
+  "project_root": "/home/chenkejun/beauty/conceptgraphs",
+  "runtime_seconds": 4.870370388031006,
+  "schema_version": "experiment0-multidimensional-audit/1.0",
+  "source_files": {
+    "associations": {
+      "line_count": 7507,
+      "mtime_unix": 1788175387.368273,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence/associations.jsonl",
+      "size_bytes": 56193083
+    },
+    "create_partition_audit": {
+      "mtime_unix": 1788336622.3499851,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_create_partition_audit/create_partition_audit.json",
+      "size_bytes": 30186
+    },
+    "episodes": {
+      "line_count": 14,
+      "mtime_unix": 1788326559.2128668,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/episodes/human_error_episodes.jsonl",
+      "size_bytes": 88348
+    },
+    "events": {
+      "line_count": 174,
+      "mtime_unix": 1788326559.209867,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/episodes/combined_human_routing_events.jsonl",
+      "size_bytes": 520365
+    },
+    "final_membership": {
+      "mtime_unix": 1788175478.29619,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence/final_membership.json",
+      "size_bytes": 466312
+    },
+    "gt": {
+      "line_count": 7507,
+      "mtime_unix": 1788256507.3345523,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl",
+      "size_bytes": 6549473
+    },
+    "large_worklist_manifest": {
+      "mtime_unix": 1788315523.1734366,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/worklist_manifest.json",
+      "size_bytes": 2269
+    },
+    "observations": {
+      "line_count": 12514,
+      "mtime_unix": 1788175387.3202753,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence/observations.jsonl",
+      "size_bytes": 48469932
+    },
+    "routing_audit_records": {
+      "line_count": 5565,
+      "mtime_unix": 1788263294.4747782,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/identity_routing_v2_audit_room0/routing_records_private.jsonl",
+      "size_bytes": 8521412
+    },
+    "routing_audit_summary": {
+      "mtime_unix": 1788263294.4857776,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/identity_routing_v2_audit_room0/summary.json",
+      "size_bytes": 2198
+    },
+    "versions": {
+      "line_count": 12142,
+      "mtime_unix": 1788175393.6139927,
+      "path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence/object_versions.jsonl",
+      "size_bytes": 81470285
+    }
+  },
+  "warnings": [
+    "Corrected GT is offline diagnostic evidence and must not be passed to the online mapper.",
+    "Human target_pre_state and objective GT composition answer related but non-identical questions; disagreements require case review.",
+    "Native final ownership and future views are post-anchor information and are never treated as online features here.",
+    "No new file hashes are computed; existing immutable ledgers are identified by absolute path, size, mtime, and line count."
+  ]
+}
