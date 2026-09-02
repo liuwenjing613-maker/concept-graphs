@@ -1,4 +1,14 @@
-# 实验 0 在线标注工具
+# 实验 0 在线标注、分析与最小回放
+
+当前机器可读标注和结果快照位于 `../../annotation_records/experiment0_manual_annotation_20260901/`。核心新增分析入口：
+
+- `analyze_v2_large_annotations.py`：正式标注质量与错误率统计；
+- `compile_room0_human_episodes.py`：合并 R1/R2 并生成错误 episode；
+- `run_human_oracle_minimal_replay.py`：B0/B1/B2/B3 严格在线回放；
+- `audit_oracle_create_partition.py`：用完整成员分区审计 CREATE 修复，避免探针过度乐观；
+- `run_mixed_root_quarantine_replay.py`：frame138 混合 mask 隔离反事实（实验中，不是生产修复）。
+
+当前完整阶段判断见 `EXPERIMENT0_ROOM0_LABEL_ORACLE_STAGE1_REVIEW_20260902_CN.md`。
 
 先读 `PROTOCOL_CN.md`。当前只生成 room0 校准队列，不解封未见场景。
 

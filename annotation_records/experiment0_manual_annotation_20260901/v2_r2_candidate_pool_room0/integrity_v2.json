@@ -1,0 +1,23 @@
+{
+  "action_counts": {
+    "ATTACH_EXISTING": 13,
+    "NEW": 9
+  },
+  "case_count": 22,
+  "checked_case_count": 22,
+  "error_count": 0,
+  "errors": [],
+  "packet_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_r2_candidate_pool_room0",
+  "private_stratum_counts": {
+    "CORRECT_ATTACH": 6,
+    "CORRECT_NEW": 4,
+    "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1,
+    "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+    "SHOULD_HAVE_BEEN_NEW": 3,
+    "WRONG_ATTACH_EXISTING": 2,
+    "WRONG_NEW_FALSE_SPLIT": 5
+  },
+  "repeat_checks": 0,
+  "schema_version": "experiment0-v2-packet-integrity/1.0",
+  "status": "PASS"
+}

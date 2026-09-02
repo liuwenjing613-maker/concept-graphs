@@ -1,0 +1,54 @@
+{
+  "association_count": 7507,
+  "audit_counts": {
+    "observation_gt_unreliable": 1942,
+    "routing_CORRECT_ATTACH": 4671,
+    "routing_CORRECT_NEW": 41,
+    "routing_SHOULD_HAVE_BEEN_NEW": 5,
+    "routing_WRONG_ATTACH_EXISTING": 4,
+    "routing_WRONG_NEW_FALSE_SPLIT": 7,
+    "unresolved_same_gt_only_in_short_or_ambiguous_history": 34,
+    "unresolved_target_history_ambiguous": 691,
+    "unresolved_target_history_lt3_frames": 9,
+    "unresolved_target_history_lt3_reliable": 103
+  },
+  "causal_group_count": 12,
+  "compiled_record_count": 5565,
+  "decision_counts": {
+    "CREATE_OBJECT": 98,
+    "MERGE_TO_OBJECT": 7409
+  },
+  "evaluable_record_count": 4728,
+  "evidence_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence",
+  "interpretation": "Private GT strata are high-precision case-selection aids, not final human labels. Root/cascade fields are chronological candidates pending human episode review.",
+  "observation_gt": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl",
+  "root_candidate_counts": {
+    "SHOULD_HAVE_BEEN_NEW": 5,
+    "WRONG_ATTACH_EXISTING": 1,
+    "WRONG_NEW_FALSE_SPLIT": 6
+  },
+  "routing_records_sha256": "76fc5d70a81989540c2def1a28339128c49a5aae58bf410fa7e5bcd7f9318314",
+  "scene": "room0",
+  "schema_version": "experiment0-private-routing-audit-summary/2.0",
+  "source_sha256": {
+    "associations": "6a61f9edb2ed221e3121cf9c54f782fdf1f5453e1eade660fc65c55fb6add0a9",
+    "object_versions": "1b9cecff071af81738a7286967c80196b903dbc2b881530b4748f56025deb368",
+    "observation_gt": "1469af6be3a45c53cfc5ac9e5340282f24e6acb9efb1d84c0ddd5065768813dc"
+  },
+  "status": "READY",
+  "stratum_counts": {
+    "CORRECT_ATTACH": 4671,
+    "CORRECT_NEW": 41,
+    "SHOULD_HAVE_BEEN_NEW": 5,
+    "WRONG_ATTACH_EXISTING": 4,
+    "WRONG_NEW_FALSE_SPLIT": 7
+  },
+  "thresholds": {
+    "gt_purity": 0.9,
+    "gt_support": 0.9,
+    "gt_top_pixels": 25,
+    "history_dominant_ratio": 0.8,
+    "history_min_frames": 3,
+    "history_min_observations": 3
+  }
+}

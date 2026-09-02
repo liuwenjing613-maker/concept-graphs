@@ -1,0 +1,25 @@
+{
+  "case_count": 179,
+  "evidence_manifest_sha256": "89bb5c2420d295521f3b1bbb2e36afd9a3d535d4bf4af86fe8b2d862a25d6397",
+  "evidence_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence",
+  "failure_count": 0,
+  "failures": [],
+  "mapper_complete": true,
+  "mapper_latest_frame": 399,
+  "purpose": "ROOM0_DEVELOPMENT_LARGE_ANNOTATION",
+  "ready_through_frame": 399,
+  "scene": "room0",
+  "schema_version": "experiment0-identity-routing-packet/2.0",
+  "source_private_worklist": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/private_large_worklist.jsonl",
+  "source_private_worklist_sha256": "c339056994f84d7aafbc1c5a6d8a11fd07865c587dd3869f668da71314410e38",
+  "source_worklist_manifest": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/worklist_manifest.json",
+  "source_worklist_manifest_sha256": "76173f295b136ce7d346426f5d42c6152d821a6ecac12f9ae790e3dfbb5c6878",
+  "statistical_contract": {
+    "harvest_queue": "Private GT-audit error candidates plus decision-matched controls; must not estimate prevalence.",
+    "human_labels_required": true,
+    "probability_queue": "Uniform deterministic sample of the declared event population; only this queue may estimate room0 event prevalence.",
+    "room0_is_development_not_unseen_validation": true
+  },
+  "status": "READY",
+  "worklist_sha256": "342bc1002e6f455846c797daa844b075d827734f0ae8a423824ecfb4aff9e13e"
+}

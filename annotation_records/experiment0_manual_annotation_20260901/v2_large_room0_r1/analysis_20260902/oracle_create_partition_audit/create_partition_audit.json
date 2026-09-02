@@ -1,0 +1,920 @@
+{
+  "case_count": 2,
+  "cases": [
+    {
+      "b2_b3_partition_exact": true,
+      "branches": {
+        "B2": {
+          "changed_outside_observation_count": 0,
+          "endpoint_correct": true,
+          "expected_gt_recovery": null,
+          "expected_gt_recovery_status": "NOT_APPLICABLE_TARGET_GT_UNAVAILABLE_OR_NOT_DISTINCT",
+          "full_instance_recovery": null,
+          "instance_recovery_conclusion": "GT_INSTANCE_COMPLETENESS_UNDETERMINED",
+          "new_and_target_are_disjoint": true,
+          "new_owner": {
+            "detector_class_counts": [
+              {
+                "count": 26,
+                "fraction": 1.0,
+                "value": "pillow"
+              }
+            ],
+            "eligible_gt_observation_count": 26,
+            "expected_gt_id": 8,
+            "expected_gt_observation_count": 26,
+            "expected_gt_observation_fraction": 1.0,
+            "frame_range": [
+              324,
+              349
+            ],
+            "gt_distinct_id_count": 1,
+            "gt_id_counts": [
+              {
+                "count": 26,
+                "fraction": 1.0,
+                "value": "8"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 26,
+                "fraction": 1.0,
+                "value": "cushion"
+              }
+            ],
+            "mean_mask_gt_purity": 0.9891578894874162,
+            "member_observation_count": 26,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 26
+          },
+          "new_owner_uid": "b6f60935-168f-55c5-82fc-cd11af7baaf4",
+          "new_probe_group_has_one_owner": true,
+          "new_probe_owner_uids": {
+            "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ]
+          },
+          "outside_partition_exact_to_native": true,
+          "partition_hash": "cfaa6b296724b4d0c92904684186415260b38a55aff77ec0d8879dd4609eb411",
+          "persistent_create_instance_association_veto_count": 0,
+          "persistent_create_instance_merge_veto_count": 16,
+          "replayed_observation_count": 59,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 116212.53450587392,
+          "target_owner": {
+            "detector_class_counts": [
+              {
+                "count": 231,
+                "fraction": 0.39690721649484534,
+                "value": "couch"
+              },
+              {
+                "count": 222,
+                "fraction": 0.38144329896907214,
+                "value": "pillow"
+              },
+              {
+                "count": 114,
+                "fraction": 0.1958762886597938,
+                "value": "sofa chair"
+              },
+              {
+                "count": 5,
+                "fraction": 0.00859106529209622,
+                "value": "lamp"
+              },
+              {
+                "count": 5,
+                "fraction": 0.00859106529209622,
+                "value": "cushion"
+              },
+              {
+                "count": 3,
+                "fraction": 0.005154639175257732,
+                "value": "armchair"
+              },
+              {
+                "count": 2,
+                "fraction": 0.003436426116838488,
+                "value": "towel"
+              }
+            ],
+            "eligible_gt_observation_count": 580,
+            "expected_gt_id": null,
+            "expected_gt_observation_count": null,
+            "expected_gt_observation_fraction": null,
+            "frame_range": [
+              0,
+              353
+            ],
+            "gt_distinct_id_count": 4,
+            "gt_id_counts": [
+              {
+                "count": 367,
+                "fraction": 0.6327586206896552,
+                "value": "9"
+              },
+              {
+                "count": 208,
+                "fraction": 0.3586206896551724,
+                "value": "8"
+              },
+              {
+                "count": 3,
+                "fraction": 0.005172413793103448,
+                "value": "18"
+              },
+              {
+                "count": 2,
+                "fraction": 0.0034482758620689655,
+                "value": "71"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 367,
+                "fraction": 0.6327586206896552,
+                "value": "sofa"
+              },
+              {
+                "count": 213,
+                "fraction": 0.36724137931034484,
+                "value": "cushion"
+              }
+            ],
+            "mean_mask_gt_purity": 0.9916333184706735,
+            "member_observation_count": 582,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 582
+          },
+          "target_owner_uid": "0e265092-354b-49b6-89d7-9061631dae08"
+        },
+        "B3": {
+          "changed_outside_observation_count": 0,
+          "endpoint_correct": true,
+          "expected_gt_recovery": null,
+          "expected_gt_recovery_status": "NOT_APPLICABLE_TARGET_GT_UNAVAILABLE_OR_NOT_DISTINCT",
+          "full_instance_recovery": null,
+          "instance_recovery_conclusion": "GT_INSTANCE_COMPLETENESS_UNDETERMINED",
+          "new_and_target_are_disjoint": true,
+          "new_owner": {
+            "detector_class_counts": [
+              {
+                "count": 26,
+                "fraction": 1.0,
+                "value": "pillow"
+              }
+            ],
+            "eligible_gt_observation_count": 26,
+            "expected_gt_id": 8,
+            "expected_gt_observation_count": 26,
+            "expected_gt_observation_fraction": 1.0,
+            "frame_range": [
+              324,
+              349
+            ],
+            "gt_distinct_id_count": 1,
+            "gt_id_counts": [
+              {
+                "count": 26,
+                "fraction": 1.0,
+                "value": "8"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 26,
+                "fraction": 1.0,
+                "value": "cushion"
+              }
+            ],
+            "mean_mask_gt_purity": 0.9891578894874162,
+            "member_observation_count": 26,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 26
+          },
+          "new_owner_uid": "b6f60935-168f-55c5-82fc-cd11af7baaf4",
+          "new_probe_group_has_one_owner": true,
+          "new_probe_owner_uids": {
+            "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+              "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+            ]
+          },
+          "outside_partition_exact_to_native": true,
+          "partition_hash": "cfaa6b296724b4d0c92904684186415260b38a55aff77ec0d8879dd4609eb411",
+          "persistent_create_instance_association_veto_count": 0,
+          "persistent_create_instance_merge_veto_count": 16,
+          "replayed_observation_count": 1454,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 173510.3343045339,
+          "target_owner": {
+            "detector_class_counts": [
+              {
+                "count": 231,
+                "fraction": 0.39690721649484534,
+                "value": "couch"
+              },
+              {
+                "count": 222,
+                "fraction": 0.38144329896907214,
+                "value": "pillow"
+              },
+              {
+                "count": 114,
+                "fraction": 0.1958762886597938,
+                "value": "sofa chair"
+              },
+              {
+                "count": 5,
+                "fraction": 0.00859106529209622,
+                "value": "lamp"
+              },
+              {
+                "count": 5,
+                "fraction": 0.00859106529209622,
+                "value": "cushion"
+              },
+              {
+                "count": 3,
+                "fraction": 0.005154639175257732,
+                "value": "armchair"
+              },
+              {
+                "count": 2,
+                "fraction": 0.003436426116838488,
+                "value": "towel"
+              }
+            ],
+            "eligible_gt_observation_count": 580,
+            "expected_gt_id": null,
+            "expected_gt_observation_count": null,
+            "expected_gt_observation_fraction": null,
+            "frame_range": [
+              0,
+              353
+            ],
+            "gt_distinct_id_count": 4,
+            "gt_id_counts": [
+              {
+                "count": 367,
+                "fraction": 0.6327586206896552,
+                "value": "9"
+              },
+              {
+                "count": 208,
+                "fraction": 0.3586206896551724,
+                "value": "8"
+              },
+              {
+                "count": 3,
+                "fraction": 0.005172413793103448,
+                "value": "18"
+              },
+              {
+                "count": 2,
+                "fraction": 0.0034482758620689655,
+                "value": "71"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 367,
+                "fraction": 0.6327586206896552,
+                "value": "sofa"
+              },
+              {
+                "count": 213,
+                "fraction": 0.36724137931034484,
+                "value": "cushion"
+              }
+            ],
+            "mean_mask_gt_purity": 0.9916333184706735,
+            "member_observation_count": 582,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 582
+          },
+          "target_owner_uid": "0e265092-354b-49b6-89d7-9061631dae08"
+        }
+      },
+      "case_uid": "room0_large_r1_0143",
+      "expected_new_gt_already_in_target_pre_anchor": {
+        "earliest_matching_frame": 113,
+        "earliest_matching_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000113_r0004",
+        "eligible_observation_count": 547,
+        "expected_gt_id": 8,
+        "matching_observation_count": 206,
+        "matching_observation_fraction": 0.376599634369287
+      },
+      "human_confidence": 5,
+      "human_target_pre_state": "CLEAN_SINGLE_INSTANCE",
+      "native_affected_owner_uids": [
+        "0e265092-354b-49b6-89d7-9061631dae08"
+      ],
+      "native_affected_partition": {
+        "detector_class_counts": [
+          {
+            "count": 248,
+            "fraction": 0.40789473684210525,
+            "value": "pillow"
+          },
+          {
+            "count": 231,
+            "fraction": 0.37993421052631576,
+            "value": "couch"
+          },
+          {
+            "count": 114,
+            "fraction": 0.1875,
+            "value": "sofa chair"
+          },
+          {
+            "count": 5,
+            "fraction": 0.008223684210526315,
+            "value": "lamp"
+          },
+          {
+            "count": 5,
+            "fraction": 0.008223684210526315,
+            "value": "cushion"
+          },
+          {
+            "count": 3,
+            "fraction": 0.004934210526315789,
+            "value": "armchair"
+          },
+          {
+            "count": 2,
+            "fraction": 0.003289473684210526,
+            "value": "towel"
+          }
+        ],
+        "eligible_gt_observation_count": 606,
+        "expected_gt_id": 8,
+        "expected_gt_observation_count": 234,
+        "expected_gt_observation_fraction": 0.38613861386138615,
+        "frame_range": [
+          0,
+          353
+        ],
+        "gt_distinct_id_count": 4,
+        "gt_id_counts": [
+          {
+            "count": 367,
+            "fraction": 0.6056105610561056,
+            "value": "9"
+          },
+          {
+            "count": 234,
+            "fraction": 0.38613861386138615,
+            "value": "8"
+          },
+          {
+            "count": 3,
+            "fraction": 0.0049504950495049506,
+            "value": "18"
+          },
+          {
+            "count": 2,
+            "fraction": 0.0033003300330033004,
+            "value": "71"
+          }
+        ],
+        "gt_label_counts": [
+          {
+            "count": 367,
+            "fraction": 0.6056105610561056,
+            "value": "sofa"
+          },
+          {
+            "count": 239,
+            "fraction": 0.3943894389438944,
+            "value": "cushion"
+          }
+        ],
+        "mean_mask_gt_purity": 0.9915271119466393,
+        "member_observation_count": 608,
+        "missing_gt_observation_count": 0,
+        "observation_gt_row_count": 608
+      },
+      "offline_identity_audit": {
+        "class_relation": "UNKNOWN",
+        "human_route_confirms_private_auto": false,
+        "obs_gt_id": 8,
+        "obs_gt_label": "cushion",
+        "obs_gt_purity": 0.9949103784023013,
+        "original_target_gt_id": null,
+        "original_target_gt_label": null,
+        "private_auto_episode_role": "NOT_ERROR",
+        "private_auto_routing_label": null,
+        "private_causal_group_uid": null
+      },
+      "source_run_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_0143_no_assoc_boundary",
+      "target_pre_anchor_version": {
+        "detector_class_counts": [
+          {
+            "count": 219,
+            "fraction": 0.3989071038251366,
+            "value": "pillow"
+          },
+          {
+            "count": 203,
+            "fraction": 0.3697632058287796,
+            "value": "couch"
+          },
+          {
+            "count": 112,
+            "fraction": 0.2040072859744991,
+            "value": "sofa chair"
+          },
+          {
+            "count": 5,
+            "fraction": 0.009107468123861567,
+            "value": "lamp"
+          },
+          {
+            "count": 5,
+            "fraction": 0.009107468123861567,
+            "value": "cushion"
+          },
+          {
+            "count": 3,
+            "fraction": 0.00546448087431694,
+            "value": "armchair"
+          },
+          {
+            "count": 2,
+            "fraction": 0.0036429872495446266,
+            "value": "towel"
+          }
+        ],
+        "eligible_gt_observation_count": 547,
+        "expected_gt_id": null,
+        "expected_gt_observation_count": null,
+        "expected_gt_observation_fraction": null,
+        "frame_range": [
+          0,
+          324
+        ],
+        "gt_distinct_id_count": 4,
+        "gt_id_counts": [
+          {
+            "count": 336,
+            "fraction": 0.6142595978062158,
+            "value": "9"
+          },
+          {
+            "count": 206,
+            "fraction": 0.376599634369287,
+            "value": "8"
+          },
+          {
+            "count": 3,
+            "fraction": 0.005484460694698354,
+            "value": "18"
+          },
+          {
+            "count": 2,
+            "fraction": 0.003656307129798903,
+            "value": "71"
+          }
+        ],
+        "gt_label_counts": [
+          {
+            "count": 336,
+            "fraction": 0.6142595978062158,
+            "value": "sofa"
+          },
+          {
+            "count": 211,
+            "fraction": 0.3857404021937843,
+            "value": "cushion"
+          }
+        ],
+        "mean_mask_gt_purity": 0.9912620575125498,
+        "member_observation_count": 549,
+        "missing_gt_observation_count": 0,
+        "observation_gt_row_count": 549
+      },
+      "target_pre_anchor_version_uid": "0e265092-354b-49b6-89d7-9061631dae08@v000410"
+    },
+    {
+      "b2_b3_partition_exact": true,
+      "branches": {
+        "B2": {
+          "changed_outside_observation_count": 0,
+          "endpoint_correct": true,
+          "expected_gt_recovery": {
+            "affected_native_eligible_gt_observation_count": 252,
+            "affected_native_expected_gt_observation_count": 115,
+            "affected_native_observation_count": 252,
+            "expected_gt_id": 19,
+            "f1": 0.24427480916030533,
+            "false_negative_observation_count": 99,
+            "false_positive_observation_count": 0,
+            "precision": 1.0,
+            "predicted_new_eligible_gt_observation_count": 16,
+            "recall": 0.1391304347826087,
+            "residual_expected_gt_in_target_count": 99,
+            "residual_expected_gt_in_target_fraction": 0.8608695652173913,
+            "scope": "EXPECTED_GT_WITHIN_NATIVE_AFFECTED_PARTITION",
+            "true_positive_observation_count": 16
+          },
+          "expected_gt_recovery_status": "APPLICABLE_DISTINCT_NEW_AND_TARGET_GT",
+          "full_instance_recovery": false,
+          "instance_recovery_conclusion": "PROBE_PASS_HIGH_PRECISION_PARTIAL_RECALL",
+          "new_and_target_are_disjoint": true,
+          "new_owner": {
+            "detector_class_counts": [
+              {
+                "count": 16,
+                "fraction": 1.0,
+                "value": "blinds"
+              }
+            ],
+            "eligible_gt_observation_count": 16,
+            "expected_gt_id": 19,
+            "expected_gt_observation_count": 16,
+            "expected_gt_observation_fraction": 1.0,
+            "frame_range": [
+              253,
+              306
+            ],
+            "gt_distinct_id_count": 1,
+            "gt_id_counts": [
+              {
+                "count": 16,
+                "fraction": 1.0,
+                "value": "19"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 16,
+                "fraction": 1.0,
+                "value": "blinds"
+              }
+            ],
+            "mean_mask_gt_purity": 0.9908887555464109,
+            "member_observation_count": 16,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 16
+          },
+          "new_owner_uid": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d",
+          "new_probe_group_has_one_owner": true,
+          "new_probe_owner_uids": {
+            "room0_20260831T111035Z_5c9d86fa_f000253_r0011": [
+              "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000254_r0010": [
+              "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000286_r0021": [
+              "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+            ]
+          },
+          "outside_partition_exact_to_native": true,
+          "partition_hash": "5bd72c86fe992b99171569a8314c8a36153686dfb4dcc86ba978f1b6f03a766c",
+          "persistent_create_instance_association_veto_count": 0,
+          "persistent_create_instance_merge_veto_count": 30,
+          "replayed_observation_count": 120,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 203884.33444872499,
+          "target_owner": {
+            "detector_class_counts": [
+              {
+                "count": 161,
+                "fraction": 0.6822033898305084,
+                "value": "blinds"
+              },
+              {
+                "count": 75,
+                "fraction": 0.3177966101694915,
+                "value": "window"
+              }
+            ],
+            "eligible_gt_observation_count": 236,
+            "expected_gt_id": 15,
+            "expected_gt_observation_count": 129,
+            "expected_gt_observation_fraction": 0.5466101694915254,
+            "frame_range": [
+              123,
+              343
+            ],
+            "gt_distinct_id_count": 3,
+            "gt_id_counts": [
+              {
+                "count": 129,
+                "fraction": 0.5466101694915254,
+                "value": "15"
+              },
+              {
+                "count": 99,
+                "fraction": 0.4194915254237288,
+                "value": "19"
+              },
+              {
+                "count": 8,
+                "fraction": 0.03389830508474576,
+                "value": "21"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 236,
+                "fraction": 1.0,
+                "value": "blinds"
+              }
+            ],
+            "mean_mask_gt_purity": 0.48980465462430234,
+            "member_observation_count": 236,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 236
+          },
+          "target_owner_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        },
+        "B3": {
+          "changed_outside_observation_count": 0,
+          "endpoint_correct": true,
+          "expected_gt_recovery": {
+            "affected_native_eligible_gt_observation_count": 252,
+            "affected_native_expected_gt_observation_count": 115,
+            "affected_native_observation_count": 252,
+            "expected_gt_id": 19,
+            "f1": 0.24427480916030533,
+            "false_negative_observation_count": 99,
+            "false_positive_observation_count": 0,
+            "precision": 1.0,
+            "predicted_new_eligible_gt_observation_count": 16,
+            "recall": 0.1391304347826087,
+            "residual_expected_gt_in_target_count": 99,
+            "residual_expected_gt_in_target_fraction": 0.8608695652173913,
+            "scope": "EXPECTED_GT_WITHIN_NATIVE_AFFECTED_PARTITION",
+            "true_positive_observation_count": 16
+          },
+          "expected_gt_recovery_status": "APPLICABLE_DISTINCT_NEW_AND_TARGET_GT",
+          "full_instance_recovery": false,
+          "instance_recovery_conclusion": "PROBE_PASS_HIGH_PRECISION_PARTIAL_RECALL",
+          "new_and_target_are_disjoint": true,
+          "new_owner": {
+            "detector_class_counts": [
+              {
+                "count": 16,
+                "fraction": 1.0,
+                "value": "blinds"
+              }
+            ],
+            "eligible_gt_observation_count": 16,
+            "expected_gt_id": 19,
+            "expected_gt_observation_count": 16,
+            "expected_gt_observation_fraction": 1.0,
+            "frame_range": [
+              253,
+              306
+            ],
+            "gt_distinct_id_count": 1,
+            "gt_id_counts": [
+              {
+                "count": 16,
+                "fraction": 1.0,
+                "value": "19"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 16,
+                "fraction": 1.0,
+                "value": "blinds"
+              }
+            ],
+            "mean_mask_gt_purity": 0.9908887555464109,
+            "member_observation_count": 16,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 16
+          },
+          "new_owner_uid": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d",
+          "new_probe_group_has_one_owner": true,
+          "new_probe_owner_uids": {
+            "room0_20260831T111035Z_5c9d86fa_f000253_r0011": [
+              "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000254_r0010": [
+              "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+            ],
+            "room0_20260831T111035Z_5c9d86fa_f000286_r0021": [
+              "d3adbd00-ae12-5cfc-8760-1bfea3a5937d"
+            ]
+          },
+          "outside_partition_exact_to_native": true,
+          "partition_hash": "5bd72c86fe992b99171569a8314c8a36153686dfb4dcc86ba978f1b6f03a766c",
+          "persistent_create_instance_association_veto_count": 0,
+          "persistent_create_instance_merge_veto_count": 30,
+          "replayed_observation_count": 2739,
+          "root_action_correct": true,
+          "runtime_invariants_pass": true,
+          "runtime_ms": 301804.7916293144,
+          "target_owner": {
+            "detector_class_counts": [
+              {
+                "count": 161,
+                "fraction": 0.6822033898305084,
+                "value": "blinds"
+              },
+              {
+                "count": 75,
+                "fraction": 0.3177966101694915,
+                "value": "window"
+              }
+            ],
+            "eligible_gt_observation_count": 236,
+            "expected_gt_id": 15,
+            "expected_gt_observation_count": 129,
+            "expected_gt_observation_fraction": 0.5466101694915254,
+            "frame_range": [
+              123,
+              343
+            ],
+            "gt_distinct_id_count": 3,
+            "gt_id_counts": [
+              {
+                "count": 129,
+                "fraction": 0.5466101694915254,
+                "value": "15"
+              },
+              {
+                "count": 99,
+                "fraction": 0.4194915254237288,
+                "value": "19"
+              },
+              {
+                "count": 8,
+                "fraction": 0.03389830508474576,
+                "value": "21"
+              }
+            ],
+            "gt_label_counts": [
+              {
+                "count": 236,
+                "fraction": 1.0,
+                "value": "blinds"
+              }
+            ],
+            "mean_mask_gt_purity": 0.48980465462430234,
+            "member_observation_count": 236,
+            "missing_gt_observation_count": 0,
+            "observation_gt_row_count": 236
+          },
+          "target_owner_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+        }
+      },
+      "case_uid": "v2_r2_013",
+      "expected_new_gt_already_in_target_pre_anchor": {
+        "earliest_matching_frame": 138,
+        "earliest_matching_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000138_r0016",
+        "eligible_observation_count": 132,
+        "expected_gt_id": 19,
+        "matching_observation_count": 24,
+        "matching_observation_fraction": 0.18181818181818182
+      },
+      "human_confidence": 5,
+      "human_target_pre_state": "CLEAN_SINGLE_INSTANCE",
+      "native_affected_owner_uids": [
+        "30c6ac88-91e0-44bd-8667-6fd8df4c12a6"
+      ],
+      "native_affected_partition": {
+        "detector_class_counts": [
+          {
+            "count": 177,
+            "fraction": 0.7023809523809523,
+            "value": "blinds"
+          },
+          {
+            "count": 75,
+            "fraction": 0.2976190476190476,
+            "value": "window"
+          }
+        ],
+        "eligible_gt_observation_count": 252,
+        "expected_gt_id": 19,
+        "expected_gt_observation_count": 115,
+        "expected_gt_observation_fraction": 0.45634920634920634,
+        "frame_range": [
+          123,
+          343
+        ],
+        "gt_distinct_id_count": 3,
+        "gt_id_counts": [
+          {
+            "count": 129,
+            "fraction": 0.5119047619047619,
+            "value": "15"
+          },
+          {
+            "count": 115,
+            "fraction": 0.45634920634920634,
+            "value": "19"
+          },
+          {
+            "count": 8,
+            "fraction": 0.031746031746031744,
+            "value": "21"
+          }
+        ],
+        "gt_label_counts": [
+          {
+            "count": 252,
+            "fraction": 1.0,
+            "value": "blinds"
+          }
+        ],
+        "mean_mask_gt_purity": 0.5216195181749124,
+        "member_observation_count": 252,
+        "missing_gt_observation_count": 0,
+        "observation_gt_row_count": 252
+      },
+      "offline_identity_audit": {
+        "class_relation": "SAME_CLASS",
+        "human_route_confirms_private_auto": true,
+        "obs_gt_id": 19,
+        "obs_gt_label": "blinds",
+        "obs_gt_purity": 0.9911390894444776,
+        "original_target_gt_id": 15,
+        "original_target_gt_label": "blinds",
+        "private_auto_episode_role": "ROOT_CANDIDATE",
+        "private_auto_routing_label": "SHOULD_HAVE_BEEN_NEW",
+        "private_causal_group_uid": "002ae4948e1ce80f"
+      },
+      "source_run_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/oracle_minimal_replay_v2_r2_013_no_assoc_boundary",
+      "target_pre_anchor_version": {
+        "detector_class_counts": [
+          {
+            "count": 98,
+            "fraction": 0.7424242424242424,
+            "value": "blinds"
+          },
+          {
+            "count": 34,
+            "fraction": 0.25757575757575757,
+            "value": "window"
+          }
+        ],
+        "eligible_gt_observation_count": 132,
+        "expected_gt_id": 15,
+        "expected_gt_observation_count": 108,
+        "expected_gt_observation_fraction": 0.8181818181818182,
+        "frame_range": [
+          123,
+          253
+        ],
+        "gt_distinct_id_count": 2,
+        "gt_id_counts": [
+          {
+            "count": 108,
+            "fraction": 0.8181818181818182,
+            "value": "15"
+          },
+          {
+            "count": 24,
+            "fraction": 0.18181818181818182,
+            "value": "19"
+          }
+        ],
+        "gt_label_counts": [
+          {
+            "count": 132,
+            "fraction": 1.0,
+            "value": "blinds"
+          }
+        ],
+        "mean_mask_gt_purity": 0.5275973565622357,
+        "member_observation_count": 132,
+        "missing_gt_observation_count": 0,
+        "observation_gt_row_count": 132
+      },
+      "target_pre_anchor_version_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6@v000158"
+    }
+  ],
+  "observation_gt_use": "POST_REPLAY_EVALUATION_ONLY",
+  "schema_version": "oracle-create-partition-audit/1.0"
+}

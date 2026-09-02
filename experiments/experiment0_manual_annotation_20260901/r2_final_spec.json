@@ -1,0 +1,103 @@
+{
+  "schema_version": "experiment0-v2-r2-selection-spec/1.0",
+  "purpose": "R2_SCHEMA_CALIBRATION_NOT_PREVALENCE",
+  "case_uid_prefix": "v2_r2",
+  "seed": 20261714,
+  "expected_base_counts": {
+    "CORRECT_ATTACH": 2,
+    "WRONG_ATTACH_EXISTING": 2,
+    "SHOULD_HAVE_BEEN_NEW": 2,
+    "CORRECT_NEW": 2,
+    "WRONG_NEW_FALSE_SPLIT": 2,
+    "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+    "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1
+  },
+  "base_cases": [
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000746",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED"],
+      "rationale": "Partially visible lamp remains one physical instance; its established lamp history is visually identifiable."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00008105",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "SAME_CATEGORY_DISTRACTORS"],
+      "rationale": "Small cushion fragment tests partial visibility without turning it into granularity ambiguity."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00010006",
+      "private_auto_routing_label": "WRONG_ATTACH_EXISTING",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "RARE_STRATUM", "DEPENDENT_CAUSAL_PAIR"],
+      "rationale": "First available fresh wrong-attach observation from the only room0 blanket causal group."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00010066",
+      "private_auto_routing_label": "WRONG_ATTACH_EXISTING",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "RARE_STRATUM", "DEPENDENT_CAUSAL_PAIR"],
+      "rationale": "Adjacent fresh observation from the same unavoidable blanket causal group; retained only for route-cell coverage."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00011993",
+      "private_auto_routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "challenge_tags": ["SAME_CATEGORY_DIFFERENT_INSTANCE_REQUIRED"],
+      "rationale": "A complete central blind panel must not be merged merely because neighboring blind panels share category and appearance."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00014199",
+      "private_auto_routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "challenge_tags": ["SAME_CATEGORY_DIFFERENT_INSTANCE_REQUIRED", "PARTIAL_VISIBILITY_REQUIRED"],
+      "rationale": "A partially observed table remains spatially distinct from the other same-category tables."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000005",
+      "private_auto_routing_label": "CORRECT_NEW",
+      "challenge_tags": ["EMPTY_MAP_CONTROL"],
+      "rationale": "Clear first-frame cushion is the easy control for a genuinely empty t-minus map."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00001567",
+      "private_auto_routing_label": "CORRECT_NEW",
+      "challenge_tags": ["NONEMPTY_MAP_NEW", "PARTIAL_VISIBILITY_REQUIRED"],
+      "rationale": "A partially visible blanket in a nonempty map is still a complete physical instance and legitimately new."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00006039",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED"],
+      "rationale": "A small sofa fragment should attach to the established sofa rather than create a false split."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00012493",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "OCCLUSION_REQUIRED"],
+      "rationale": "One rug remains one instance despite chair and coffee-table occlusion."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00002522",
+      "private_auto_routing_label": "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES",
+      "private_obs_gt_label": "table+sofa",
+      "private_obs_gt_purity": 0.5627096980348298,
+      "challenge_tags": ["FRESH_EXCLUSION", "MIXED_REQUIRED", "TWO_FOREGROUND_INSTANCES"],
+      "rationale": "Visually explicit mask spans two separable physical objects: table and sofa."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00005672",
+      "private_auto_routing_label": "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT",
+      "private_obs_gt_label": "ceiling",
+      "private_obs_gt_purity": 0.996,
+      "challenge_tags": ["FRESH_EXCLUSION", "BACKGROUND_REQUIRED"],
+      "rationale": "Large ceiling mask is a clear non-object/background exclusion."
+    }
+  ],
+  "hidden_repeat_event_uids": [
+    "room0_20260831T111035Z_5c9d86fa_e00008105",
+    "room0_20260831T111035Z_5c9d86fa_e00011993",
+    "room0_20260831T111035Z_5c9d86fa_e00012493"
+  ],
+  "declared_limitations": [
+    "Both WRONG_ATTACH_EXISTING base events are adjacent frames from one blanket causal group and are not independent root-cause evidence.",
+    "The balanced R2 calibration set is from room0 only and cannot estimate natural error prevalence.",
+    "Hidden repeats measure annotation consistency and must not be counted as additional independent cases."
+  ]
+}

@@ -1,0 +1,484 @@
+{
+  "b0r_exact_partition_parity": true,
+  "branches": {
+    "B0": {
+      "active_object_count": 72,
+      "branch": "B0",
+      "closure_effective_observation_count": null,
+      "closure_expanded_observation_count": null,
+      "closure_initial_observation_count": null,
+      "collateral": {
+        "affected_observation_count": 608,
+        "changed_outside_observation_count": 0,
+        "changed_outside_observation_uids": [],
+        "cross_boundary_entity_uids": [],
+        "duplicate_observation_uids": [],
+        "extra_observation_uids": [],
+        "missing_native_observation_uids": [],
+        "outside_observation_count": 6899,
+        "outside_partition_exact_to_native": true,
+        "safe": true
+      },
+      "endpoint_correct": false,
+      "geometry_valid": true,
+      "label_derived_endpoint": {
+        "all_groups_atomic": true,
+        "correct": false,
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "duplicate_evidence_observation_uids": [],
+        "group_observation_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 4
+        },
+        "group_owner_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 1
+        },
+        "group_owner_uids": {
+          "human_confirmed_clean_original_target": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "new_instance_human_evidence": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ]
+        },
+        "group_owners_pairwise_disjoint": false,
+        "missing_evidence_observation_uids": [],
+        "probe_owner_uids": {
+          "room0_20260831T111035Z_5c9d86fa_f000113_r0004": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ]
+        }
+      },
+      "overlay_diagnostics": null,
+      "partition_hash": "98df5d4137b69949436b9bedc2e7686697f6de2703941d00a444ecf66ab92269",
+      "replayed_observation_count": 0,
+      "root_action": {
+        "basis": "EXECUTED_DECISION_TRACE",
+        "correct": false,
+        "decision_count": 0,
+        "expected_constraint_action": "FORCE_CREATE",
+        "observed_constraint_actions": []
+      },
+      "runtime_invariants": {
+        "checks": {
+          "R10_sources_immutable": true,
+          "R11_scope_overlay": true,
+          "R1_unique_owner": true,
+          "R2_evidence_and_object_refs": true,
+          "R3_R4_finite_geometry": true,
+          "R6_constraint_satisfied": true,
+          "R7_R8_edges_structural": true
+        },
+        "hard_invariant_failures": [],
+        "pass": true,
+        "schema_version": "1.0.0"
+      },
+      "runtime_ms": 0.0,
+      "suffix_total_wall_ms": null
+    },
+    "B0R": {
+      "active_object_count": 72,
+      "branch": "B0R",
+      "closure_effective_observation_count": 608,
+      "closure_expanded_observation_count": 0,
+      "closure_initial_observation_count": 608,
+      "collateral": {
+        "affected_observation_count": 608,
+        "changed_outside_observation_count": 0,
+        "changed_outside_observation_uids": [],
+        "cross_boundary_entity_uids": [],
+        "duplicate_observation_uids": [],
+        "extra_observation_uids": [],
+        "missing_native_observation_uids": [],
+        "outside_observation_count": 6899,
+        "outside_partition_exact_to_native": true,
+        "safe": true
+      },
+      "endpoint_correct": false,
+      "geometry_valid": true,
+      "label_derived_endpoint": {
+        "all_groups_atomic": true,
+        "correct": false,
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "duplicate_evidence_observation_uids": [],
+        "group_observation_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 4
+        },
+        "group_owner_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 1
+        },
+        "group_owner_uids": {
+          "human_confirmed_clean_original_target": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "new_instance_human_evidence": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ]
+        },
+        "group_owners_pairwise_disjoint": false,
+        "missing_evidence_observation_uids": [],
+        "probe_owner_uids": {
+          "room0_20260831T111035Z_5c9d86fa_f000113_r0004": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ]
+        }
+      },
+      "overlay_diagnostics": {
+        "claimed_observation_count": 608,
+        "dependency_observation_count": 608,
+        "outside_entity_count": 71,
+        "overlay_pass": true,
+        "partial_outside_overlap_entities": [],
+        "replaced_entity_count": 1
+      },
+      "partition_hash": "98df5d4137b69949436b9bedc2e7686697f6de2703941d00a444ecf66ab92269",
+      "replayed_observation_count": 59,
+      "root_action": {
+        "basis": "EXECUTED_DECISION_TRACE",
+        "correct": false,
+        "decision_count": 1,
+        "expected_constraint_action": "FORCE_CREATE",
+        "observed_constraint_actions": [
+          "NO_CONSTRAINT"
+        ]
+      },
+      "runtime_invariants": {
+        "checks": {
+          "R10_sources_immutable": true,
+          "R11_scope_overlay": true,
+          "R1_unique_owner": true,
+          "R2_evidence_and_object_refs": true,
+          "R3_R4_finite_geometry": true,
+          "R6_constraint_satisfied": true,
+          "R7_R8_edges_structural": true
+        },
+        "hard_invariant_failures": [],
+        "pass": true,
+        "schema_version": "1.0.0"
+      },
+      "runtime_ms": 115914.82740733773,
+      "suffix_total_wall_ms": 115914.82740733773
+    },
+    "B1": {
+      "active_object_count": 73,
+      "branch": "B1",
+      "closure_effective_observation_count": null,
+      "closure_expanded_observation_count": null,
+      "closure_initial_observation_count": null,
+      "collateral": {
+        "affected_observation_count": 608,
+        "changed_outside_observation_count": 0,
+        "changed_outside_observation_uids": [],
+        "cross_boundary_entity_uids": [],
+        "duplicate_observation_uids": [],
+        "extra_observation_uids": [],
+        "missing_native_observation_uids": [],
+        "outside_observation_count": 6899,
+        "outside_partition_exact_to_native": true,
+        "safe": true
+      },
+      "endpoint_correct": false,
+      "geometry_valid": false,
+      "label_derived_endpoint": {
+        "all_groups_atomic": false,
+        "correct": false,
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "duplicate_evidence_observation_uids": [],
+        "group_observation_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 4
+        },
+        "group_owner_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 2
+        },
+        "group_owner_uids": {
+          "human_confirmed_clean_original_target": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "new_instance_human_evidence": [
+            "0e265092-354b-49b6-89d7-9061631dae08",
+            "b1-membership-only:room0_large_r1_0143"
+          ]
+        },
+        "group_owners_pairwise_disjoint": false,
+        "missing_evidence_observation_uids": [],
+        "probe_owner_uids": {
+          "room0_20260831T111035Z_5c9d86fa_f000113_r0004": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+            "b1-membership-only:room0_large_r1_0143"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ]
+        }
+      },
+      "overlay_diagnostics": null,
+      "partition_hash": "4017587719d6f08e8962e49c26b3e6cebb052873b916a71c2cf1c16b3b110288",
+      "replayed_observation_count": 0,
+      "root_action": {
+        "basis": "B1_DEFINITION",
+        "correct": true,
+        "expected_constraint_action": "FORCE_CREATE",
+        "observed_constraint_actions": [
+          "DIRECT_MEMBERSHIP_EDIT"
+        ]
+      },
+      "runtime_invariants": {
+        "pass": null,
+        "status": "NOT_APPLICABLE_MEMBERSHIP_ONLY_BRANCH"
+      },
+      "runtime_ms": 0.0,
+      "suffix_total_wall_ms": null
+    },
+    "B2": {
+      "active_object_count": 73,
+      "branch": "B2",
+      "closure_effective_observation_count": 608,
+      "closure_expanded_observation_count": 0,
+      "closure_initial_observation_count": 608,
+      "collateral": {
+        "affected_observation_count": 608,
+        "changed_outside_observation_count": 0,
+        "changed_outside_observation_uids": [],
+        "cross_boundary_entity_uids": [],
+        "duplicate_observation_uids": [],
+        "extra_observation_uids": [],
+        "missing_native_observation_uids": [],
+        "outside_observation_count": 6899,
+        "outside_partition_exact_to_native": true,
+        "safe": true
+      },
+      "endpoint_correct": true,
+      "geometry_valid": true,
+      "label_derived_endpoint": {
+        "all_groups_atomic": true,
+        "correct": true,
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "duplicate_evidence_observation_uids": [],
+        "group_observation_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 4
+        },
+        "group_owner_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 1
+        },
+        "group_owner_uids": {
+          "human_confirmed_clean_original_target": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "new_instance_human_evidence": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ]
+        },
+        "group_owners_pairwise_disjoint": true,
+        "missing_evidence_observation_uids": [],
+        "probe_owner_uids": {
+          "room0_20260831T111035Z_5c9d86fa_f000113_r0004": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ]
+        }
+      },
+      "overlay_diagnostics": {
+        "claimed_observation_count": 608,
+        "dependency_observation_count": 608,
+        "outside_entity_count": 71,
+        "overlay_pass": true,
+        "partial_outside_overlap_entities": [],
+        "replaced_entity_count": 2
+      },
+      "partition_hash": "cfaa6b296724b4d0c92904684186415260b38a55aff77ec0d8879dd4609eb411",
+      "replayed_observation_count": 59,
+      "root_action": {
+        "basis": "EXECUTED_DECISION_TRACE",
+        "correct": true,
+        "decision_count": 1,
+        "expected_constraint_action": "FORCE_CREATE",
+        "observed_constraint_actions": [
+          "FORCE_CREATE"
+        ]
+      },
+      "runtime_invariants": {
+        "checks": {
+          "R10_sources_immutable": true,
+          "R11_scope_overlay": true,
+          "R1_unique_owner": true,
+          "R2_evidence_and_object_refs": true,
+          "R3_R4_finite_geometry": true,
+          "R6_constraint_satisfied": true,
+          "R7_R8_edges_structural": true
+        },
+        "hard_invariant_failures": [],
+        "pass": true,
+        "schema_version": "1.0.0"
+      },
+      "runtime_ms": 116212.53450587392,
+      "suffix_total_wall_ms": 116212.53450587392
+    },
+    "B3": {
+      "active_object_count": 73,
+      "branch": "B3",
+      "closure_effective_observation_count": 6960,
+      "closure_expanded_observation_count": 5506,
+      "closure_initial_observation_count": 1454,
+      "collateral": {
+        "affected_observation_count": 608,
+        "changed_outside_observation_count": 0,
+        "changed_outside_observation_uids": [],
+        "cross_boundary_entity_uids": [],
+        "duplicate_observation_uids": [],
+        "extra_observation_uids": [],
+        "missing_native_observation_uids": [],
+        "outside_observation_count": 6899,
+        "outside_partition_exact_to_native": true,
+        "safe": true
+      },
+      "endpoint_correct": true,
+      "geometry_valid": true,
+      "label_derived_endpoint": {
+        "all_groups_atomic": true,
+        "correct": true,
+        "desired_owner_relation": "DIFFERENT_OWNER",
+        "duplicate_evidence_observation_uids": [],
+        "group_observation_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 4
+        },
+        "group_owner_counts": {
+          "human_confirmed_clean_original_target": 1,
+          "new_instance_human_evidence": 1
+        },
+        "group_owner_uids": {
+          "human_confirmed_clean_original_target": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "new_instance_human_evidence": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ]
+        },
+        "group_owners_pairwise_disjoint": true,
+        "missing_evidence_observation_uids": [],
+        "probe_owner_uids": {
+          "room0_20260831T111035Z_5c9d86fa_f000113_r0004": [
+            "0e265092-354b-49b6-89d7-9061631dae08"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000324_r0009": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000325_r0009": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000333_r0010": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ],
+          "room0_20260831T111035Z_5c9d86fa_f000340_r0008": [
+            "b6f60935-168f-55c5-82fc-cd11af7baaf4"
+          ]
+        }
+      },
+      "overlay_diagnostics": {
+        "claimed_observation_count": 6960,
+        "dependency_observation_count": 6960,
+        "outside_entity_count": 33,
+        "overlay_pass": true,
+        "partial_outside_overlap_entities": [],
+        "replaced_entity_count": 40
+      },
+      "partition_hash": "cfaa6b296724b4d0c92904684186415260b38a55aff77ec0d8879dd4609eb411",
+      "replayed_observation_count": 1454,
+      "root_action": {
+        "basis": "EXECUTED_DECISION_TRACE",
+        "correct": true,
+        "decision_count": 1,
+        "expected_constraint_action": "FORCE_CREATE",
+        "observed_constraint_actions": [
+          "FORCE_CREATE"
+        ]
+      },
+      "runtime_invariants": {
+        "checks": {
+          "R10_sources_immutable": true,
+          "R11_scope_overlay": true,
+          "R1_unique_owner": true,
+          "R2_evidence_and_object_refs": true,
+          "R3_R4_finite_geometry": true,
+          "R6_constraint_satisfied": true,
+          "R7_R8_edges_structural": true
+        },
+        "hard_invariant_failures": [],
+        "pass": true,
+        "schema_version": "1.0.0"
+      },
+      "runtime_ms": 173510.3343045339,
+      "suffix_total_wall_ms": 173510.3343045339
+    }
+  },
+  "case_uid": "room0_large_r1_0143",
+  "correct_action_type": "NEW",
+  "dependency_closure_observation_count": 608,
+  "full_suffix_observation_count": 1454,
+  "interpretation": {
+    "association_boundary_ablation": true,
+    "b1_is_membership_only": true,
+    "b2_is_typed_dependency_closure": true,
+    "b3_is_full_post_anchor_suffix": true,
+    "component_policy": {
+      "create_association_boundary": false,
+      "create_postprocess_boundary": true,
+      "positive_lineage_redirect": true
+    },
+    "future_views_are_oracle_evaluation_evidence": true
+  },
+  "label_probe_dependency_coverage": 1.0,
+  "routing_label": "SHOULD_HAVE_BEEN_NEW",
+  "schema_version": "human-label-oracle-replay/1.0",
+  "snapshot_pass": true
+}

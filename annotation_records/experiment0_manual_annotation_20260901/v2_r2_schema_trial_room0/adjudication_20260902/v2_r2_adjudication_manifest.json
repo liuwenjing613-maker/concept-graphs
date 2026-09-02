@@ -1,0 +1,30 @@
+{
+  "corrected_counts": {
+    "annotation_status": {
+      "COMPLETED": 13,
+      "EXCLUDED": 2
+    },
+    "routing_label": {
+      "CORRECT_ATTACH": 3,
+      "CORRECT_NEW": 2,
+      "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1,
+      "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+      "SHOULD_HAVE_BEEN_NEW": 3,
+      "WRONG_ATTACH_EXISTING": 2,
+      "WRONG_NEW_FALSE_SPLIT": 3
+    }
+  },
+  "overlay_case_uids": [
+    "v2_r2_002",
+    "v2_r2_007",
+    "v2_r2_008",
+    "v2_r2_011",
+    "v2_r2_013"
+  ],
+  "overlay_count": 5,
+  "overlay_sha256": "487273c8c6c77486324a4ed8d0bb7eaa44a6344629a3cfb700191ea65db4521f",
+  "raw_labels_preserved": true,
+  "schema_version": "experiment0-v2-r2-adjudication-manifest/1.0",
+  "source_labels_sha256": "9540ec828260737c8cc36e59291710c38aa7590f55c7af63d1b60bb6ae14bf2e",
+  "source_packet_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_r2_schema_trial_room0"
+}

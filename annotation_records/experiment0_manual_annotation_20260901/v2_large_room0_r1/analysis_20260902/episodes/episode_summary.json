@@ -1,0 +1,283 @@
+{
+  "all_human_confirmed_errors": {
+    "cascade_events": 6,
+    "causal_role_counts": {
+      "CASCADE_BY_GROUP_CHRONOLOGY": 1,
+      "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE": 4,
+      "CASCADE_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE": 1,
+      "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE": 4,
+      "ROOT_OR_CASCADE_PENDING": 1,
+      "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE": 3
+    },
+    "events": 14,
+    "offline_gt_available": 13,
+    "oracle_replay_first_case_count": 3,
+    "oracle_replay_first_case_uids": [
+      "v2_r2_007",
+      "room0_large_r1_0169",
+      "room0_large_r1_0143"
+    ],
+    "pending_events": 1,
+    "root_events": 7,
+    "routing_label_counts": {
+      "SHOULD_HAVE_BEEN_NEW": 7,
+      "WRONG_ATTACH_EXISTING": 2,
+      "WRONG_NEW_FALSE_SPLIT": 5
+    },
+    "three_independent_future_views_within_window": 6,
+    "three_view_rate_among_gt_available": 0.46153846153846156,
+    "top5_plus_new_coverage": 0.8571428571428571,
+    "two_independent_future_views_within_window": 8,
+    "two_view_rate_among_gt_available": 0.6153846153846154
+  },
+  "error_case_table": [
+    {
+      "case_uid": "room0_large_r1_0089",
+      "causal_group_uid": "audit:f0f81b17a5b2d305",
+      "causal_role": "CASCADE_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": false,
+      "future_views_30": 4,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "v2_r2_007",
+      "causal_group_uid": "audit:f22bca22ba1641a0",
+      "causal_role": "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": true,
+      "future_views_30": 5,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "room0_large_r1_0033",
+      "causal_group_uid": "human-new:4d61b4c5-236c-4c8a-9c1b-057e578759e0:13",
+      "causal_role": "ROOT_OR_CASCADE_PENDING",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": false,
+      "future_views_30": 5,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "room0_large_r1_0169",
+      "causal_group_uid": "audit:e9184017e1cd6234",
+      "causal_role": "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": true,
+      "future_views_30": 2,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "v2_r2_010",
+      "causal_group_uid": "audit:d603ec1a8d6544e4",
+      "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "DIFFERENT_CLASS",
+      "first_oracle_replay": false,
+      "future_views_30": 1,
+      "routing_label": "WRONG_ATTACH_EXISTING",
+      "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "v2_r2_005",
+      "causal_group_uid": "audit:d603ec1a8d6544e4",
+      "causal_role": "CASCADE_BY_GROUP_CHRONOLOGY",
+      "class_relation": "DIFFERENT_CLASS",
+      "first_oracle_replay": false,
+      "future_views_30": 0,
+      "routing_label": "WRONG_ATTACH_EXISTING",
+      "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+      "top5_plus_new": false
+    },
+    {
+      "case_uid": "room0_large_r1_0114",
+      "causal_group_uid": "human-attach:83376265-58c9-4bd7-8997-2d1824f7c6b1:24",
+      "causal_role": "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": false,
+      "future_views_30": null,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "v2_r2_013",
+      "causal_group_uid": "audit:002ae4948e1ce80f",
+      "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "SAME_CLASS",
+      "first_oracle_replay": false,
+      "future_views_30": 1,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "v2_r2_001",
+      "causal_group_uid": "audit:ae8db968efd63b03",
+      "causal_role": "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": false,
+      "future_views_30": 0,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+      "top5_plus_new": false
+    },
+    {
+      "case_uid": "v2_r2_011",
+      "causal_group_uid": "audit:da28e7a3cd293f6a",
+      "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "DIFFERENT_CLASS",
+      "first_oracle_replay": false,
+      "future_views_30": 1,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "room0_large_r1_0143",
+      "causal_group_uid": "human-attach:0e265092-354b-49b6-89d7-9061631dae08:8",
+      "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": true,
+      "future_views_30": 4,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "room0_large_r1_0083",
+      "causal_group_uid": "human-attach:f8837db5-3956-4e3e-93c0-9be75735c2d3:5",
+      "causal_role": "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": false,
+      "future_views_30": 8,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "room0_large_r1_0085",
+      "causal_group_uid": "human-attach:0e265092-354b-49b6-89d7-9061631dae08:8",
+      "causal_role": "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "UNKNOWN",
+      "first_oracle_replay": false,
+      "future_views_30": 2,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    },
+    {
+      "case_uid": "room0_large_r1_0072",
+      "causal_group_uid": "audit:75e322190ef9e3fe",
+      "causal_role": "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE",
+      "class_relation": "DIFFERENT_CLASS",
+      "first_oracle_replay": false,
+      "future_views_30": 7,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "source_batch": "ROOM0_LARGE_R1",
+      "top5_plus_new": true
+    }
+  ],
+  "inputs": {
+    "combined_independent_human_events": 174,
+    "human_confirmed_error_events": 14,
+    "large_events": 162,
+    "note": "The original v2 trial is excluded because its raw quality labels require an unmaterialized adjudication overlay.",
+    "r2_adjudicated_events": 12
+  },
+  "interpretation": [
+    "Human route labels, not private projected-GT routes, define the error set.",
+    "Private GT is used only for offline lineage and future-view availability audits.",
+    "Continuous observations in one view cluster count once; proposal uses the first two representatives and validation uses the third.",
+    "room0 is a development scene, so these results select the next minimal experiment but cannot establish cross-scene prevalence."
+  ],
+  "large_batch_errors": {
+    "cascade_events": 5,
+    "causal_role_counts": {
+      "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE": 4,
+      "CASCADE_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE": 1,
+      "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE": 1,
+      "ROOT_OR_CASCADE_PENDING": 1,
+      "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE": 1
+    },
+    "events": 8,
+    "offline_gt_available": 7,
+    "oracle_replay_first_case_count": 2,
+    "oracle_replay_first_case_uids": [
+      "room0_large_r1_0169",
+      "room0_large_r1_0143"
+    ],
+    "pending_events": 1,
+    "root_events": 2,
+    "routing_label_counts": {
+      "SHOULD_HAVE_BEEN_NEW": 5,
+      "WRONG_NEW_FALSE_SPLIT": 3
+    },
+    "three_independent_future_views_within_window": 5,
+    "three_view_rate_among_gt_available": 0.7142857142857143,
+    "top5_plus_new_coverage": 1.0,
+    "two_independent_future_views_within_window": 7,
+    "two_view_rate_among_gt_available": 1.0
+  },
+  "natural_probability_errors": {
+    "cascade_events": 3,
+    "causal_role_counts": {
+      "CASCADE_CONFIRMED_BY_HUMAN_TARGET_STATE": 3,
+      "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE": 1,
+      "ROOT_OR_CASCADE_PENDING": 1
+    },
+    "events": 5,
+    "offline_gt_available": 4,
+    "oracle_replay_first_case_count": 1,
+    "oracle_replay_first_case_uids": [
+      "room0_large_r1_0143"
+    ],
+    "pending_events": 1,
+    "root_events": 1,
+    "routing_label_counts": {
+      "SHOULD_HAVE_BEEN_NEW": 4,
+      "WRONG_NEW_FALSE_SPLIT": 1
+    },
+    "three_independent_future_views_within_window": 3,
+    "three_view_rate_among_gt_available": 0.75,
+    "top5_plus_new_coverage": 1.0,
+    "two_independent_future_views_within_window": 4,
+    "two_view_rate_among_gt_available": 1.0
+  },
+  "r2_calibration_errors": {
+    "cascade_events": 1,
+    "causal_role_counts": {
+      "CASCADE_BY_GROUP_CHRONOLOGY": 1,
+      "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE": 3,
+      "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE": 2
+    },
+    "events": 6,
+    "offline_gt_available": 6,
+    "oracle_replay_first_case_count": 1,
+    "oracle_replay_first_case_uids": [
+      "v2_r2_007"
+    ],
+    "pending_events": 0,
+    "root_events": 5,
+    "routing_label_counts": {
+      "SHOULD_HAVE_BEEN_NEW": 2,
+      "WRONG_ATTACH_EXISTING": 2,
+      "WRONG_NEW_FALSE_SPLIT": 2
+    },
+    "three_independent_future_views_within_window": 1,
+    "three_view_rate_among_gt_available": 0.16666666666666666,
+    "top5_plus_new_coverage": 0.6666666666666666,
+    "two_independent_future_views_within_window": 1,
+    "two_view_rate_among_gt_available": 0.16666666666666666
+  },
+  "schema_version": "experiment0-room0-human-episode-summary/1.0",
+  "status": "READY_FOR_ORACLE_REPLAY_CASE_SELECTION"
+}

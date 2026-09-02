@@ -1,0 +1,1084 @@
+{
+  "advisory_flags": {
+    "count": 2,
+    "items": [
+      {
+        "blind_seconds": 14.4,
+        "case_uid": "room0_large_r1_0107",
+        "final_seconds": 0.9,
+        "kind": "VERY_FAST_REVIEW_HEURISTIC"
+      },
+      {
+        "blind_seconds": 12.1,
+        "case_uid": "room0_large_r1_0175",
+        "final_seconds": 0.9,
+        "kind": "VERY_FAST_REVIEW_HEURISTIC"
+      }
+    ],
+    "warning": "Timing and confidence flags are review aids, not automatic invalidations."
+  },
+  "completion": {
+    "blind_drafts": 179,
+    "final_labels": 179,
+    "hidden_repeats": 17,
+    "private_rows": 179,
+    "unique_base_events": 162,
+    "worklist": 179
+  },
+  "experiment0_room0_probability_result": {
+    "all_sample_confirmed_error_lower_bound": 0.03333333333333333,
+    "completed_route": 148,
+    "conditional_error_rate": 0.033783783783783786,
+    "conditional_error_wilson95": [
+      0.0145150949863528,
+      0.07664221427685157
+    ],
+    "confirmed_errors": 5,
+    "deferred_identity": 0,
+    "error_case_uids": [
+      "room0_large_r1_0033",
+      "room0_large_r1_0083",
+      "room0_large_r1_0085",
+      "room0_large_r1_0114",
+      "room0_large_r1_0143"
+    ],
+    "excluded_non_route": 2,
+    "original_attach": {
+      "completed": 147,
+      "error_rate": 0.027210884353741496,
+      "errors": 4,
+      "wilson95": [
+        0.010631557432044515,
+        0.06787112288723109
+      ]
+    },
+    "original_new": {
+      "completed": 1,
+      "error_rate": 1.0,
+      "errors": 1,
+      "wilson95": [
+        0.20654931437723745,
+        1.0
+      ]
+    },
+    "route_coverage": 0.9866666666666667,
+    "routing_label_counts": {
+      "CORRECT_ATTACH": 143,
+      "SHOULD_HAVE_BEEN_NEW": 4,
+      "WRONG_NEW_FALSE_SPLIT": 1
+    },
+    "total": 150
+  },
+  "hidden_repeat_consistency": {
+    "completed_pairs": 17,
+    "disagreement_pairs": [
+      {
+        "disagreeing_fields": [
+          "matching_candidate_codes"
+        ],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": false,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": false,
+        "original": "room0_large_r1_0140",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A",
+            "D",
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0016",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A",
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [
+          "target_pre_state"
+        ],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": false,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0099",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "ALREADY_CONTAMINATED"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0141",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [
+          "matching_candidate_codes"
+        ],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": false,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": false,
+        "original": "room0_large_r1_0080",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "B"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0155",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "B",
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      }
+    ],
+    "eligibility_agreement": 1.0,
+    "exact_core_agreement": 0.8235294117647058,
+    "identity_evidence_agreement": 1.0,
+    "matching_candidates_agreement": 0.8823529411764706,
+    "pairs": [
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0055",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "D"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0014",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "D"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [
+          "matching_candidate_codes"
+        ],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": false,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": false,
+        "original": "room0_large_r1_0140",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A",
+            "D",
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0016",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A",
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0129",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0025",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0018",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0028",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0127",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0037",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0005",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0049",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0006",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0057",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0021",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "D"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0064",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "D"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0063",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0074",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0095",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0075",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0135",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0094",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0009",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0102",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0052",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0103",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "A"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [
+          "target_pre_state"
+        ],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": false,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0099",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "ALREADY_CONTAMINATED"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0141",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "C"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0012",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "B"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0146",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "B"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": true,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": true,
+        "original": "room0_large_r1_0059",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "D"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0150",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "D"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      },
+      {
+        "disagreeing_fields": [
+          "matching_candidate_codes"
+        ],
+        "eligibility_agreement": true,
+        "event_uid_equal": true,
+        "exact_core_agreement": false,
+        "identity_evidence_agreement": true,
+        "matching_candidates_agreement": false,
+        "original": "room0_large_r1_0080",
+        "original_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "B"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "quality_agreement": true,
+        "repeat": "room0_large_r1_0155",
+        "repeat_core": {
+          "annotation_status": "COMPLETED",
+          "correct_action_type": "ATTACH_EXISTING",
+          "full_map_status": "NOT_NEEDED_MATCH_SHOWN",
+          "identity_evidence_status": "SUFFICIENT_FOR_IDENTITY",
+          "identity_routing_eligible": true,
+          "matching_candidate_codes": [
+            "B",
+            "E"
+          ],
+          "observation_quality": "CLEAN_SINGLE_INSTANCE",
+          "outside_matching_node_uids": [],
+          "routing_label": "CORRECT_ATTACH",
+          "target_pre_state": "CLEAN_SINGLE_INSTANCE"
+        },
+        "routing_label_agreement": true
+      }
+    ],
+    "quality_agreement": 1.0,
+    "routing_label_agreement": 1.0
+  },
+  "human_label_distributions_base_only": {
+    "annotation_status": {
+      "COMPLETED": 158,
+      "EXCLUDED": 4
+    },
+    "confidence": {
+      "5": 162
+    },
+    "identity_evidence_status": {
+      "PARTIAL": 1,
+      "SUFFICIENT_FOR_IDENTITY": 161
+    },
+    "observation_quality": {
+      "BACKGROUND_OR_FRAGMENT": 4,
+      "CLEAN_SINGLE_INSTANCE": 158
+    },
+    "routing_label": {
+      "CORRECT_ATTACH": 145,
+      "CORRECT_NEW": 5,
+      "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 4,
+      "SHOULD_HAVE_BEEN_NEW": 5,
+      "WRONG_NEW_FALSE_SPLIT": 3
+    },
+    "target_pre_state": {
+      "ALREADY_CONTAMINATED": 18,
+      "CLEAN_SINGLE_INSTANCE": 133,
+      "NOT_APPLICABLE": 11
+    }
+  },
+  "interpretation": "Human labels are authoritative for the event table. Private projected-GT labels are audit hints only; disagreements require visual adjudication, not automatic overwrite.",
+  "next_step_contract": {
+    "episode_compiler_input": "human_routing_events.jsonl",
+    "exclude_hidden_repeats_from_event_counts": true,
+    "prevalence_source": "PROBABILITY_SAMPLE only",
+    "required_next_outputs": [
+      "root-versus-cascade episode assignments",
+      "future independent-view availability",
+      "top-K-plus-NEW human candidate coverage",
+      "B0/B1/B2/B3 replay case list"
+    ],
+    "use_human_event_table": true
+  },
+  "private_gt_audit_comparison": {
+    "comparable_completed": 113,
+    "conflict_count": 0,
+    "conflicts": [],
+    "exact_route_agreement": 1.0,
+    "warning": "Private GT is not a replacement for human identity judgement."
+  },
+  "queue_analyses": {
+    "ERROR_HARVEST": {
+      "all_sample_confirmed_error_lower_bound": 0.75,
+      "completed_route": 3,
+      "conditional_error_rate": 1.0,
+      "conditional_error_wilson95": [
+        0.4385029682449546,
+        1.0
+      ],
+      "confirmed_errors": 3,
+      "deferred_identity": 0,
+      "error_case_uids": [
+        "room0_large_r1_0072",
+        "room0_large_r1_0089",
+        "room0_large_r1_0169"
+      ],
+      "excluded_non_route": 1,
+      "original_attach": {
+        "completed": 1,
+        "error_rate": 1.0,
+        "errors": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "original_new": {
+        "completed": 2,
+        "error_rate": 1.0,
+        "errors": 2,
+        "wilson95": [
+          0.34238022750665303,
+          1.0
+        ]
+      },
+      "route_coverage": 0.75,
+      "routing_label_counts": {
+        "SHOULD_HAVE_BEEN_NEW": 1,
+        "WRONG_NEW_FALSE_SPLIT": 2
+      },
+      "total": 4
+    },
+    "MATCHED_CONTROL": {
+      "all_sample_confirmed_error_lower_bound": 0.0,
+      "completed_route": 7,
+      "conditional_error_rate": 0.0,
+      "conditional_error_wilson95": [
+        5.551115123125783e-17,
+        0.35433043506668743
+      ],
+      "confirmed_errors": 0,
+      "deferred_identity": 0,
+      "error_case_uids": [],
+      "excluded_non_route": 1,
+      "original_attach": {
+        "completed": 2,
+        "error_rate": 0.0,
+        "errors": 0,
+        "wilson95": [
+          0.0,
+          0.6576197724933469
+        ]
+      },
+      "original_new": {
+        "completed": 5,
+        "error_rate": 0.0,
+        "errors": 0,
+        "wilson95": [
+          0.0,
+          0.43448246478317476
+        ]
+      },
+      "route_coverage": 0.875,
+      "routing_label_counts": {
+        "CORRECT_ATTACH": 2,
+        "CORRECT_NEW": 5
+      },
+      "total": 8
+    },
+    "PROBABILITY_SAMPLE": {
+      "all_sample_confirmed_error_lower_bound": 0.03333333333333333,
+      "completed_route": 148,
+      "conditional_error_rate": 0.033783783783783786,
+      "conditional_error_wilson95": [
+        0.0145150949863528,
+        0.07664221427685157
+      ],
+      "confirmed_errors": 5,
+      "deferred_identity": 0,
+      "error_case_uids": [
+        "room0_large_r1_0033",
+        "room0_large_r1_0083",
+        "room0_large_r1_0085",
+        "room0_large_r1_0114",
+        "room0_large_r1_0143"
+      ],
+      "excluded_non_route": 2,
+      "original_attach": {
+        "completed": 147,
+        "error_rate": 0.027210884353741496,
+        "errors": 4,
+        "wilson95": [
+          0.010631557432044515,
+          0.06787112288723109
+        ]
+      },
+      "original_new": {
+        "completed": 1,
+        "error_rate": 1.0,
+        "errors": 1,
+        "wilson95": [
+          0.20654931437723745,
+          1.0
+        ]
+      },
+      "route_coverage": 0.9866666666666667,
+      "routing_label_counts": {
+        "CORRECT_ATTACH": 143,
+        "SHOULD_HAVE_BEEN_NEW": 4,
+        "WRONG_NEW_FALSE_SPLIT": 1
+      },
+      "total": 150
+    }
+  },
+  "schema_version": "experiment0-v2-large-analysis/1.0",
+  "status": "PASS",
+  "structural_validation": {
+    "error_count": 0,
+    "errors": []
+  }
+}

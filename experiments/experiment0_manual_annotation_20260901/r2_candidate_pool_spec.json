@@ -1,0 +1,148 @@
+{
+  "schema_version": "experiment0-v2-r2-selection-spec/1.0",
+  "purpose": "R2_CANDIDATE_VISUAL_REVIEW_NOT_ANNOTATION",
+  "case_uid_prefix": "v2_r2_pool",
+  "seed": 20260902,
+  "base_cases": [
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000746",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Small but high-purity lamp observation with established target history."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00003136",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Small sofa observation; inspect whether identity remains visually decidable."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00008105",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE", "SAME_CATEGORY_DISTRACTORS"],
+      "rationale": "Small cushion observation with long history and several cushion distractors."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00012864",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE", "SAME_CATEGORY_DISTRACTORS"],
+      "rationale": "Small book observation among multiple nearby book/table objects."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00002382",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Compact vase observation with a mature target history."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00019444",
+      "private_auto_routing_label": "CORRECT_ATTACH",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Late compact basket observation with long history."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00010006",
+      "private_auto_routing_label": "WRONG_ATTACH_EXISTING",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "RARE_STRATUM"],
+      "rationale": "Only unseen room0 wrong-attach event at frame 216; same blanket causal group as R1."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00010066",
+      "private_auto_routing_label": "WRONG_ATTACH_EXISTING",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "RARE_STRATUM"],
+      "rationale": "Only other unseen room0 wrong-attach event at frame 217; same blanket causal group."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00011993",
+      "private_auto_routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "challenge_tags": ["SAME_CATEGORY_DIFFERENT_INSTANCE_REQUIRED"],
+      "rationale": "Blind panel with visually similar but spatially distinct blind candidates."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00014199",
+      "private_auto_routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "challenge_tags": ["SAME_CATEGORY_DIFFERENT_INSTANCE_REQUIRED"],
+      "rationale": "Table instance with same-category distractors at different positions."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00016809",
+      "private_auto_routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "challenge_tags": ["SAME_CATEGORY_DIFFERENT_INSTANCE_CANDIDATE"],
+      "rationale": "Plant stand root candidate; inspect identity clarity and distractors."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000005",
+      "private_auto_routing_label": "CORRECT_NEW",
+      "challenge_tags": ["EMPTY_MAP_CONTROL"],
+      "rationale": "Clear first-frame cushion in a genuinely empty t-minus map."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00001567",
+      "private_auto_routing_label": "CORRECT_NEW",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED", "NONEMPTY_MAP_NEW"],
+      "rationale": "New blanket instance in a nonempty map with limited visible area."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000346",
+      "private_auto_routing_label": "CORRECT_NEW",
+      "challenge_tags": ["NONEMPTY_MAP_NEW"],
+      "rationale": "New vase instance after mapping has begun."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000151",
+      "private_auto_routing_label": "CORRECT_NEW",
+      "challenge_tags": ["NONEMPTY_MAP_NEW"],
+      "rationale": "New picture instance with no prior same-instance node."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00000549",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Early sofa false split; inspect whether the existing sofa is clear."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00004403",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE", "R1_CAUSAL_GROUP"],
+      "rationale": "Adjacent event from an R1 sofa causal group; review pool only unless needed."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00006039",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Independent sofa-77 root false split."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00008099",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_REQUIRED"],
+      "rationale": "Independent blanket-86 root false split with compact observation."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00012493",
+      "private_auto_routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "challenge_tags": ["PARTIAL_VISIBILITY_CANDIDATE"],
+      "rationale": "Independent rug root false split."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00013840",
+      "private_auto_routing_label": "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES",
+      "private_obs_gt_label": "sofa+cushion",
+      "private_obs_gt_purity": 0.522,
+      "challenge_tags": ["FRESH_EXCLUSION", "MIXED_REQUIRED"],
+      "rationale": "Previously unseen mask is approximately half sofa and half cushion."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00005672",
+      "private_auto_routing_label": "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT",
+      "private_obs_gt_label": "ceiling",
+      "private_obs_gt_purity": 0.996,
+      "challenge_tags": ["FRESH_EXCLUSION", "BACKGROUND_REQUIRED"],
+      "rationale": "Previously unseen large ceiling mask; unambiguously non-object background."
+    }
+  ],
+  "hidden_repeat_event_uids": [],
+  "declared_limitations": [
+    "This is an oversized private visual-review pool, not the R2 annotation set."
+  ]
+}

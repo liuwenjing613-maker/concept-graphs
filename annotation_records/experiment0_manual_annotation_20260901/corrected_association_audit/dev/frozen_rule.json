@@ -1,0 +1,63 @@
+{
+  "bootstrap_iterations": 100,
+  "eligible_features": [
+    {
+      "feature": "risk_low_margin",
+      "min_ap_lift": 0.19326288961642274,
+      "min_auroc": 0.8188750839737486,
+      "order_index": 0
+    },
+    {
+      "feature": "risk_near_threshold",
+      "min_ap_lift": 0.01792355612251035,
+      "min_auroc": 0.7580743988956067,
+      "order_index": 1
+    },
+    {
+      "feature": "risk_modality_disagreement",
+      "min_ap_lift": 0.008747144035289256,
+      "min_auroc": 0.7086461586162602,
+      "order_index": 2
+    },
+    {
+      "feature": "risk_semantic_residual",
+      "min_ap_lift": 0.03326485582050821,
+      "min_auroc": 0.7268029440642556,
+      "order_index": 3
+    }
+  ],
+  "feature_order": [
+    "risk_low_margin",
+    "risk_near_threshold",
+    "risk_modality_disagreement",
+    "risk_semantic_residual",
+    "risk_spatial_residual"
+  ],
+  "gt_thresholds": {
+    "history_dominant_ratio": 0.8,
+    "history_min_frames": 3,
+    "history_min_observations": 3,
+    "purity": 0.9,
+    "supported_fraction": 0.9,
+    "top_pixels": 25
+  },
+  "preregistered": true,
+  "selected_merge_feature": "risk_low_margin",
+  "selection": {
+    "feature": "risk_low_margin",
+    "min_ap_lift": 0.19326288961642274,
+    "min_auroc": 0.8188750839737486,
+    "order_index": 0
+  },
+  "split": "dev",
+  "status": "CONTINUE_TO_HOLDOUT",
+  "viability": {
+    "room0": {
+      "n": 4700,
+      "negative_clusters": 47,
+      "negatives": 4671,
+      "positive_clusters": 6,
+      "positives": 29
+    }
+  }
+}

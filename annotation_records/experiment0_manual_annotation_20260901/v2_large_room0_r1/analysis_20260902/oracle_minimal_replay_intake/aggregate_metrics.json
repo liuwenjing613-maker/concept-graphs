@@ -1,0 +1,36 @@
+{
+  "case_count": 3,
+  "cases": [
+    {
+      "case_uid": "v2_r2_007",
+      "closure_observation_count": 589,
+      "label_probe_dependency_coverage": 1.0,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "snapshot_pass": true,
+      "status": "INTAKE_PASS"
+    },
+    {
+      "case_uid": "room0_large_r1_0169",
+      "closure_observation_count": 81,
+      "label_probe_dependency_coverage": 1.0,
+      "routing_label": "WRONG_NEW_FALSE_SPLIT",
+      "snapshot_pass": true,
+      "status": "INTAKE_PASS"
+    },
+    {
+      "case_uid": "room0_large_r1_0143",
+      "closure_observation_count": 608,
+      "label_probe_dependency_coverage": 1.0,
+      "routing_label": "SHOULD_HAVE_BEEN_NEW",
+      "snapshot_pass": true,
+      "status": "INTAKE_PASS"
+    }
+  ],
+  "intake_only": true,
+  "native_partition_hash": "98df5d4137b69949436b9bedc2e7686697f6de2703941d00a444ecf66ab92269",
+  "run_total_wall_ms": 433631.9928634912,
+  "schema_version": "human-label-oracle-replay/1.0",
+  "source_evidence_unchanged": true,
+  "source_hash_policy": "HASH_ONCE_AT_CONTEXT_BUILD_AND_ONCE_AFTER_ALL_CASES",
+  "status": "INTAKE_PASS"
+}

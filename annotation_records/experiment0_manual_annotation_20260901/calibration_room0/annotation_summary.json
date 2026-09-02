@@ -1,0 +1,103 @@
+{
+  "case_counts": {
+    "base_labels": 20,
+    "base_total": 20,
+    "eligible_main_or_sensitivity": 11,
+    "labels_total": 24,
+    "worklist_total": 24
+  },
+  "label_counts": {
+    "derived_action": {
+      "DEFER": 4,
+      "EXCLUDE": 5,
+      "KEEP": 10,
+      "REASSIGN": 1
+    },
+    "derived_status": {
+      "CASCADE_OR_PRECONTAMINATED": 1,
+      "CORRECT_KEEP": 10,
+      "DEFER_ACTION_TARGET": 1,
+      "DEFER_AMBIGUOUS": 2,
+      "EXCLUDE_BACKGROUND_OR_FRAGMENT": 2,
+      "EXCLUDE_MIXED_MULTIPLE_INSTANCES": 3,
+      "ROOT_FALSE_ATTACH_REASSIGN": 1
+    },
+    "evidence_sufficient": {
+      "YES": 20
+    },
+    "observation_quality": {
+      "BACKGROUND_OR_FRAGMENT": 2,
+      "CLEAN_SINGLE_INSTANCE": 15,
+      "MIXED_MULTIPLE_INSTANCES": 3
+    }
+  },
+  "limitations": [
+    "Root/cascade closure across post-process object merges requires the later episode compiler.",
+    "REASSIGN outside displayed top-K remains DEFER unless the reviewer checks the full t^- map.",
+    "Only probability-sampled queues support a natural occurrence-rate estimate."
+  ],
+  "packet_status": "READY",
+  "preliminary_rates": {
+    "clean_plus_borderline_denominator": 11,
+    "clean_plus_borderline_root_error_rate": 0.09090909090909091,
+    "clean_plus_borderline_root_errors": 1,
+    "clean_plus_borderline_wilson95": [
+      0.016232172885884855,
+      0.37735843645159567
+    ],
+    "main_clean_denominator": 11,
+    "main_clean_root_error_rate": 0.09090909090909091,
+    "main_clean_root_errors": 1,
+    "main_clean_wilson95": [
+      0.016232172885884855,
+      0.37735843645159567
+    ],
+    "warning": "Calibration-balanced or case-harvest queues must not be used as natural prevalence estimates."
+  },
+  "repeat_pairs": [
+    {
+      "action_agreement": true,
+      "eligible_agreement": true,
+      "exact_agreement": true,
+      "original": "calibration_013",
+      "repeat": "calibration_021"
+    },
+    {
+      "action_agreement": true,
+      "eligible_agreement": true,
+      "exact_agreement": true,
+      "original": "calibration_017",
+      "repeat": "calibration_022"
+    },
+    {
+      "action_agreement": true,
+      "eligible_agreement": true,
+      "exact_agreement": true,
+      "original": "calibration_004",
+      "repeat": "calibration_023"
+    },
+    {
+      "action_agreement": false,
+      "eligible_agreement": true,
+      "exact_agreement": false,
+      "original": "calibration_016",
+      "repeat": "calibration_024"
+    }
+  ],
+  "schema_version": "experiment0-annotation-summary/1.0",
+  "status": "COMPLETE",
+  "timing_seconds": {
+    "blind_total": 1111.1,
+    "combined_total": 1622.5,
+    "final_total": 511.4,
+    "mean_per_base_case": 81.1
+  },
+  "validity": {
+    "calibration_ready": false,
+    "evidence_sufficient_rate": 1.0,
+    "hidden_repeat_action_agreement": 0.75,
+    "hidden_repeat_eligible_agreement": 1.0,
+    "hidden_repeat_exact_agreement": 0.75,
+    "hidden_repeat_pairs_completed": 4
+  }
+}

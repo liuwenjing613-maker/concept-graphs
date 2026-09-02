@@ -1,0 +1,44 @@
+{
+  "schema_version": "experiment0-v2-r2-selection-spec/1.0",
+  "purpose": "R2_MIXED_EXCLUSION_VISUAL_SUPPLEMENT_NOT_ANNOTATION",
+  "case_uid_prefix": "v2_r2_mixed_pool",
+  "seed": 20260903,
+  "base_cases": [
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00004008",
+      "private_auto_routing_label": "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES",
+      "private_obs_gt_label": "rug+stool",
+      "private_obs_gt_purity": 0.525940212150434,
+      "challenge_tags": ["FRESH_EXCLUSION", "MIXED_REQUIRED", "TWO_FOREGROUND_INSTANCES"],
+      "rationale": "Large fresh mask with 52.6% rug and 46.0% stool support; inspect whether both physical instances are plainly visible."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00002522",
+      "private_auto_routing_label": "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES",
+      "private_obs_gt_label": "table+sofa",
+      "private_obs_gt_purity": 0.5627096980348298,
+      "challenge_tags": ["FRESH_EXCLUSION", "MIXED_REQUIRED", "TWO_FOREGROUND_INSTANCES"],
+      "rationale": "Large fresh mask with 56.3% table and 43.5% sofa support."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00017719",
+      "private_auto_routing_label": "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES",
+      "private_obs_gt_label": "indoor-plant+chair",
+      "private_obs_gt_purity": 0.6031186188973454,
+      "challenge_tags": ["FRESH_EXCLUSION", "MIXED_REQUIRED", "TWO_FOREGROUND_INSTANCES"],
+      "rationale": "Fresh mask with 60.3% indoor plant and 39.7% chair support."
+    },
+    {
+      "event_uid": "room0_20260831T111035Z_5c9d86fa_e00004933",
+      "private_auto_routing_label": "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES",
+      "private_obs_gt_label": "chair+indoor-plant",
+      "private_obs_gt_purity": 0.6037805782060786,
+      "challenge_tags": ["FRESH_EXCLUSION", "MIXED_REQUIRED", "TWO_FOREGROUND_INSTANCES"],
+      "rationale": "Fresh new-object proposal with 60.4% chair and 39.1% indoor-plant support."
+    }
+  ],
+  "hidden_repeat_event_uids": [],
+  "declared_limitations": [
+    "This supplement exists only to choose one visually unambiguous mixed exclusion for R2."
+  ]
+}

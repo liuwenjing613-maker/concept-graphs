@@ -1,0 +1,14 @@
+{
+  "case_count": 24,
+  "evidence_manifest_sha256": "89bb5c2420d295521f3b1bbb2e36afd9a3d535d4bf4af86fe8b2d862a25d6397",
+  "evidence_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence",
+  "failure_count": 0,
+  "failures": [],
+  "mapper_complete": true,
+  "mapper_latest_frame": 399,
+  "ready_through_frame": 399,
+  "scene": "room0",
+  "schema_version": "experiment0-association-packet/1.0",
+  "status": "READY",
+  "worklist_sha256": "b5f569df2fb454e66189bf8d00372f1804dd4d96c90a11e0a935ace103e3f589"
+}

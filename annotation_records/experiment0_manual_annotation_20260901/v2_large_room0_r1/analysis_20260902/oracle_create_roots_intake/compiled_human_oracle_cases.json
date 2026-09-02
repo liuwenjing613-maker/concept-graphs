@@ -1,0 +1,158 @@
+[
+  {
+    "anchor_event_sequence": 11993,
+    "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00011993",
+    "anchor_frame": 253,
+    "anchor_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000253_r0011",
+    "case_uid": "v2_r2_013",
+    "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+    "constraint": {
+      "active_from_sequence": 11993,
+      "active_until_sequence": 11993,
+      "applies_at_event_uid": "room0_20260831T111035Z_5c9d86fa_e00011993",
+      "constraint_uid": "constraint_bb1cd8b61d75d885",
+      "created_entity_uid": "d3adbd00-ae12-5cfc-8760-1bfea3a5937d",
+      "created_identity_uid": "human-oracle-identity:v2_r2_013",
+      "created_lineage_uid": "human-oracle-identity:v2_r2_013",
+      "entity_uid": null,
+      "evidence_refs": [
+        "v2_r2_013",
+        "room0_20260831T111035Z_5c9d86fa_e00011993",
+        "room0_20260831T111035Z_5c9d86fa_f000254_r0010"
+      ],
+      "groups": {},
+      "label": null,
+      "obs_uid": "room0_20260831T111035Z_5c9d86fa_f000253_r0011",
+      "reason": null,
+      "refs": [],
+      "separate_from_identity_uids": [
+        "origin_room0_20260831T111035Z_5c9d86fa_f000123_r0016"
+      ],
+      "source": "human_annotation_oracle_experiment1",
+      "target_entity_uid": null,
+      "target_lineage_uid": null,
+      "target_origin_obs_uid": null,
+      "type": "CREATE_INSTANCE"
+    },
+    "correct_action_type": "NEW",
+    "label_derived_evaluation": {
+      "corrected_instance_probe_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000253_r0011",
+        "room0_20260831T111035Z_5c9d86fa_f000254_r0010",
+        "room0_20260831T111035Z_5c9d86fa_f000286_r0021"
+      ],
+      "desired_owner_relation": "DIFFERENT_OWNER",
+      "groups": {
+        "human_confirmed_clean_original_target": [
+          "room0_20260831T111035Z_5c9d86fa_f000123_r0016"
+        ],
+        "new_instance_human_evidence": [
+          "room0_20260831T111035Z_5c9d86fa_f000253_r0011",
+          "room0_20260831T111035Z_5c9d86fa_f000254_r0010",
+          "room0_20260831T111035Z_5c9d86fa_f000286_r0021"
+        ]
+      },
+      "oracle_status": "HUMAN_ROUTE_PLUS_OFFLINE_GT_AUDITED_FUTURE_VIEWS",
+      "proposal_view_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000254_r0010"
+      ],
+      "supplemental_suffix_evaluation_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000286_r0021"
+      ],
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+      "validation_view_obs_uid": null
+    },
+    "original_action_type": "ATTACH_EXISTING",
+    "queue_memberships": [
+      "CALIBRATION_R2"
+    ],
+    "routing_label": "SHOULD_HAVE_BEEN_NEW",
+    "schema_version": "human-label-oracle-replay/1.0",
+    "snapshot_seed_version_uids": [
+      "30c6ac88-91e0-44bd-8667-6fd8df4c12a6@v000158"
+    ],
+    "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+    "target_entity_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6",
+    "target_lineage_uid": "origin_room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+    "target_origin_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000123_r0016",
+    "target_version_uid": "30c6ac88-91e0-44bd-8667-6fd8df4c12a6@v000158"
+  },
+  {
+    "anchor_event_sequence": 14199,
+    "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00014199",
+    "anchor_frame": 299,
+    "anchor_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000299_r0011",
+    "case_uid": "v2_r2_011",
+    "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+    "constraint": {
+      "active_from_sequence": 14199,
+      "active_until_sequence": 14199,
+      "applies_at_event_uid": "room0_20260831T111035Z_5c9d86fa_e00014199",
+      "constraint_uid": "constraint_40ecc5e069130fd2",
+      "created_entity_uid": "a43c0e44-60e3-5c49-a3ac-bef583b7ad44",
+      "created_identity_uid": "human-oracle-identity:v2_r2_011",
+      "created_lineage_uid": "human-oracle-identity:v2_r2_011",
+      "entity_uid": null,
+      "evidence_refs": [
+        "v2_r2_011",
+        "room0_20260831T111035Z_5c9d86fa_e00014199",
+        "room0_20260831T111035Z_5c9d86fa_f000300_r0013"
+      ],
+      "groups": {},
+      "label": null,
+      "obs_uid": "room0_20260831T111035Z_5c9d86fa_f000299_r0011",
+      "reason": null,
+      "refs": [],
+      "separate_from_identity_uids": [
+        "origin_room0_20260831T111035Z_5c9d86fa_f000155_r0019"
+      ],
+      "source": "human_annotation_oracle_experiment1",
+      "target_entity_uid": null,
+      "target_lineage_uid": null,
+      "target_origin_obs_uid": null,
+      "type": "CREATE_INSTANCE"
+    },
+    "correct_action_type": "NEW",
+    "label_derived_evaluation": {
+      "corrected_instance_probe_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000299_r0011",
+        "room0_20260831T111035Z_5c9d86fa_f000300_r0013",
+        "room0_20260831T111035Z_5c9d86fa_f000359_r0015"
+      ],
+      "desired_owner_relation": "DIFFERENT_OWNER",
+      "groups": {
+        "human_confirmed_clean_original_target": [
+          "room0_20260831T111035Z_5c9d86fa_f000155_r0019"
+        ],
+        "new_instance_human_evidence": [
+          "room0_20260831T111035Z_5c9d86fa_f000299_r0011",
+          "room0_20260831T111035Z_5c9d86fa_f000300_r0013",
+          "room0_20260831T111035Z_5c9d86fa_f000359_r0015"
+        ]
+      },
+      "oracle_status": "HUMAN_ROUTE_PLUS_OFFLINE_GT_AUDITED_FUTURE_VIEWS",
+      "proposal_view_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000300_r0013"
+      ],
+      "supplemental_suffix_evaluation_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000359_r0015"
+      ],
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000155_r0019",
+      "validation_view_obs_uid": null
+    },
+    "original_action_type": "ATTACH_EXISTING",
+    "queue_memberships": [
+      "CALIBRATION_R2"
+    ],
+    "routing_label": "SHOULD_HAVE_BEEN_NEW",
+    "schema_version": "human-label-oracle-replay/1.0",
+    "snapshot_seed_version_uids": [
+      "683711f3-47eb-496f-a510-d2071024ceb4@v000122"
+    ],
+    "source_batch": "V2_R2_ADJUDICATED_CALIBRATION",
+    "target_entity_uid": "683711f3-47eb-496f-a510-d2071024ceb4",
+    "target_lineage_uid": "origin_room0_20260831T111035Z_5c9d86fa_f000155_r0019",
+    "target_origin_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000155_r0019",
+    "target_version_uid": "683711f3-47eb-496f-a510-d2071024ceb4@v000122"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "associations_total": 7507,
+    "evaluable_create": 22,
+    "evaluable_merge": 4700,
+    "evaluable_records": 4722,
+    "exclusions": {
+      "create_top1_history_ambiguous": 1,
+      "create_top1_history_lt3_reliable": 23,
+      "merge_target_history_ambiguous": 691,
+      "merge_target_history_lt3_frames": 9,
+      "merge_target_history_lt3_reliable": 103,
+      "no_candidates": 16,
+      "observation_gt_unreliable": 1942
+    },
+    "exp_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd",
+    "gt_rows": 7507,
+    "integrity": {
+      "matrix_rows_validated": 5549
+    },
+    "object_versions": 12142,
+    "runtime_seconds": 20.574596437625587,
+    "scene": "room0",
+    "summary_path": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/scene_summary.json"
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "association_count": 7507,
+  "case_prefix": "room0_large_r1",
+  "error_harvest_count": 4,
+  "hidden_repeat_count": 17,
+  "matched_control_count": 8,
+  "matched_controls_per_error_requested": 2,
+  "previous_unique_event_count": 42,
+  "private_auto_route_counts_in_unique_batch": {
+    "CORRECT_ATTACH": 105,
+    "CORRECT_NEW": 6,
+    "None": 16,
+    "SHOULD_HAVE_BEEN_NEW": 1,
+    "WRONG_NEW_FALSE_SPLIT": 3
+  },
+  "probability_inclusion_probability": 0.020093770931011386,
+  "probability_population_count": 7465,
+  "probability_sample_count": 150,
+  "purpose": "ROOM0_DEVELOPMENT_LARGE_ANNOTATION",
+  "queue_membership_counts": {
+    "ERROR_HARVEST": 4,
+    "MATCHED_CONTROL": 8,
+    "PROBABILITY_SAMPLE": 150
+  },
+  "schema_version": "experiment0-large-worklist/1.0",
+  "seed": 20260902,
+  "source_sha256": {
+    "associations": "6a61f9edb2ed221e3121cf9c54f782fdf1f5453e1eade660fc65c55fb6add0a9",
+    "previous_worklists": {
+      "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/calibration_room0/private_calibration_worklist.jsonl": "7f8a99ba86e422fe64e6983c36459a0eb4cde007a1ace40bde68e87d3c7760de",
+      "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_r2_schema_trial_room0/private_v2_r2_worklist.jsonl": "6b59c36bea983523c3744fd893948a1c6cab3a0f6b55b88b7ee63f998fa1315a",
+      "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_schema_trial_room0/private_v2_trial_worklist.jsonl": "a3a8947914532aff4dd3e1d75ceb64e4645cc38937b0769dc04234c2f12ecd59"
+    },
+    "routing_records": "76fc5d70a81989540c2def1a28339128c49a5aae58bf410fa7e5bcd7f9318314"
+  },
+  "statistical_contract": {
+    "harvest_queue": "Private GT-audit error candidates plus decision-matched controls; must not estimate prevalence.",
+    "human_labels_required": true,
+    "probability_queue": "Uniform deterministic sample of the declared event population; only this queue may estimate room0 event prevalence.",
+    "room0_is_development_not_unseen_validation": true
+  },
+  "status": "READY",
+  "total_case_count": 179,
+  "unique_base_case_count": 162,
+  "worklist_sha256": "c339056994f84d7aafbc1c5a6d8a11fd07865c587dd3869f668da71314410e38"
+}

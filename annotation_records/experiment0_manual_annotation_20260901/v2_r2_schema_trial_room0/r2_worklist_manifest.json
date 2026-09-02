@@ -1,0 +1,71 @@
+{
+  "base_case_count": 12,
+  "base_stratum_counts": {
+    "CORRECT_ATTACH": 2,
+    "CORRECT_NEW": 2,
+    "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1,
+    "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+    "SHOULD_HAVE_BEEN_NEW": 2,
+    "WRONG_ATTACH_EXISTING": 2,
+    "WRONG_NEW_FALSE_SPLIT": 2
+  },
+  "case_uid_prefix": "v2_r2",
+  "causal_group_counts_by_stratum": {
+    "SHOULD_HAVE_BEEN_NEW": 2,
+    "WRONG_ATTACH_EXISTING": 1,
+    "WRONG_NEW_FALSE_SPLIT": 2
+  },
+  "challenge_tag_counts": {
+    "BACKGROUND_REQUIRED": 1,
+    "DEPENDENT_CAUSAL_PAIR": 2,
+    "EMPTY_MAP_CONTROL": 1,
+    "FRESH_EXCLUSION": 2,
+    "MIXED_REQUIRED": 1,
+    "NONEMPTY_MAP_NEW": 1,
+    "OCCLUSION_REQUIRED": 1,
+    "PARTIAL_VISIBILITY_REQUIRED": 8,
+    "RARE_STRATUM": 2,
+    "SAME_CATEGORY_DIFFERENT_INSTANCE_REQUIRED": 2,
+    "SAME_CATEGORY_DISTRACTORS": 1,
+    "TWO_FOREGROUND_INSTANCES": 1
+  },
+  "declared_limitations": [
+    "Both WRONG_ATTACH_EXISTING base events are adjacent frames from one blanket causal group and are not independent root-cause evidence.",
+    "Hidden repeats measure annotation consistency and must not be counted as additional independent cases.",
+    "The balanced R2 calibration set is from room0 only and cannot estimate natural error prevalence.",
+    "WRONG_ATTACH_EXISTING: 2 base events cover only 1 causal group(s)."
+  ],
+  "final_stratum_counts_including_repeats": {
+    "CORRECT_ATTACH": 3,
+    "CORRECT_NEW": 2,
+    "OUT_OF_SCOPE_BACKGROUND_OR_FRAGMENT": 1,
+    "OUT_OF_SCOPE_MIXED_MULTIPLE_INSTANCES": 1,
+    "SHOULD_HAVE_BEEN_NEW": 3,
+    "WRONG_ATTACH_EXISTING": 2,
+    "WRONG_NEW_FALSE_SPLIT": 3
+  },
+  "hidden_repeat_count": 3,
+  "hidden_repeat_event_uids": [
+    "room0_20260831T111035Z_5c9d86fa_e00008105",
+    "room0_20260831T111035Z_5c9d86fa_e00011993",
+    "room0_20260831T111035Z_5c9d86fa_e00012493"
+  ],
+  "previous_event_overlap_count": 0,
+  "purpose": "R2_SCHEMA_CALIBRATION_NOT_PREVALENCE",
+  "schema_version": "experiment0-v2-r2-worklist/1.0",
+  "seed": 20261714,
+  "source_sha256": {
+    "associations": "6a61f9edb2ed221e3121cf9c54f782fdf1f5453e1eade660fc65c55fb6add0a9",
+    "previous_worklists": {
+      "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/calibration_room0/private_calibration_worklist.jsonl": "7f8a99ba86e422fe64e6983c36459a0eb4cde007a1ace40bde68e87d3c7760de",
+      "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/v2_schema_trial_room0/private_v2_trial_worklist.jsonl": "a3a8947914532aff4dd3e1d75ceb64e4645cc38937b0769dc04234c2f12ecd59"
+    },
+    "routing_records": "76fc5d70a81989540c2def1a28339128c49a5aae58bf410fa7e5bcd7f9318314",
+    "selection_spec": "7a4f1d5d2da4e7cdefd383db534363e484dbe3415661f65427ea32eaaf70467c"
+  },
+  "status": "READY_WITH_DECLARED_LIMITATIONS",
+  "total_case_count": 15,
+  "unique_base_event_count": 12,
+  "warning": "Private strata, challenge tags, repeats and selection rationales must remain hidden from the reviewer. This balanced set cannot estimate prevalence.",
+  "worklist_sha256": "6b59c36bea983523c3744fd893948a1c6cab3a0f6b55b88b7ee63f998fa1315a"
+}

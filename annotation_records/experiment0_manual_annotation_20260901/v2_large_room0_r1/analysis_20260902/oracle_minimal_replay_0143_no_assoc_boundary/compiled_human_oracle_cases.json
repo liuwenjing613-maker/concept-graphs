@@ -1,0 +1,82 @@
+[
+  {
+    "anchor_event_sequence": 15562,
+    "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00015562",
+    "anchor_frame": 324,
+    "anchor_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000324_r0009",
+    "case_uid": "room0_large_r1_0143",
+    "causal_role": "ROOT_CONFIRMED_BY_HUMAN_TARGET_STATE",
+    "constraint": {
+      "active_from_sequence": 15562,
+      "active_until_sequence": 15562,
+      "applies_at_event_uid": "room0_20260831T111035Z_5c9d86fa_e00015562",
+      "constraint_uid": "constraint_e971d43676eaa957",
+      "created_entity_uid": "b6f60935-168f-55c5-82fc-cd11af7baaf4",
+      "created_identity_uid": "human-oracle-identity:room0_large_r1_0143",
+      "created_lineage_uid": "human-oracle-identity:room0_large_r1_0143",
+      "entity_uid": null,
+      "evidence_refs": [
+        "room0_large_r1_0143",
+        "room0_20260831T111035Z_5c9d86fa_e00015562",
+        "room0_20260831T111035Z_5c9d86fa_f000325_r0009",
+        "room0_20260831T111035Z_5c9d86fa_f000333_r0010",
+        "room0_20260831T111035Z_5c9d86fa_f000340_r0008"
+      ],
+      "groups": {},
+      "label": null,
+      "obs_uid": "room0_20260831T111035Z_5c9d86fa_f000324_r0009",
+      "reason": null,
+      "refs": [],
+      "separate_from_identity_uids": [
+        "origin_room0_20260831T111035Z_5c9d86fa_f000113_r0004"
+      ],
+      "source": "human_annotation_oracle_experiment1",
+      "target_entity_uid": null,
+      "target_lineage_uid": null,
+      "target_origin_obs_uid": null,
+      "type": "CREATE_INSTANCE"
+    },
+    "correct_action_type": "NEW",
+    "label_derived_evaluation": {
+      "corrected_instance_probe_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000324_r0009",
+        "room0_20260831T111035Z_5c9d86fa_f000325_r0009",
+        "room0_20260831T111035Z_5c9d86fa_f000333_r0010",
+        "room0_20260831T111035Z_5c9d86fa_f000340_r0008"
+      ],
+      "desired_owner_relation": "DIFFERENT_OWNER",
+      "groups": {
+        "human_confirmed_clean_original_target": [
+          "room0_20260831T111035Z_5c9d86fa_f000113_r0004"
+        ],
+        "new_instance_human_evidence": [
+          "room0_20260831T111035Z_5c9d86fa_f000324_r0009",
+          "room0_20260831T111035Z_5c9d86fa_f000325_r0009",
+          "room0_20260831T111035Z_5c9d86fa_f000333_r0010",
+          "room0_20260831T111035Z_5c9d86fa_f000340_r0008"
+        ]
+      },
+      "oracle_status": "HUMAN_ROUTE_PLUS_OFFLINE_GT_AUDITED_FUTURE_VIEWS",
+      "proposal_view_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000325_r0009",
+        "room0_20260831T111035Z_5c9d86fa_f000333_r0010"
+      ],
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000113_r0004",
+      "validation_view_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000340_r0008"
+    },
+    "original_action_type": "ATTACH_EXISTING",
+    "queue_memberships": [
+      "PROBABILITY_SAMPLE"
+    ],
+    "routing_label": "SHOULD_HAVE_BEEN_NEW",
+    "schema_version": "human-label-oracle-replay/1.0",
+    "snapshot_seed_version_uids": [
+      "0e265092-354b-49b6-89d7-9061631dae08@v000410"
+    ],
+    "source_batch": "ROOM0_LARGE_R1",
+    "target_entity_uid": "0e265092-354b-49b6-89d7-9061631dae08",
+    "target_lineage_uid": "origin_room0_20260831T111035Z_5c9d86fa_f000113_r0004",
+    "target_origin_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000113_r0004",
+    "target_version_uid": "0e265092-354b-49b6-89d7-9061631dae08@v000410"
+  }
+]

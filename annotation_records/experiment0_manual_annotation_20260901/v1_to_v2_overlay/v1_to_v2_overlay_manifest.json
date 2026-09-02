@@ -1,0 +1,10 @@
+{
+  "overlay_count": 24,
+  "overlay_sha256": "7db2633f2ca028844d8072e4757449301769b144b9b2bc132e6f298b3d03aa78",
+  "policy": "Raw v1 labels are immutable. Overlay corrections never rewrite v1 and are not mixed with v2 agreement or routing-rate statistics.",
+  "schema_version": "experiment0-v1-to-v2-overlay-manifest/1.0",
+  "status": "READY",
+  "v1_label_count": 24,
+  "v1_labels": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/calibration_room0/labels/event_labels.jsonl",
+  "v1_labels_sha256": "647414b417ecf556166f308f062cce63b816eae26809edfb5c547683345c0827"
+}

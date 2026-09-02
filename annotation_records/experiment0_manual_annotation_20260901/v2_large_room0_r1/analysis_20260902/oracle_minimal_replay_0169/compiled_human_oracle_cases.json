@@ -1,0 +1,73 @@
+[
+  {
+    "anchor_event_sequence": 8099,
+    "anchor_event_uid": "room0_20260831T111035Z_5c9d86fa_e00008099",
+    "anchor_frame": 183,
+    "anchor_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000183_r0013",
+    "case_uid": "room0_large_r1_0169",
+    "causal_role": "ROOT_SUPPORTED_BY_HUMAN_ROUTE_AND_GT_LINEAGE",
+    "constraint": {
+      "active_from_sequence": 8099,
+      "active_until_sequence": 8099,
+      "applies_at_event_uid": "room0_20260831T111035Z_5c9d86fa_e00008099",
+      "constraint_uid": "constraint_efe1d76cc52b9421",
+      "created_entity_uid": null,
+      "created_lineage_uid": null,
+      "entity_uid": null,
+      "evidence_refs": [
+        "room0_large_r1_0169",
+        "room0_20260831T111035Z_5c9d86fa_e00008099",
+        "room0_20260831T111035Z_5c9d86fa_f000184_r0021",
+        "room0_20260831T111035Z_5c9d86fa_f000198_r0022"
+      ],
+      "groups": {},
+      "label": null,
+      "obs_uid": "room0_20260831T111035Z_5c9d86fa_f000183_r0013",
+      "reason": null,
+      "refs": [],
+      "source": "human_annotation_oracle_experiment1",
+      "target_entity_uid": "f0664e01-5b3c-4073-9d76-0fba95a2373c",
+      "target_lineage_uid": "origin_room0_20260831T111035Z_5c9d86fa_f000037_r0001",
+      "target_origin_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000037_r0001",
+      "type": "ASSIGN_OBSERVATION"
+    },
+    "correct_action_type": "ATTACH_EXISTING",
+    "label_derived_evaluation": {
+      "corrected_instance_probe_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000183_r0013",
+        "room0_20260831T111035Z_5c9d86fa_f000184_r0021",
+        "room0_20260831T111035Z_5c9d86fa_f000198_r0022"
+      ],
+      "desired_owner_relation": "SAME_OWNER",
+      "groups": {
+        "same_instance_human_evidence": [
+          "room0_20260831T111035Z_5c9d86fa_f000037_r0001",
+          "room0_20260831T111035Z_5c9d86fa_f000183_r0013",
+          "room0_20260831T111035Z_5c9d86fa_f000184_r0021",
+          "room0_20260831T111035Z_5c9d86fa_f000198_r0022"
+        ]
+      },
+      "oracle_status": "HUMAN_ROUTE_PLUS_OFFLINE_GT_AUDITED_FUTURE_VIEWS",
+      "proposal_view_obs_uids": [
+        "room0_20260831T111035Z_5c9d86fa_f000184_r0021",
+        "room0_20260831T111035Z_5c9d86fa_f000198_r0022"
+      ],
+      "target_probe_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000037_r0001",
+      "validation_view_obs_uid": null
+    },
+    "original_action_type": "NEW",
+    "queue_memberships": [
+      "ERROR_HARVEST"
+    ],
+    "routing_label": "WRONG_NEW_FALSE_SPLIT",
+    "schema_version": "human-label-oracle-replay/1.0",
+    "snapshot_seed_version_uids": [
+      "f0664e01-5b3c-4073-9d76-0fba95a2373c@v000049"
+    ],
+    "source_batch": "ROOM0_LARGE_R1",
+    "target_entity_uid": "f0664e01-5b3c-4073-9d76-0fba95a2373c",
+    "target_lineage_uid": "origin_room0_20260831T111035Z_5c9d86fa_f000037_r0001",
+    "target_origin_obs_uid": "room0_20260831T111035Z_5c9d86fa_f000037_r0001",
+    "target_version_uid": "f0664e01-5b3c-4073-9d76-0fba95a2373c@v000049"
+  }
+]
