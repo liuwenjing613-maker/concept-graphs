@@ -159,11 +159,11 @@ def replace_once(text: str, old: str, new: str) -> str:
 
 def make_html() -> str:
     html = legacy_server.HTML
-    html = replace_once(html, "<title>实验 0 关联事件标注</title>", "<title>实验 0 身份路由 v2 · R2 校准</title>")
+    html = replace_once(html, "<title>实验 0 关联事件标注</title>", "<title>实验 0 身份路由 v2 · 盲标</title>")
     html = replace_once(
         html,
         "实验 0 · 关联事件两阶段标注",
-        "实验 0 · ATTACH/NEW 身份路由 v2 · R2 校准",
+        "实验 0 · ATTACH/NEW 身份路由 v2 · 盲标",
     )
     html = replace_once(
         html,

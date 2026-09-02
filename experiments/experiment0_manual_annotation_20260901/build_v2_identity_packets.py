@@ -325,10 +325,19 @@ def main() -> int:
     manifest_rows.sort(key=lambda row: row["case_uid"])
     worklist_path = args.output_root / "worklist.jsonl"
     legacy.write_jsonl_atomic(worklist_path, manifest_rows)
+    worklist_metadata_path = args.worklist.parent / "worklist_manifest.json"
+    worklist_metadata = (
+        json.loads(worklist_metadata_path.read_text(encoding="utf-8"))
+        if worklist_metadata_path.exists()
+        else {}
+    )
     manifest = {
         "schema_version": SCHEMA_VERSION,
         "status": "READY" if not failures else "READY_WITH_FAILURES",
-        "purpose": "SCHEMA_AND_ANNOTATION_VALIDITY_ONLY_NOT_PREVALENCE",
+        "purpose": worklist_metadata.get(
+            "purpose", "SCHEMA_AND_ANNOTATION_VALIDITY_ONLY_NOT_PREVALENCE"
+        ),
+        "statistical_contract": worklist_metadata.get("statistical_contract"),
         "scene": args.scene,
         "evidence_root": str(args.evidence_root),
         "evidence_manifest_sha256": legacy.sha256_file(
@@ -336,6 +345,16 @@ def main() -> int:
         ),
         "source_private_worklist": str(args.worklist.resolve()),
         "source_private_worklist_sha256": legacy.sha256_file(args.worklist),
+        "source_worklist_manifest": (
+            str(worklist_metadata_path.resolve())
+            if worklist_metadata_path.exists()
+            else None
+        ),
+        "source_worklist_manifest_sha256": (
+            legacy.sha256_file(worklist_metadata_path)
+            if worklist_metadata_path.exists()
+            else None
+        ),
         "mapper_complete": state["complete"],
         "mapper_latest_frame": state["latest_frame"],
         "ready_through_frame": state["ready_frame"],
