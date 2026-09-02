@@ -1,0 +1,34 @@
+{
+  "gates": {
+    "all_frames_processed": true,
+    "cpu_gt_has_two_passing_dev_parity_proofs": true,
+    "frames_exact": true,
+    "gt_alignment_within_5cm_ge_0p99": true,
+    "mapper_completed": true,
+    "no_gt_in_mapper_manifest": true,
+    "no_missing_members": true
+  },
+  "integrity": {
+    "causal_trace_rows": 3892,
+    "final_active_objects": 35,
+    "frame_count": 400,
+    "gt_cpu_parity_all_passed": false,
+    "gt_cpu_parity_proof_count": 0,
+    "gt_frame_count": 400,
+    "gt_generation_method": "habitat_egl",
+    "gt_max_p90_depth_error_m": 0.007570165069773793,
+    "gt_min_within_5cm": 1.0,
+    "kept_observations": 3106,
+    "mapper_manifest_gt_keys": [],
+    "mapper_manifest_status": "MAP_COMPLETED_EVIDENCE_VALID",
+    "missing_final_member_observations": 0,
+    "object_version_rows": 5409,
+    "observation_gt_audit": {
+      "cache_reused": false,
+      "processed_mask_hash_failures": 0,
+      "rows": 3106
+    },
+    "processed_frame_count": 400,
+    "source_frames_exact_0_1995_stride5": true
+  }
+}

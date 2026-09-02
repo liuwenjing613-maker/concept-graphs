@@ -1,0 +1,51 @@
+{
+  "association_count": 3106,
+  "audit_counts": {
+    "observation_gt_unreliable": 1003,
+    "routing_CORRECT_ATTACH": 1831,
+    "routing_CORRECT_NEW": 14,
+    "routing_SHOULD_HAVE_BEEN_NEW": 2,
+    "routing_WRONG_NEW_FALSE_SPLIT": 2,
+    "unresolved_same_gt_only_in_short_or_ambiguous_history": 9,
+    "unresolved_target_history_ambiguous": 192,
+    "unresolved_target_history_lt3_frames": 11,
+    "unresolved_target_history_lt3_reliable": 42
+  },
+  "causal_group_count": 4,
+  "compiled_record_count": 2103,
+  "decision_counts": {
+    "CREATE_OBJECT": 42,
+    "MERGE_TO_OBJECT": 3064
+  },
+  "evaluable_record_count": 1849,
+  "evidence_root": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/office0/exps/online_label_trigger_v1_office0_dev_pcd/evidence",
+  "interpretation": "Private GT strata are high-precision case-selection aids, not final human labels. Root/cascade fields are chronological candidates pending human episode review.",
+  "observation_gt": "/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_office0/observation_gt.jsonl",
+  "root_candidate_counts": {
+    "SHOULD_HAVE_BEEN_NEW": 2,
+    "WRONG_NEW_FALSE_SPLIT": 2
+  },
+  "routing_records_sha256": "cbc1386355b7ce4855e7c99b3d66cf466839071c9cbc99bf2875b6ecd9763fa1",
+  "scene": "office0",
+  "schema_version": "experiment0-private-routing-audit-summary/2.0",
+  "source_sha256": {
+    "associations": "c41a6523b5886de2cb8e5bfdef00b6a20a6b154a8fe55e430f0fa9606a04454c",
+    "object_versions": "3b1fa82740570728a0a2d07328c689aeabe2fd9db4e37d9223e1ad26d36fa560",
+    "observation_gt": "86c978bfe32df11b7006f69027b90a15e129531c423d4e11c1d9e671988e0913"
+  },
+  "status": "READY",
+  "stratum_counts": {
+    "CORRECT_ATTACH": 1831,
+    "CORRECT_NEW": 14,
+    "SHOULD_HAVE_BEEN_NEW": 2,
+    "WRONG_NEW_FALSE_SPLIT": 2
+  },
+  "thresholds": {
+    "gt_purity": 0.9,
+    "gt_support": 0.9,
+    "gt_top_pixels": 25,
+    "history_dominant_ratio": 0.8,
+    "history_min_frames": 3,
+    "history_min_observations": 3
+  }
+}

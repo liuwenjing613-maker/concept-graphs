@@ -1,0 +1,13 @@
+{
+  "formal_label_warning": "PRIVATE_GT_SELECTION_ONLY; HUMAN_REVIEW_REQUIRED_FOR_FORMAL_LABELS",
+  "nominal_main_root_candidate_count": 2,
+  "precontaminated_current_identity_candidate_count": 2,
+  "scene": "office0",
+  "schema_version": "experiment0-auto-core-candidate-audit/1.0",
+  "scope_status_counts": {
+    "AUTO_OUT_PRECONTAMINATED_TARGET_CURRENT_IDENTITY_ALREADY_PRESENT": 2
+  },
+  "status": "READY",
+  "strict_clean_candidate_count": 0,
+  "uncertain_candidate_count": 0
+}
