@@ -12,6 +12,7 @@
 - `analyze_identity_boundary_margin_generalization.py`：跨三个 CREATE 回放检查探索性分差阈值是否泛化；
 - `audit_experiment0_core_scope.py`：使用精确 `t^-` 版本净化主论文范围，分开事件级路由事实、目标预污染和独立 root；
 - `test_audit_experiment0_core_scope.py`：范围净化逻辑的最小单元测试。
+- `audit_room0_baseline_determinism.py`：规范化两次 run 的随机 UID，并比较完整证据轨迹、相似度数组与最终状态。
 
 标注与第一阶段判断见 `EXPERIMENT0_ROOM0_LABEL_ORACLE_STAGE1_REVIEW_20260902_CN.md`；混合根因结果见 `EXPERIMENT0_ROOM0_MIXED_ROOT_STAGE2_REVIEW_20260902_CN.md`；主论文最新统计口径以 `../../annotation_records/experiment0_manual_annotation_20260901/v2_large_room0_r1/analysis_20260902/core_scope_audit/EXPERIMENT0_CORE_SCOPE_AUDIT_CN.md` 为准。混合根因实验使用校正 GT 选择离线干预样本，只能作为机制上限，不能作为在线方法效果或主论文 root 正例。
 

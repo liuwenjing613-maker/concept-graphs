@@ -1,0 +1,314 @@
+{
+  "candidate_manifest_status": "MAP_COMPLETED_EVIDENCE_VALID",
+  "candidate_run": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/experiment0_room0_determinism_r2_20260902",
+  "candidate_run_id": "room0_20260902T105621Z_8db52152",
+  "created_object_uid_pair_count": 98,
+  "expected_nonsemantic_differences": [
+    "run_id",
+    "event_uid",
+    "transaction_uid",
+    "object_uid",
+    "experiment suffix and output path",
+    "whole compressed pickle byte hash"
+  ],
+  "final_map_parity": {
+    "bbox_arrays_exact": 72,
+    "candidate": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/experiment0_room0_determinism_r2_20260902/pcd_experiment0_room0_determinism_r2_20260902.pkl.gz",
+    "candidate_inventory": {
+      "class_histogram": {
+        "armchair": 2,
+        "blinds": 2,
+        "book": 4,
+        "bottle": 1,
+        "cabinet": 1,
+        "ceiling": 2,
+        "ceiling light": 1,
+        "chair": 1,
+        "closet door": 2,
+        "coffee kettle": 1,
+        "coffee table": 2,
+        "cup": 1,
+        "end table": 4,
+        "floor": 1,
+        "lamp": 12,
+        "light switch": 1,
+        "paper bag": 1,
+        "pillow": 15,
+        "poster": 1,
+        "potted plant": 2,
+        "power outlet": 3,
+        "radiator": 1,
+        "sofa chair": 6,
+        "stool": 2,
+        "toaster": 1,
+        "window": 2
+      },
+      "duplicate_entries": 0,
+      "object_count": 72,
+      "observation_entries": 7507,
+      "point_count": 740267,
+      "unique_observations": 7507
+    },
+    "candidate_sha256": "d4f820b49cae162ab5d7afdc98cd7b5f99b35f228b63ff3bfd78d24464de8df3",
+    "class_names_exact": 72,
+    "common_partition_nodes": 72,
+    "core_config": {
+      "dbscan_eps": {
+        "candidate": 0.1,
+        "equal": true,
+        "reference": 0.1
+      },
+      "dbscan_min_points": {
+        "candidate": 10,
+        "equal": true,
+        "reference": 10
+      },
+      "dbscan_remove_noise": {
+        "candidate": true,
+        "equal": true,
+        "reference": true
+      },
+      "denoise_interval": {
+        "candidate": 5,
+        "equal": true,
+        "reference": 5
+      },
+      "downsample_voxel_size": {
+        "candidate": 0.01,
+        "equal": true,
+        "reference": 0.01
+      },
+      "end": {
+        "candidate": 2000,
+        "equal": true,
+        "reference": 2000
+      },
+      "filter_interval": {
+        "candidate": 5,
+        "equal": true,
+        "reference": 5
+      },
+      "mask_area_threshold": {
+        "candidate": 25,
+        "equal": true,
+        "reference": 25
+      },
+      "mask_conf_threshold": {
+        "candidate": 0.25,
+        "equal": true,
+        "reference": 0.25
+      },
+      "match_method": {
+        "candidate": "sim_sum",
+        "equal": true,
+        "reference": "sim_sum"
+      },
+      "max_bbox_area_ratio": {
+        "candidate": 0.5,
+        "equal": true,
+        "reference": 0.5
+      },
+      "merge_interval": {
+        "candidate": 5,
+        "equal": true,
+        "reference": 5
+      },
+      "merge_overlap_thresh": {
+        "candidate": 0.7,
+        "equal": true,
+        "reference": 0.7
+      },
+      "merge_text_sim_thresh": {
+        "candidate": 0.7,
+        "equal": true,
+        "reference": 0.7
+      },
+      "merge_visual_sim_thresh": {
+        "candidate": 0.7,
+        "equal": true,
+        "reference": 0.7
+      },
+      "min_points_threshold": {
+        "candidate": 16,
+        "equal": true,
+        "reference": 16
+      },
+      "obj_min_detections": {
+        "candidate": 1,
+        "equal": true,
+        "reference": 1
+      },
+      "obj_min_points": {
+        "candidate": 0,
+        "equal": true,
+        "reference": 0
+      },
+      "obj_pcd_max_points": {
+        "candidate": 5000,
+        "equal": true,
+        "reference": 5000
+      },
+      "phys_bias": {
+        "candidate": 0.0,
+        "equal": true,
+        "reference": 0.0
+      },
+      "run_denoise_final_frame": {
+        "candidate": true,
+        "equal": true,
+        "reference": true
+      },
+      "run_filter_final_frame": {
+        "candidate": true,
+        "equal": true,
+        "reference": true
+      },
+      "run_merge_final_frame": {
+        "candidate": true,
+        "equal": true,
+        "reference": true
+      },
+      "scene_id": {
+        "candidate": "room0",
+        "equal": true,
+        "reference": "room0"
+      },
+      "sim_threshold": {
+        "candidate": 1.2,
+        "equal": true,
+        "reference": 1.2
+      },
+      "skip_bg": {
+        "candidate": false,
+        "equal": true,
+        "reference": false
+      },
+      "spatial_sim_type": {
+        "candidate": "overlap",
+        "equal": true,
+        "reference": "overlap"
+      },
+      "start": {
+        "candidate": 0,
+        "equal": true,
+        "reference": 0
+      },
+      "stride": {
+        "candidate": 5,
+        "equal": true,
+        "reference": 5
+      }
+    },
+    "observation_partition_equal": true,
+    "pass": true,
+    "pcd_arrays_exact": 72,
+    "reference": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/pcd_online_label_trigger_v1_room0_dev_pcd.pkl.gz",
+    "reference_inventory": {
+      "class_histogram": {
+        "armchair": 2,
+        "blinds": 2,
+        "book": 4,
+        "bottle": 1,
+        "cabinet": 1,
+        "ceiling": 2,
+        "ceiling light": 1,
+        "chair": 1,
+        "closet door": 2,
+        "coffee kettle": 1,
+        "coffee table": 2,
+        "cup": 1,
+        "end table": 4,
+        "floor": 1,
+        "lamp": 12,
+        "light switch": 1,
+        "paper bag": 1,
+        "pillow": 15,
+        "poster": 1,
+        "potted plant": 2,
+        "power outlet": 3,
+        "radiator": 1,
+        "sofa chair": 6,
+        "stool": 2,
+        "toaster": 1,
+        "window": 2
+      },
+      "duplicate_entries": 0,
+      "object_count": 72,
+      "observation_entries": 7507,
+      "point_count": 740267,
+      "unique_observations": 7507
+    },
+    "reference_sha256": "33d6428e08046978439ee2b2a9c7689ae6c2f403c56a574bc27ab91a435ba1af",
+    "schema_version": "1.0.0"
+  },
+  "final_membership": {
+    "candidate_count": 72,
+    "first_difference": null,
+    "normalized_equal": true,
+    "reference_count": 72
+  },
+  "ledgers": {
+    "associations.jsonl": {
+      "candidate_count": 7507,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 7507
+    },
+    "filter_trace.jsonl": {
+      "candidate_count": 12514,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 12514
+    },
+    "frames.jsonl": {
+      "candidate_count": 400,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 400
+    },
+    "mapping_events.jsonl": {
+      "candidate_count": 12116,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 12116
+    },
+    "object_pair_decisions.jsonl": {
+      "candidate_count": 783,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 783
+    },
+    "object_versions.jsonl": {
+      "candidate_count": 12142,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 12142
+    },
+    "observations.jsonl": {
+      "candidate_count": 12514,
+      "first_difference": null,
+      "normalized_equal": true,
+      "reference_count": 12514
+    }
+  },
+  "parity_trace": {
+    "candidate_count": 399,
+    "first_difference": null,
+    "normalized_equal": true,
+    "reference_count": 399
+  },
+  "reference_manifest_status": "MAP_COMPLETED_EVIDENCE_VALID",
+  "reference_run": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd",
+  "reference_run_id": "room0_20260831T111035Z_5c9d86fa",
+  "schema_version": "experiment0-baseline-determinism/1.0",
+  "similarity_arrays": {
+    "all_arrays_exact": true,
+    "array_count": 2000,
+    "candidate_file_count": 400,
+    "file_inventory_equal": true,
+    "mismatches": [],
+    "reference_file_count": 400
+  },
+  "source_snapshots_equal": true,
+  "status": "PASS"
+}

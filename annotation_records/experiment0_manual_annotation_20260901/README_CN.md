@@ -8,6 +8,7 @@
 - `v2_large_room0_r1/analysis_20260902/`：质量统计、最小回放指标、完整成员分区审计。判断实验结论时应读完整成员审计，不能只看少量 endpoint probe。
 - `v2_large_room0_r1/analysis_20260902/core_scope_audit/`：按主论文最新定义重审 14 个错误、150 个概率样本和完整流自动 root 候选；同时保存逐例表、严格分母和 Wilson 区间。
 - `v2_large_room0_r1/analysis_20260902/identity_boundary_margin_generalization/`：对三个 CREATE 回放的低分差规则做跨案例审计，仅用于说明探索性阈值尚不能冻结。
+- `determinism_room0_20260902/`：同一冻结配置从空图重跑 room0 的确定性证据，包括两次 manifest、strict evidence 摘要、UID 配对、最终地图比较和完整审计报告。
 
 ## 辅助与历史数据
 
@@ -28,6 +29,7 @@
 - `v2_r2_013` 的 CREATE 修复虽有 100% 新实体精确率，完整实例召回率仅 13.9%，属于局部修复，不可宣称整体方法成立。
 - 更早的 frame138 是同类双实例混合 mask，整张 ATTACH 或 NEW 都不正确。后续 oracle 过滤与 CREATE 可达到接近完整分离，但使用了校正 GT 选帧和事后阈值，只能作为旁支机制上界，不能计入主论文 false-attach 证据。
 - 当前不能声称方法可行；必须先补齐自然 root 的人工确认，并在 office0 与未见场景从空图严格在线重复实验 0。
+- room0 baseline 双跑确定性通过：7,507 个 association、399 帧 trace、全部规范化证据账本、400 个相似度文件及最终 72 个对象的数值状态一致。因此当前 root/cascade 修正不是随机重跑漂移造成的。
 
 ## 未纳入 Git 的产物
 

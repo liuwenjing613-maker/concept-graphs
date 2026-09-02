@@ -1,0 +1,28 @@
+{
+  "schema_version": "0.2.0",
+  "run_id": "room0_20260831T111035Z_5c9d86fa",
+  "evidence_dir": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/evidence",
+  "audit_dir": "/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica/room0/exps/online_label_trigger_v1_room0_dev_pcd/audit",
+  "gate_status": "PASS",
+  "status": "EVIDENCE_VALID",
+  "semantic_rules_executed": true,
+  "strict": true,
+  "finding_count": 1698,
+  "certainty_counts": {
+    "HIGH_CONFIDENCE": 395,
+    "AMBIGUOUS": 1216,
+    "RISK_ONLY": 87
+  },
+  "rule_counts": {
+    "DUP-OBS-001": 307,
+    "DUP-OBS-002": 889,
+    "FM-001": 414,
+    "FM-002": 28,
+    "WN-002": 1,
+    "AR-001": 49,
+    "AR-005": 4,
+    "AR-002": 6
+  },
+  "source_manifest_status": "completed",
+  "parse_errors": []
+}

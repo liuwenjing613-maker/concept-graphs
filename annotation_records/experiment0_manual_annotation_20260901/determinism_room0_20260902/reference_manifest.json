@@ -1,0 +1,222 @@
+{
+  "schema_version": "0.2.0",
+  "run_id": "room0_20260831T111035Z_5c9d86fa",
+  "scene_id": "room0",
+  "dataset": "/home/chenkejun/beauty/conceptgraphs/code/official/ali-my-new/conceptgraph/dataset/dataconfigs/replica/replica.yaml",
+  "branch": "ali-my-new",
+  "git_commit": "8abf3738f9be0f310acad78f967799d07a57af0a",
+  "git_dirty": true,
+  "git_diff_sha256": null,
+  "git_patch_ref": null,
+  "start_time": "2026-08-31T11:10:35.839445Z",
+  "end_time": "2026-08-31T11:24:38.363713Z",
+  "status": "MAP_COMPLETED_EVIDENCE_VALID",
+  "evidence_mode": "strict",
+  "runtime": {
+    "python_version": "3.10.20",
+    "platform": "Linux-6.8.0-110-generic-x86_64-with-glibc2.35",
+    "numpy_version": "1.24.3",
+    "torch_version": "2.0.1",
+    "cuda_version": "11.8",
+    "open3d_version": "0.19.0"
+  },
+  "mapping_config_ref": {
+    "path": "config_params.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "c1c90ee135b7e9bca2637d0ec0547c4856fa72a071319c95a17b1d317664f757",
+    "shape": null,
+    "dtype": null
+  },
+  "detection_config_ref": {
+    "path": "config_params_detections.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "c1c90ee135b7e9bca2637d0ec0547c4856fa72a071319c95a17b1d317664f757",
+    "shape": null,
+    "dtype": null
+  },
+  "detection_exp_suffix": "ali_dev_room0_stride5_det_frozen",
+  "mapping_exp_suffix": "online_label_trigger_v1_room0_dev_pcd",
+  "model_versions": {
+    "detector": "yolov8l-world.pt",
+    "segmenter": "sam_l.pt",
+    "clip": "ViT-H-14/laion2b_s32b_b79k",
+    "vlm": "gpt-4o-2024-05-13"
+  },
+  "prompt_versions": {
+    "FRAME_EDGE": "ali-dev-system_prompt_only_top-v1",
+    "FRAME_CAPTION": "ali-dev-system_prompt_captions-v1",
+    "OBJECT_CAPTION_CONSOLIDATION": "ali-dev-system_prompt_consolidate_captions-v1"
+  },
+  "make_edges": false,
+  "branch_id": "baseline",
+  "audit_policy": {
+    "observation_ownership": "exclusive_single_target",
+    "same_frame_many_to_one": "allowed",
+    "relation_cardinality": "many_to_many",
+    "environment_mode": "static",
+    "object_granularity": "instance_with_part_whole_ambiguity",
+    "association_rule": {
+      "type": "independent_greedy_argmax",
+      "threshold_comparison": "strict_greater_than",
+      "max_score_equal_threshold": "create_object"
+    },
+    "postprocess_merge": {
+      "source_single_consumption": true,
+      "target_must_be_active": true,
+      "source_must_be_active": true
+    },
+    "missing_evidence_policy": "unknown_not_pass"
+  },
+  "random_seeds": {
+    "python": null,
+    "numpy": 0,
+    "torch": 0
+  },
+  "runtime_source_snapshot": [
+    {
+      "source_path": "conceptgraph/utils/evidence.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__utils__evidence.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "422e25f0928038d69b41ced91ab74ddf2dd61282210464c475fd0c09c34bc62e",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/audit/evidence_audit.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__audit__evidence_audit.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "e4263b3f9184855f73cdce1eae33e7f40d9ca07f2bbb42030bd37bf9897ebfb8",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/slam/rerun_realtime_mapping.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__slam__rerun_realtime_mapping.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "984781c4ec79eb324f7e0cfab34da2207e934f6131f74f1ba668002caf3fa275",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/slam/mapping.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__slam__mapping.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "e956fdd63809bbb91aff0f6f918bd6764584cd2642999d086eb06b637cb5b1c6",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/slam/utils.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__slam__utils.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "e916e223c8edf0409f3a9f65b0e9403d08c17bab230e5e0e7e3ee8ca97f8eef3",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/hydra_configs/rerun_realtime_mapping.yaml",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__hydra_configs__rerun_realtime_mapping.yaml",
+        "format": "yaml",
+        "key": null,
+        "index": null,
+        "sha256": "b2d3fccd4f6889619d2c089668cec7fa85235da73a8ffdfd5e1f335504619232",
+        "shape": null,
+        "dtype": null
+      }
+    }
+  ],
+  "failure_reason": null,
+  "evidence_summary_ref": {
+    "path": "evidence/evidence_summary.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "c88f3c39a95ef517fb5a72dd9967bcf5c92f47a247148f445b73554e7d3d4705",
+    "shape": null,
+    "dtype": null
+  },
+  "final_outputs": {
+    "edge_json_online_label_trigger_v1_room0_dev_pcd.json": {
+      "artifact_ref": {
+        "path": "edge_json_online_label_trigger_v1_room0_dev_pcd.json",
+        "format": "json",
+        "key": null,
+        "index": null,
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "obj_json_online_label_trigger_v1_room0_dev_pcd.json": {
+      "artifact_ref": {
+        "path": "obj_json_online_label_trigger_v1_room0_dev_pcd.json",
+        "format": "json",
+        "key": null,
+        "index": null,
+        "sha256": "ab1c668e5774f3dd92ca6fee2c146c442437b0a646a4d1035f2266fbcb47a8b3",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "ab1c668e5774f3dd92ca6fee2c146c442437b0a646a4d1035f2266fbcb47a8b3"
+    },
+    "parity_trace.json": {
+      "artifact_ref": {
+        "path": "parity_trace.json",
+        "format": "json",
+        "key": null,
+        "index": null,
+        "sha256": "c233cfe7ba65b79c07d39ebecd580b042356001d90fe2d157569a5c5deb7d8eb",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "c233cfe7ba65b79c07d39ebecd580b042356001d90fe2d157569a5c5deb7d8eb"
+    },
+    "pcd_online_label_trigger_v1_room0_dev_pcd.pkl.gz": {
+      "artifact_ref": {
+        "path": "pcd_online_label_trigger_v1_room0_dev_pcd.pkl.gz",
+        "format": "gz",
+        "key": null,
+        "index": null,
+        "sha256": "33d6428e08046978439ee2b2a9c7689ae6c2f403c56a574bc27ab91a435ba1af",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "33d6428e08046978439ee2b2a9c7689ae6c2f403c56a574bc27ab91a435ba1af"
+    }
+  },
+  "audit_summary_ref": {
+    "path": "audit/audit_summary.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "31786aef33d3f94dc86f42e2168b831480bc9674a3ddabcb659db82b536cba03",
+    "shape": null,
+    "dtype": null
+  }
+}
