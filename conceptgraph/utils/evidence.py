@@ -1026,6 +1026,7 @@ class EvidenceRecorder:
         for det_index, (detection, match_index) in enumerate(
             zip(detection_list, match_indices)
         ):
+            discarded = match_index == -1
             row = (
                 aggregate[det_index]
                 if similarity_validation["valid"] and aggregate.shape[1]
@@ -1043,7 +1044,7 @@ class EvidenceRecorder:
             ]
             top1 = float(row[order[0]]) if len(order) > 0 else None
             top2 = float(row[order[1]]) if len(order) > 1 else None
-            target_uid = (
+            target_uid = None if discarded else (
                 _object_uid(detection)
                 if match_index is None
                 else object_uids[int(match_index)]
@@ -1051,16 +1052,24 @@ class EvidenceRecorder:
             targets.append(target_uid)
             event_uid = self._next_event_uid()
             mapping_event_uid = self._next_event_uid()
-            decision = "CREATE_OBJECT" if match_index is None else "MERGE_TO_OBJECT"
-            pending_count = int(pending_versions[target_uid])
-            base_version = int(self._object_versions.get(target_uid, 0))
-            target_version_before = (
-                self._current_object_versions.get(target_uid)
-                if pending_count == 0
-                else f"{target_uid}@v{base_version + pending_count:06d}"
+            decision = (
+                "DISCARD_OBSERVATION" if discarded
+                else "CREATE_OBJECT" if match_index is None
+                else "MERGE_TO_OBJECT"
             )
-            target_version_after = f"{target_uid}@v{base_version + pending_count + 1:06d}"
-            pending_versions[target_uid] += 1
+            if discarded:
+                target_version_before = None
+                target_version_after = None
+            else:
+                pending_count = int(pending_versions[target_uid])
+                base_version = int(self._object_versions.get(target_uid, 0))
+                target_version_before = (
+                    self._current_object_versions.get(target_uid)
+                    if pending_count == 0
+                    else f"{target_uid}@v{base_version + pending_count:06d}"
+                )
+                target_version_after = f"{target_uid}@v{base_version + pending_count + 1:06d}"
+                pending_versions[target_uid] += 1
             self._append(
                 "associations.jsonl",
                 {
@@ -1081,6 +1090,7 @@ class EvidenceRecorder:
                     "match_method": self.cfg.get("match_method"),
                     "phys_bias": self.cfg.get("phys_bias"),
                     "decision": decision,
+                    "decision_override": "blocking_gate_quality_discard" if discarded else None,
                     "target_object_uid": target_uid,
                     "target_object_version_before": target_version_before,
                     "target_object_version_after": target_version_after,
@@ -1098,9 +1108,13 @@ class EvidenceRecorder:
                 {
                     "event_uid": mapping_event_uid,
                     "frame_uid": frame_uid,
-                    "event_type": "OBJECT_CREATE"
-                    if match_index is None
-                    else "OBS_ASSOCIATE",
+                    "event_type": (
+                        "OBS_DISCARD"
+                        if discarded
+                        else "OBJECT_CREATE"
+                        if match_index is None
+                        else "OBS_ASSOCIATE"
+                    ),
                     "object_uid": target_uid,
                     "obs_uid": observation_uids[det_index],
                     "association_event_uid": event_uid,
@@ -1110,7 +1124,7 @@ class EvidenceRecorder:
                     "input_object_version_uids": [target_version_before]
                     if target_version_before
                     else [],
-                    "output_object_version_uids": [target_version_after],
+                    "output_object_version_uids": [target_version_after] if target_version_after else [],
                     "branch_id": "baseline",
                     "event_sequence": int(mapping_event_uid.rsplit("e", 1)[-1]),
                 },
@@ -1128,9 +1142,12 @@ class EvidenceRecorder:
                 }
             )
             self._association_observations.append(observation_uids[det_index])
-            self.counters[
-                "num_create_decisions" if match_index is None else "num_associate_decisions"
-            ] += 1
+            counter = (
+                "num_discard_decisions" if discarded
+                else "num_create_decisions" if match_index is None
+                else "num_associate_decisions"
+            )
+            self.counters[counter] += 1
         return targets
 
     @evidence_safe(dict)
@@ -1864,6 +1881,7 @@ class EvidenceRecorder:
             "num_rejected_observations": self.counters["num_rejected_observations"],
             "num_create_decisions": self.counters["num_create_decisions"],
             "num_associate_decisions": self.counters["num_associate_decisions"],
+            "num_discard_decisions": self.counters["num_discard_decisions"],
             "num_object_merges": self.counters["num_object_merges"],
             "num_filtered_objects": self.counters["num_filtered_objects"],
             "num_final_objects": len(membership),

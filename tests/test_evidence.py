@@ -239,6 +239,35 @@ def test_similarity_shape_mismatch_is_explicit_and_never_ranked(tmp_path):
     recorder.close("failed", objects=[], map_edges=FakeEdges())
 
 
+def test_quality_discard_is_recorded_without_object_target_or_version(tmp_path):
+    cfg = {"scene_id": "room0", "sim_threshold": 0.5, "evidence_mode": "strict"}
+    recorder = EvidenceRecorder(tmp_path, cfg, cfg, enabled=True)
+    detection = {"id": uuid.uuid4(), "obs_uids": ["obs-discard"]}
+    target = {"id": uuid.uuid4()}
+    matrix = np.asarray([[0.8]], dtype=np.float32)
+
+    targets = recorder.record_associations(
+        0, [detection], [target], matrix, matrix, matrix, [-1]
+    )
+    association = json.loads(
+        (tmp_path / "evidence" / "associations.jsonl").read_text().splitlines()[0]
+    )
+    mapping_event = json.loads(
+        (tmp_path / "evidence" / "mapping_events.jsonl").read_text().splitlines()[0]
+    )
+    recorder.close("failed", objects=[], map_edges=FakeEdges())
+    summary = json.loads((tmp_path / "evidence" / "evidence_summary.json").read_text())
+
+    assert targets == [None]
+    assert association["decision"] == "DISCARD_OBSERVATION"
+    assert association["decision_override"] == "blocking_gate_quality_discard"
+    assert association["target_object_uid"] is None
+    assert association["target_object_version_after"] is None
+    assert mapping_event["event_type"] == "OBS_DISCARD"
+    assert mapping_event["output_object_version_uids"] == []
+    assert summary["num_discard_decisions"] == 1
+
+
 def test_initialization_failure_is_bypassed(tmp_path):
     blocked_output = tmp_path / "not_a_directory"
     blocked_output.write_text("occupied by a file")

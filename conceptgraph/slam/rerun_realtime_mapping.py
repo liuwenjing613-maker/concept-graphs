@@ -99,6 +99,7 @@ from conceptgraph.slam.mapping import (
 from conceptgraph.utils.model_utils import compute_clip_features_batched
 from conceptgraph.utils.general_utils import get_vis_out_path, cfg_to_dict, check_run_detections
 from conceptgraph.utils.evidence import EvidenceRecorder
+from conceptgraph.slam.association_gate import BlockingAssociationGate, DISCARD_MATCH_INDEX
 
 from conceptgraph.revision.corruption import (
     ControlledCorruptionController,
@@ -117,7 +118,11 @@ def main(cfg : DictConfig):
     orr = OptionalReRun()
     orr.set_use_rerun(cfg.use_rerun)
     orr.init("realtime_mapping")
-    orr.spawn()
+    rerun_connect_addr = cfg.get("rerun_connect_addr")
+    if cfg.use_rerun and rerun_connect_addr:
+        orr.connect_grpc(str(rerun_connect_addr))
+    else:
+        orr.spawn()
 
     owandb = OptionalWandB()
     owandb.set_use_wandb(cfg.use_wandb)
@@ -226,6 +231,11 @@ def main(cfg : DictConfig):
         },
     )
     openai_client = evidence.wrap_openai_client(openai_client)
+    association_gate = BlockingAssociationGate(
+        cfg=cfg,
+        output_dir=exp_out_path / "blocking_association_gate",
+        rerun=orr,
+    )
     parity_trace = []
     revision_cfg = cfg.get("revision") or {}
     corruption_controller = None
@@ -575,9 +585,23 @@ def main(cfg : DictConfig):
 
         # Perform matching of detections to existing objects
         match_indices = match_detections_to_objects(
-            agg_sim=agg_sim, 
+            agg_sim=agg_sim,
             detection_threshold=cfg['sim_threshold']  # Use the sim_threshold from the configuration
         )
+        baseline_match_indices = list(match_indices)
+        match_indices = association_gate.route_frame(
+            frame_idx=frame_idx,
+            source_frame_id=color_path.stem,
+            image_rgb=image_rgb,
+            detection_list=detection_list,
+            objects=objects,
+            aggregate_sim=agg_sim,
+            baseline_match_indices=baseline_match_indices,
+        )
+        gate_discarded_indices = {
+            index for index, match_index in enumerate(match_indices)
+            if match_index == DISCARD_MATCH_INDEX
+        }
         if corruption_controller is not None:
             match_indices = corruption_controller.apply(
                 frame_idx=frame_idx,
@@ -585,6 +609,11 @@ def main(cfg : DictConfig):
                 objects=objects,
                 original_match_indices=match_indices,
             )
+            # A quality rejection is terminal for this observation.  Synthetic
+            # corruption experiments must not accidentally turn it into a
+            # create or merge action.
+            for index in gate_discarded_indices:
+                match_indices[index] = DISCARD_MATCH_INDEX
         evidence.record_associations(
             frame_idx, detection_list, objects,
             spatial_sim, visual_sim, agg_sim, match_indices,
@@ -921,6 +950,9 @@ def main(cfg : DictConfig):
 
     if corruption_controller is not None:
         corruption_controller.finalize()
+    association_gate.close(
+        status="early_exit" if exit_early_flag else "completed",
+    )
     evidence.close(
         status="early_exit" if exit_early_flag else "completed",
         objects=objects,

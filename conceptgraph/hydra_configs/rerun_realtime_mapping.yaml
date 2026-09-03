@@ -31,6 +31,28 @@ revision:
   corruption_plan: null
   log_dir_name: revision
 
+# Selective pre-fusion arbitration. create_only means the threshold-distance
+# trigger applies only when ali-dev's original decision is NEW.
+association_gate:
+  mode: off  # off | audit | oracle | vlm
+  margin_threshold: 0.20
+  threshold_distance: 0.30
+  threshold_scope: create_only  # create_only | both
+  association_top_k: 2
+  create_top_k: 3
+  candidate_iou_filter_enabled: true
+  candidate_iou_threshold: 0.85  # full room0 scan: 1,218 same-GT pairs removed, 0 different-GT pairs
+  model: gpt-5.6-terra
+  reasoning_effort: high
+  base_url: https://api.codelink.chat/v1
+  timeout_seconds: 300
+  max_retries: 1
+  api_key_env: GATE_API_KEY
+  api_key_required: true
+  oracle_gt_path: null
+  oracle_min_purity: 0.80
+  max_events: 0  # 0 means unlimited; positive values are smoke-test only
+
 
 stride: 10
 exp_suffix: r_mapping_stride10 # helpful label to identify your mapping experiment
@@ -62,6 +84,7 @@ obj_min_detections: 1
 # For merge_overlap_objects() function
 use_rerun: !!bool True
 save_rerun: !!bool True
+rerun_connect_addr: null  # e.g. rerun+http://127.0.0.1:9876/proxy
 
 # hydra:
 #   verbose: true

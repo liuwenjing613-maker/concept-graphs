@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from typing import List, Optional
 
 from conceptgraph.slam.slam_classes import MapObjectList, DetectionList
+from conceptgraph.slam.association_gate import DISCARD_MATCH_INDEX
 from conceptgraph.utils.general_utils import Timer
 from conceptgraph.utils.ious import (
     compute_iou_batch, 
@@ -144,6 +145,10 @@ def merge_obj_matches(
     global tracker
     temp_curr_object_count = tracker.curr_object_count
     for detected_obj_idx, existing_obj_match_idx in enumerate(match_indices):
+        if existing_obj_match_idx == DISCARD_MATCH_INDEX:
+            # A blocking VLM decision explicitly rejected this observation as
+            # unusable evidence. It must neither create nor update an object.
+            continue
         if existing_obj_match_idx is None:
             # track the new object detection
             tracker.object_dict.update({
@@ -182,7 +187,10 @@ def merge_obj_matches(
                     matched_obj,
                     merged_obj,
                 )
-    tracker.increment_total_merges(len(match_indices) - match_indices.count(None))
+    tracker.increment_total_merges(sum(
+        match_idx is not None and match_idx != DISCARD_MATCH_INDEX
+        for match_idx in match_indices
+    ))
     tracker.increment_total_objects(len(objects) - temp_curr_object_count)
     # wandb.log({"merges_this_frame" :len(match_indices) - match_indices.count(None)})
     # wandb.log({"total_merges": tracker.total_merges})

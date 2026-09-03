@@ -679,6 +679,11 @@ def _audit_readiness(data: dict, findings: _Findings) -> None:
         if event.get("event_type") in {"OBJECT_FILTER", "OBJECT_DELETE", "OBS_INVALID"}
         for obs_uid in (event.get("before_summary") or {}).get("member_observation_uids", [])
     }
+    tombstoned.update(
+        event.get("obs_uid")
+        for event in data["events"]
+        if event.get("event_type") == "OBS_DISCARD" and event.get("obs_uid")
+    )
     for obs_uid in sorted(kept_uids):
         if len(ownership.get(obs_uid, [])) != 1 and obs_uid not in tombstoned:
             replay_issues.append({"obs_uid": obs_uid, "owners": ownership.get(obs_uid, [])})
@@ -861,6 +866,21 @@ def _audit_mapping_invariants(data: dict, findings: _Findings) -> None:
             best_idx = int(np.argmax(row)) if len(row) else None
             best_score = float(row[best_idx]) if best_idx is not None else None
             threshold = assoc.get("sim_threshold")
+            if assoc.get("decision") == "DISCARD_OBSERVATION":
+                if (
+                    assoc.get("decision_override") != "blocking_gate_quality_discard"
+                    or assoc.get("target_object_uid") is not None
+                    or assoc.get("target_object_version_after") is not None
+                ):
+                    findings.add(
+                        "MAP-001",
+                        "INVALID_DISCARD_OVERRIDE",
+                        "CERTAIN",
+                        scope={"event_uid": assoc.get("event_uid")},
+                    )
+                # A quality discard is an explicit, evidenced gate override of
+                # the score-based baseline, not an association mismatch.
+                continue
             expected_decision = "CREATE_OBJECT" if best_score is None or best_score <= float(threshold) else "MERGE_TO_OBJECT"
             if assoc.get("decision") != expected_decision:
                 findings.add(

@@ -1779,6 +1779,11 @@ def process_edges(
     # Create a list of match indices with new objects index instead of None
     match_indices_w_new_obj = []
     for match_index in match_indices:
+        if match_index == -1:
+            # -1 is the blocking gate's DISCARD sentinel. Keep the slot so
+            # 2D detection indices remain aligned, but never create an edge.
+            match_indices_w_new_obj.append(None)
+            continue
         if match_index is None:
             # Assign the future index for new objects and increment the counter
             new_obj_index = initial_objects_count + new_object_count
@@ -1813,6 +1818,9 @@ def process_edges(
         obj2_objects_index = (
             match_indices_w_new_obj[obj2_index] if obj2_index is not None else None
         )
+
+        if obj1_objects_index is None or obj2_objects_index is None:
+            continue
 
         if obj1_objects_index >= len(objects) or obj2_objects_index >= len(objects):
             continue
