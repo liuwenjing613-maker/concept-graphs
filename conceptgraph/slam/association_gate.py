@@ -13,6 +13,7 @@ import html
 import json
 import os
 import re
+import shutil
 import time
 from collections import Counter
 from datetime import datetime, timezone
@@ -26,71 +27,207 @@ import openai
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
 
-SCHEMA_VERSION = "blocking-association-gate-v1.0"
+SCHEMA_VERSION = "blocking-association-gate-v1.2"
 VALID_MODES = {"off", "audit", "oracle", "vlm"}
 VALID_SCOPES = {"create_only", "both"}
 ALIASES = ("A", "B", "C")
 DISCARD_MATCH_INDEX = -1
 
-IMAGE_READING_POLICY = """How to read the evidence images:
-- The semi-transparent RED overlay marks the object mask to judge. The red-highlighted pixels are the target; unhighlighted pixels are background/context only.
-- I1 is the full CURRENT scene. Its red mask, additionally localized by a yellow rectangle, is the current observation under review.
-- I1-crop is a closer view of that same current red-masked observation; surrounding unmasked pixels provide local context only.
-- Each Candidate image is one frozen historical view of that candidate map object. Its red mask marks the candidate object to compare against the current red mask.
-- Dark letterbox padding and the rendered CURRENT/CANDIDATE labels are presentation aids, not scene evidence.
-Judge physical-object identity primarily from the red-masked regions. Use unmasked background only as secondary spatial/context evidence. Never select a candidate merely because the images show the same room, nearby furniture, or a similar background. Allow normal changes in viewpoint, scale, lighting, partial occlusion, and mask boundary accuracy."""
+TARGET_READING_POLICY = """
+MANDATORY TARGET-LOCK RULE
 
-INSTANCE_IDENTITY_POLICY = """This is physical INSTANCE re-identification, not category classification.
-Two objects may have the same class name, semantic category, color, and general appearance while still being different physical instances. Category agreement is only a weak contextual cue and is never sufficient for association. Conversely, category or label disagreement alone is not decisive because detector naming can vary across views.
-Select a candidate only when the current red-masked object and the candidate red-masked object are supported as the very same individual physical object observed at different times or viewpoints. Look for a consistent combination of instance-level cues: exact geometry and proportions, arrangement of parts, distinctive texture or pattern, material and color details, wear, damage or other unique marks, plus compatible placement in the scene. Do not rely on one generic cue shared by all objects of that category.
-For repeated or near-identical objects, be conservative. If visible instance-level cues contradict a candidate, do not associate with it. If the current object is usable but the views lack enough instance-specific evidence to distinguish the same instance from another object of the same category, choose UNCERTAIN rather than guessing. Choose NEW only when the usable current observation is supported as a different instance from every listed candidate.
-If a candidate is selected, the reason must cite instance-specific cross-view evidence. A reason based only on a matching class, label, or object type is invalid."""
+In every RGB image, the RED mask defines the physical target to reason about.
 
-QUALITY_POLICY = """Apply a mandatory CURRENT-observation quality gate before any identity comparison.
-Stage 1 must use only I1 and I1-crop. Temporarily ignore every candidate image, category label, similarity score, and likely identity. First assign exactly one observation_quality value:
-- USABLE: the red mask represents one coherent physical instance; sufficient surface information is visible for it to serve as reliable map evidence.
-- MIXED_INSTANCES: the red mask materially covers parts of two or more distinct physical instances, excluding masks that are fragmented merely due to occlusion of the same physical object instance.
-- SEVERE_FRAGMENT: the red mask is only an isolated part, surface patch, thin strip, corner, or disconnected fragments rather than a coherent observation of the object.
-- BORDERLINE: it is genuinely unclear whether the red mask is a coherent single-object observation or one of the two defects above.
-The quality gate has veto priority over identity matching:
-- MIXED_INSTANCES or SEVERE_FRAGMENT => choose DISCARD and stop.
-- BORDERLINE => choose UNCERTAIN and stop. Do not guess a candidate, NEW, or DISCARD.
-- Only USABLE permits candidate comparison and an A/B/C or NEW identity decision.
-Ordinary occlusion, image-boundary truncation, viewpoint change, or small boundary leakage can still be USABLE when the red mask preserves a coherent substantial portion of exactly one physical instance. Candidate-image weakness is not a reason to discard a USABLE current observation.
-For DISCARD, the reason must name MIXED_INSTANCES or SEVERE_FRAGMENT and describe the visible mask defect. For quality-driven UNCERTAIN, state why the mask is borderline. For every other UNCERTAIN, state which instance-specific cross-view evidence is missing."""
+The target is the physical content actually covered by the red-masked pixels.
+It is NOT:
+- the largest object in the crop,
+- the most visually salient object,
+- the object that occupies most of the surrounding scene,
+- or an object that merely contains, supports, overlaps, or lies next to the red mask.
 
-ASSOCIATION_SYSTEM_PROMPT = """You are an instance-association adjudicator for an online 3D map.
-The current observation and candidate history images are all frozen before the current observation is fused.
-{image_reading_policy}
-{quality_policy}
+A physical object is eligible to be treated as the target only if the red mask actually covers that object.
+
+Examples of the rule:
+- If a small red mask marks a pillow on a large sofa, the target is the pillow, not the sofa.
+- If a red mask marks one chair beside a large table, the target is the masked chair, not the table.
+- If the red mask shows only part of an object, reason from that masked part plus the other provided evidence; never replace it with a larger nearby object because it appears more complete.
+
+Use unmasked pixels only to understand spatial context such as:
+"next to", "on", "behind", or "surrounded by".
+Do NOT use unmasked objects as evidence for the target's category, shape, texture, material, color, or identity.
+
+The red color itself is only an annotation overlay and is not the object's real color.
+
+Before comparing CURRENT with any candidate, first internally lock onto the physical entity covered by CURRENT's red mask.
+Do the same independently for every red-masked historical candidate view.
+
+Once a target is locked, never switch attention to a larger neighboring object later in the reasoning.
+
+If the red mask itself covers multiple physical objects or is too ambiguous to determine what physical entity it represents, choose UNCERTAIN rather than substituting a nearby salient object.
+"""
+
+
+EVIDENCE_FORMAT_POLICY = """
+Evidence format:
+
+CURRENT CONTEXT:
+The yellow CURRENT box only helps locate the observation.
+Inside it, the RED mask defines the CURRENT target.
+Everything outside the red mask is context only.
+
+CURRENT CROP:
+A closer view of the same CURRENT target.
+The crop boundary does not define the object.
+Only the red mask defines the target; unmasked pixels inside the crop remain context.
+
+Each CANDIDATE card contains two sections.
+
+TOP — historical RGB evidence:
+H1/H2/H3 are frozen historical observations of that candidate.
+In every history tile, only the RED-masked physical entity is the candidate target.
+Unmasked nearby objects are context only.
+
+BOTTOM — 3D evidence:
+A CURRENT-versus-candidate point-cloud comparison.
+
+Dark padding, borders, labels, panel layout, and annotation colors are presentation aids rather than physical scene evidence.
+"""
+
+
+POINT_CLOUD_READING_POLICY = """
+How to read the 3D evidence:
+
+XY, XZ, and YZ are three orthographic projections of the same 3D scene geometry.
+
+MAGENTA = CURRENT observation point cloud.
+CYAN = the candidate object's historical point cloud before CURRENT is fused.
+
+CURRENT and every candidate already use the same online world coordinate system.
+Do not mentally translate, recenter, rotate, or align one cloud to make it fit another.
+
+All candidate cards in the same event use the same world bounds and metric scale, so visible offsets can be compared directly.
+
+Use 3D evidence to answer whether the two observations occupy a physically compatible location and geometry.
+
+Evidence supporting SAME identity:
+- substantial spatial agreement in multiple informative projections,
+- compatible geometry,
+- and no stable physical separation that requires moving one object to align it with the other.
+
+Evidence supporting DIFFERENT identity:
+- persistent spatial separation,
+- incompatible geometry,
+- or nearby/parallel surfaces that remain distinct across multiple projections.
+
+Do not dismiss a stable spatial offset as merely a viewpoint change: viewpoint changes do not move an object in the shared world coordinate system.
+
+However:
+- partial non-overlap alone does not prove DIFFERENT because observations may be incomplete due to viewpoint, occlusion, or partial masks;
+- overlap alone does not prove SAME because nearby objects, mask leakage, or polluted object history may overlap.
+
+Never decide from only one projection, a few stray points, centroid proximity alone, or overall size alone.
+
+Interpret 3D jointly with the red-masked RGB evidence.
+If reliable 2D and 3D evidence materially disagree, choose UNCERTAIN rather than forcing a match.
+"""
+
+
+INSTANCE_IDENTITY_POLICY = """
+The task is physical INSTANCE matching, not category recognition.
+
+The question is:
+"Are these observations of the same individual physical object in the world?"
+
+Two objects can have the same category, color, shape, and generic appearance while still being different physical instances.
+
+Category agreement is weak evidence.
+Category disagreement is also not decisive because detector labels may vary across observations.
+
+For 2D identity evidence, compare only the red-masked targets and look for a consistent combination of:
+- object geometry and proportions,
+- arrangement of visible parts,
+- distinctive texture or pattern,
+- material or appearance details,
+- distinctive marks,
+- and compatible scene placement.
+
+Generic features shared by the whole category are not sufficient.
+
+Repeated or adjacent objects require stronger evidence.
+For visually similar instances, 3D world position is especially important.
+
+Select a candidate only when the combined red-mask RGB evidence and 3D evidence support that CURRENT and that candidate are the same individual physical object.
+
+Choose NEW only when CURRENT is a coherent physical object and the evidence supports that none of the listed candidates is the same instance.
+
+Choose UNCERTAIN when the available evidence cannot reliably distinguish among repeated or adjacent instances, when important evidence conflicts, or when CURRENT itself cannot be grounded reliably.
+"""
+
+
+BASE_SYSTEM_PROMPT = """
+You are an object-identity adjudicator for an online 3D map.
+
+All evidence is frozen before CURRENT is fused into the map.
+
+Your single task is to determine whether CURRENT is the same individual physical object as one listed candidate, or whether it is a NEW object.
+
+{target_reading_policy}
+
+{evidence_format_policy}
+
+{point_cloud_reading_policy}
+
 {instance_identity_policy}
-Follow the quality-gate decision tree exactly. Do not inspect or use candidates until observation_quality is USABLE. Then compare the current red-masked object with candidates A and B and make the identity decision.
-For identity, compare target-level category, shape, parts, color/material/texture, and spatial context while allowing cross-view appearance changes.
-When observation_quality is USABLE, choose A or B only when the visual evidence supports the same physical instance. Choose NEW only when the usable observation is supported as different from both candidates. Choose UNCERTAIN when identity evidence is insufficient.
-The reason must briefly cite visible target-level evidence; for NEW, state the decisive mismatch, and for UNCERTAIN, state what evidence is missing. Do not infer the mapper's original decision. Return only the required JSON object."""
 
-ASSOCIATION_SYSTEM_PROMPT = ASSOCIATION_SYSTEM_PROMPT.format(
-    image_reading_policy=IMAGE_READING_POLICY,
-    quality_policy=QUALITY_POLICY,
+MANDATORY DECISION PROCEDURE
+
+Step 1 — Lock CURRENT target.
+Identify only the physical entity actually covered by CURRENT's red mask.
+Do not reason about candidate identity before this target is fixed.
+
+Step 2 — Lock candidate targets.
+For each candidate, identify only the physical entity covered by the red masks in its historical RGB views.
+
+Step 3 — Test every candidate independently.
+For each candidate ask:
+
+"Does the red-masked CURRENT target and this red-masked candidate history represent the same individual physical object?"
+
+Use:
+(a) masked 2D appearance and structure,
+and
+(b) shared-world 3D position and geometry.
+
+Do not compare the surrounding large objects as if they were the targets.
+
+Step 4 — Compare hypotheses.
+A candidate should win only if the combined evidence supports SAME identity more strongly than the alternatives.
+
+Step 5 — Final decision.
+Choose:
+- a candidate code when the evidence supports the same physical instance;
+- NEW when CURRENT is different from every candidate;
+- UNCERTAIN when the evidence is insufficient, ambiguous, or conflicting.
+
+Important prohibitions:
+- Never redefine a target based on visual saliency or object size.
+- Never treat the whole crop as the target.
+- Never use a nearby larger object as a substitute for the masked target.
+- Never select a candidate merely because it shows the same category or the same surrounding room.
+- Never use candidate order or the mapper's likely original decision as evidence.
+
+Briefly assess every candidate, then return only the required JSON object.
+"""
+
+BASE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT.format(
+    target_reading_policy=TARGET_READING_POLICY,
+    evidence_format_policy=EVIDENCE_FORMAT_POLICY,
+    point_cloud_reading_policy=POINT_CLOUD_READING_POLICY,
     instance_identity_policy=INSTANCE_IDENTITY_POLICY,
 )
 
-CREATE_SYSTEM_PROMPT = """You are a new-object adjudicator for an online 3D map.
-The current observation and all candidate history images are frozen before the current observation is fused.
-{image_reading_policy}
-{quality_policy}
-{instance_identity_policy}
-Follow the quality-gate decision tree exactly. Do not inspect or use candidates until observation_quality is USABLE. Then compare the current red-masked object with every listed candidate red mask and decide whether it belongs to one candidate or is a new object.
-For identity, compare target-level category, shape, parts, color/material/texture, and spatial context while allowing cross-view appearance changes.
-When observation_quality is USABLE, choose a candidate only when the visual evidence supports the same physical instance. Choose NEW only when the usable observation is supported as different from every candidate. Choose UNCERTAIN when identity evidence is insufficient.
-The reason must briefly cite visible target-level evidence; for NEW, state the decisive mismatch from the candidates, and for UNCERTAIN, state what evidence is missing. Do not infer the mapper's original decision. Return only the required JSON object."""
-
-CREATE_SYSTEM_PROMPT = CREATE_SYSTEM_PROMPT.format(
-    image_reading_policy=IMAGE_READING_POLICY,
-    quality_policy=QUALITY_POLICY,
-    instance_identity_policy=INSTANCE_IDENTITY_POLICY,
-)
-
+ASSOCIATION_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT
+CREATE_SYSTEM_PROMPT = BASE_SYSTEM_PROMPT
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -174,8 +311,10 @@ def _annotated_crop(
     if crop.size == 0:
         crop = image.copy()
     border = max(2, int(round(min(crop.shape[:2]) * 0.01)))
-    crop = cv2.copyMakeBorder(crop, 30, border, border, border, cv2.BORDER_CONSTANT, value=(20, 20, 20))
-    cv2.putText(crop, label, (8, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 255, 255), 2, cv2.LINE_AA)
+    header_height = 30 if label else 0
+    crop = cv2.copyMakeBorder(crop, header_height, border, border, border, cv2.BORDER_CONSTANT, value=(20, 20, 20))
+    if label:
+        cv2.putText(crop, label, (8, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.60, (255, 255, 255), 2, cv2.LINE_AA)
     return crop
 
 
@@ -189,6 +328,171 @@ def _annotated_context(image_rgb: np.ndarray, mask_value: Any, bbox_value: Optio
     cv2.rectangle(image, (x1, y1), (max(x1, x2 - 1), max(y1, y2 - 1)), (255, 255, 0), 3)
     cv2.putText(image, "CURRENT", (max(4, x1), max(24, y1 - 7)), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (255, 255, 0), 2, cv2.LINE_AA)
     return image
+
+
+def _point_array(value: Any) -> np.ndarray:
+    """Extract finite XYZ points from a live or serialized map object."""
+    if isinstance(value, Mapping):
+        if value.get("pcd") is not None:
+            value = value.get("pcd")
+        elif value.get("pcd_np") is not None:
+            value = value.get("pcd_np")
+        else:
+            return np.empty((0, 3), dtype=np.float64)
+    if hasattr(value, "points"):
+        value = value.points
+    try:
+        points = np.asarray(value, dtype=np.float64)
+    except (TypeError, ValueError):
+        return np.empty((0, 3), dtype=np.float64)
+    if points.ndim != 2 or points.shape[1] < 3:
+        return np.empty((0, 3), dtype=np.float64)
+    points = points[:, :3]
+    return points[np.isfinite(points).all(axis=1)]
+
+
+def _sample_points(points: np.ndarray, limit: int, seed_text: str) -> np.ndarray:
+    if len(points) <= int(limit):
+        return points
+    seed = int(hashlib.sha256(seed_text.encode("utf-8")).hexdigest()[:16], 16)
+    rng = np.random.default_rng(seed)
+    return points[np.sort(rng.choice(len(points), size=int(limit), replace=False))]
+
+
+def _fit_rgb_panel(image_rgb: np.ndarray, width: int, height: int, background: int = 20) -> np.ndarray:
+    image = np.asarray(image_rgb, dtype=np.uint8)
+    canvas = np.full((height, width, 3), background, dtype=np.uint8)
+    if image.ndim != 3 or image.shape[2] != 3 or not image.size:
+        return canvas
+    scale = min(width / image.shape[1], height / image.shape[0])
+    out_width = max(1, int(round(image.shape[1] * scale)))
+    out_height = max(1, int(round(image.shape[0] * scale)))
+    interpolation = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_CUBIC
+    resized = cv2.resize(image, (out_width, out_height), interpolation=interpolation)
+    x0, y0 = (width - out_width) // 2, (height - out_height) // 2
+    canvas[y0:y0 + out_height, x0:x0 + out_width] = resized
+    return canvas
+
+
+def _shared_projection_ranges(
+    point_sets: Sequence[np.ndarray],
+) -> List[Tuple[float, float, float]]:
+    """Return event-level (center_a, center_b, square_extent) per XY/XZ/YZ view."""
+    finite = [np.asarray(points, dtype=np.float64) for points in point_sets if len(points)]
+    all_points = np.concatenate(finite, axis=0) if finite else np.empty((0, 3), dtype=np.float64)
+    ranges: List[Tuple[float, float, float]] = []
+    for axis_a, axis_b in ((0, 1), (0, 2), (1, 2)):
+        if not len(all_points):
+            ranges.append((0.0, 0.0, 1.0))
+            continue
+        low_a, high_a = np.quantile(all_points[:, axis_a], [0.005, 0.995])
+        low_b, high_b = np.quantile(all_points[:, axis_b], [0.005, 0.995])
+        center_a, center_b = (low_a + high_a) / 2.0, (low_b + high_b) / 2.0
+        extent = max(float(high_a - low_a), float(high_b - low_b), 1e-3) * 1.12
+        ranges.append((float(center_a), float(center_b), float(extent)))
+    return ranges
+
+
+def _render_point_cloud_comparison(
+    current_points: np.ndarray,
+    candidate_points: np.ndarray,
+    alias: str,
+    projection_ranges: Optional[Sequence[Tuple[float, float, float]]] = None,
+    width: int = 1024,
+    height: int = 456,
+) -> np.ndarray:
+    """Render XY/XZ/YZ without recentering; supplied ranges are shared by A/B/C."""
+    canvas = np.full((height, width, 3), (248, 249, 252), dtype=np.uint8)
+    dark, muted, border = (30, 38, 57), (70, 78, 96), (194, 203, 218)
+    current_color, candidate_color = (220, 62, 108), (20, 162, 184)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    cv2.putText(canvas, f"3D  CURRENT vs CANDIDATE {alias}", (12, 25), font, 0.55, dark, 1, cv2.LINE_AA)
+    legend_x = max(430, width - 420)
+    cv2.circle(canvas, (legend_x, 20), 5, current_color, -1, cv2.LINE_AA)
+    cv2.putText(canvas, "CURRENT", (legend_x + 12, 25), font, 0.43, muted, 1, cv2.LINE_AA)
+    cv2.circle(canvas, (legend_x + 145, 20), 5, candidate_color, -1, cv2.LINE_AA)
+    cv2.putText(canvas, f"CANDIDATE {alias} @ H", (legend_x + 157, 25), font, 0.43, muted, 1, cv2.LINE_AA)
+
+    projections = ((0, 1, "XY (top)"), (0, 2, "XZ (front)"), (1, 2, "YZ (side)"))
+    if projection_ranges is None:
+        projection_ranges = _shared_projection_ranges((current_points, candidate_points))
+    if len(projection_ranges) != len(projections):
+        raise ValueError("projection_ranges must contain XY, XZ, and YZ ranges")
+    gap, margin, top, bottom = 10, 10, 38, height - 10
+    panel_width = (width - 2 * margin - 2 * gap) // 3
+
+    for panel_index, (axis_a, axis_b, name) in enumerate(projections):
+        left = margin + panel_index * (panel_width + gap)
+        right = left + panel_width
+        cv2.rectangle(canvas, (left, top), (right, bottom), border, 1, cv2.LINE_AA)
+        cv2.putText(canvas, name, (left + 8, top + 20), font, 0.46, muted, 1, cv2.LINE_AA)
+        if not len(current_points) and not len(candidate_points):
+            cv2.putText(canvas, "3D UNAVAILABLE", (left + 58, (top + bottom) // 2), font, 0.48, muted, 1, cv2.LINE_AA)
+            continue
+
+        center_a, center_b, metric_extent = projection_ranges[panel_index]
+        inner_left, inner_right = left + 14, right - 14
+        inner_top, inner_bottom = top + 32, bottom - 14
+        pixel_scale = min((inner_right - inner_left) / metric_extent, (inner_bottom - inner_top) / metric_extent)
+        center_x, center_y = (inner_left + inner_right) / 2.0, (inner_top + inner_bottom) / 2.0
+
+        def project(points: np.ndarray) -> np.ndarray:
+            if not len(points):
+                return np.empty((0, 2), dtype=np.int32)
+            x = np.rint(center_x + (points[:, axis_a] - center_a) * pixel_scale)
+            y = np.rint(center_y - (points[:, axis_b] - center_b) * pixel_scale)
+            pixels = np.stack((x, y), axis=1).astype(np.int32)
+            inside = (
+                (pixels[:, 0] >= inner_left) & (pixels[:, 0] <= inner_right)
+                & (pixels[:, 1] >= inner_top) & (pixels[:, 1] <= inner_bottom)
+            )
+            return pixels[inside]
+
+        for x, y in project(candidate_points):
+            cv2.circle(canvas, (int(x), int(y)), 1, candidate_color, -1, cv2.LINE_AA)
+        for x, y in project(current_points):
+            cv2.circle(canvas, (int(x), int(y)), 2, current_color, -1, cv2.LINE_AA)
+        for points, color in ((candidate_points, candidate_color), (current_points, current_color)):
+            if len(points):
+                center_pixel = project(np.median(points, axis=0, keepdims=True))
+                if len(center_pixel):
+                    cv2.drawMarker(canvas, tuple(center_pixel[0]), color, cv2.MARKER_CROSS, 10, 1, cv2.LINE_AA)
+    return canvas
+
+
+def _candidate_evidence_composite(
+    history_rgbs: Sequence[np.ndarray],
+    history_labels: Sequence[str],
+    current_points: np.ndarray,
+    candidate_points: np.ndarray,
+    alias: str,
+    projection_ranges: Optional[Sequence[Tuple[float, float, float]]] = None,
+) -> np.ndarray:
+    """Build one 1024px card: three 2D histories above, shared-scale 3D below."""
+    width, height, top_height, card_header = 1024, 1024, 563, 44
+    canvas = np.full((height, width, 3), 20, dtype=np.uint8)
+    cv2.putText(
+        canvas, f"CANDIDATE {alias}   |   2D HISTORY (RED MASK)", (18, 31),
+        cv2.FONT_HERSHEY_SIMPLEX, 0.76, (255, 255, 255), 2, cv2.LINE_AA,
+    )
+    margin, gap = 12, 8
+    tile_width = (width - 2 * margin - 2 * gap) // 3
+    tile_top, tile_bottom = card_header + 4, top_height - 8
+    for index in range(3):
+        left = margin + index * (tile_width + gap)
+        right = left + tile_width
+        cv2.rectangle(canvas, (left, tile_top), (right, tile_bottom), (92, 101, 118), 1, cv2.LINE_AA)
+        label = history_labels[index] if index < len(history_labels) else f"H{index + 1}  NO HISTORY"
+        cv2.putText(canvas, label, (left + 8, tile_top + 23), cv2.FONT_HERSHEY_SIMPLEX, 0.48, (245, 247, 252), 1, cv2.LINE_AA)
+        if index < len(history_rgbs):
+            panel = _fit_rgb_panel(history_rgbs[index], tile_width - 4, tile_bottom - tile_top - 32)
+            canvas[tile_top + 29:tile_bottom - 3, left + 2:right - 2] = panel
+    cv2.line(canvas, (0, top_height), (width - 1, top_height), (255, 255, 255), 3, cv2.LINE_AA)
+    canvas[top_height + 5:] = _render_point_cloud_comparison(
+        current_points, candidate_points, alias, projection_ranges,
+        width=width, height=height - top_height - 5,
+    )
+    return canvas
 
 
 def _letterbox_api_raster(image_rgb: np.ndarray, canvas_size: int = 1024) -> np.ndarray:
@@ -432,9 +736,14 @@ class BlockingAssociationGate:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.events_path = self.output_dir / "events.jsonl"
         self.iou_prefilter_path = self.output_dir / "iou_prefilter.jsonl"
+        self.annotation_dir = self.output_dir / "human_annotation_blind"
+        self.annotation_cases_dir = self.annotation_dir / "cases"
+        self.annotation_cases_dir.mkdir(parents=True, exist_ok=True)
+        self.annotation_map_path = self.output_dir / "human_annotation_case_map.jsonl"
         self.started_at = _utc_now()
         self.stats = Counter()
         self.events: List[dict] = []
+        self.annotation_cases: List[dict] = []
         self.gt = self._load_oracle_gt(self.oracle_gt_path) if self.mode == "oracle" else {}
         if self.mode == "vlm" and self.api_key_required and not os.environ.get(self.api_key_env):
             raise RuntimeError(f"{self.api_key_env} must be set for association_gate.mode=vlm")
@@ -457,8 +766,22 @@ class BlockingAssociationGate:
             "api_key_required": self.api_key_required,
             "oracle_gt_path": str(self.oracle_gt_path) if self.oracle_gt_path else None,
             "max_events": self.max_events,
+            "formal_vlm_actions": list(ALIASES) + ["NEW", "UNCERTAIN"],
+            "discard_route_implemented_but_prompt_disabled": True,
+            "candidate_history_views": 3,
+            "candidate_point_cloud_scale": "shared_across_all_candidates_per_event",
         }
         _json_dump(self.output_dir / "config.json", self.config)
+        (self.annotation_dir / "README.md").write_text(
+            "# Blind human annotation inputs\n\n"
+            "Open `index.html` and choose one Candidate, `NEW`, or `UNCERTAIN` with the option buttons. "
+            "You may skip any case; only explicitly saved cases are included by **Export labeled JSONL**. "
+            "Progress is stored in this browser's local storage. `labels_template.jsonl` remains a manual fallback.\n\n"
+            "Each `case_XXXX` directory is a copy of the exact images and prompts sent for one online gate event. "
+            "The packet deliberately omits frame identity, trigger type, baseline action, scores, object IDs, "
+            "VLM responses, parsed choices, and final mapping decisions.\n",
+            encoding="utf-8",
+        )
         self._write_summary(status="running")
 
     @staticmethod
@@ -507,66 +830,133 @@ class BlockingAssociationGate:
         }
 
     @staticmethod
-    def _best_member(obj: Mapping[str, Any]) -> int:
-        masks = list(obj.get("mask", []))
-        areas = []
-        for mask in masks:
+    def _representative_members(obj: Mapping[str, Any], limit: int = 3) -> List[Tuple[str, int]]:
+        """Migrate the annotation selector: best mask, recent good, then diverse."""
+        paths, masks = list(obj.get("color_path", [])), list(obj.get("mask", []))
+        image_indices = list(obj.get("image_idx", []))
+        confidences = list(obj.get("conf", []))
+        records = []
+        for index in range(min(len(paths), len(masks))):
             try:
-                areas.append(float(_as_numpy(mask).astype(bool).sum()))
+                area = float(_as_numpy(masks[index]).astype(bool).sum())
             except Exception:
-                areas.append(-1.0)
-        return int(np.argmax(areas)) if areas else 0
+                continue
+            path = Path(str(paths[index]))
+            if area <= 0 or not path.is_file():
+                continue
+            frame = int(image_indices[index]) if index < len(image_indices) else index
+            confidence = float(confidences[index]) if index < len(confidences) else 0.0
+            records.append({"index": index, "area": area, "frame": frame, "confidence": confidence})
+        if not records or limit <= 0:
+            return []
 
-    def _save_candidate_image(self, event_dir: Path, alias: str, obj: Mapping[str, Any]) -> dict:
-        member_idx = self._best_member(obj)
+        best = max(records, key=lambda row: (row["area"], row["confidence"], row["frame"], -row["index"]))
+        chosen: List[Tuple[str, int]] = [("H1 BEST MASK", int(best["index"]))]
+        remaining = [row for row in records if row["index"] != best["index"]]
+        if remaining and len(chosen) < limit:
+            good_area = max(25.0, 0.35 * float(best["area"]))
+            good = [row for row in remaining if row["area"] >= good_area] or remaining
+            recent = max(good, key=lambda row: (row["frame"], row["confidence"], row["area"], -row["index"]))
+            chosen.append(("H2 RECENT", int(recent["index"])))
+            remaining = [row for row in remaining if row["index"] != recent["index"]]
+        if remaining and len(chosen) < limit:
+            diverse = max(
+                remaining,
+                key=lambda row: (
+                    abs(int(row["frame"]) - int(best["frame"])),
+                    row["area"], row["confidence"], -row["index"],
+                ),
+            )
+            chosen.append(("H3 DIVERSE", int(diverse["index"])))
+        return chosen[:limit]
+
+    def _save_candidate_image(
+        self,
+        event_dir: Path,
+        alias: str,
+        obj: Mapping[str, Any],
+        current_points: np.ndarray,
+        candidate_points: np.ndarray,
+        projection_ranges: Sequence[Tuple[float, float, float]],
+    ) -> dict:
         paths, masks = list(obj.get("color_path", [])), list(obj.get("mask", []))
         boxes, obs_uids = list(obj.get("xyxy", [])), list(obj.get("obs_uids", []))
         image_indices = list(obj.get("image_idx", []))
-        if not paths or member_idx >= len(paths) or member_idx >= len(masks):
-            raise ValueError(f"candidate {alias} has no historical RGB/mask member")
-        source_path = Path(str(paths[member_idx]))
-        image_bgr = cv2.imread(str(source_path), cv2.IMREAD_COLOR)
-        if image_bgr is None:
-            raise FileNotFoundError(source_path)
-        image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-        bbox = boxes[member_idx] if member_idx < len(boxes) else None
+        selected = self._representative_members(obj, limit=3)
+        history_rgbs: List[np.ndarray] = []
+        history_labels: List[str] = []
+        history_metadata: List[dict] = []
+        for role, member_idx in selected:
+            source_path = Path(str(paths[member_idx]))
+            image_bgr = cv2.imread(str(source_path), cv2.IMREAD_COLOR)
+            if image_bgr is None:
+                continue
+            image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+            bbox = boxes[member_idx] if member_idx < len(boxes) else None
+            history_rgbs.append(_annotated_crop(image_rgb, masks[member_idx], bbox, ""))
+            history_labels.append(role)
+            history_metadata.append({
+                "display_role": role.split()[0],
+                "selection_reason": " ".join(role.split()[1:]).lower().replace(" ", "_"),
+                "member_index": member_idx,
+                "frame_idx": int(image_indices[member_idx]) if member_idx < len(image_indices) else None,
+                "obs_uid": str(obs_uids[member_idx]) if member_idx < len(obs_uids) else None,
+                "source_rgb_path": str(source_path),
+                "mask_area": int(_as_numpy(masks[member_idx]).astype(bool).sum()),
+            })
+        if not history_rgbs:
+            raise ValueError(f"candidate {alias} has no readable historical RGB/mask member")
         output_path = event_dir / f"candidate_{alias}.jpg"
-        _write_rgb(output_path, _annotated_crop(image_rgb, masks[member_idx], bbox, f"CANDIDATE {alias}"))
+        _write_rgb(
+            output_path,
+            _candidate_evidence_composite(
+                history_rgbs, history_labels, current_points, candidate_points,
+                alias, projection_ranges,
+            ),
+        )
+        range_payload = [
+            {"projection": name, "center": [center_a, center_b], "square_extent_m": extent}
+            for name, (center_a, center_b, extent) in zip(("XY", "XZ", "YZ"), projection_ranges)
+        ]
         return {
             "alias": alias,
             "object_uid": str(obj.get("id")),
             "class_name": str(obj.get("class_name", "")),
             "num_detections": int(obj.get("num_detections", len(paths))),
-            "selected_member_index": member_idx,
-            "selected_member_frame_idx": int(image_indices[member_idx]) if member_idx < len(image_indices) else None,
-            "selected_member_obs_uid": str(obs_uids[member_idx]) if member_idx < len(obs_uids) else None,
-            "source_rgb_path": str(source_path),
+            "selected_history": history_metadata,
             "image_path": output_path.name,
             "image_sha256": _sha256_file(output_path),
+            "image_layout": "top_55pct=three_historical_rgb_red_masks;bottom_45pct=shared_world_xyz_projections",
+            "point_cloud_role": "auxiliary_identity_evidence",
+            "point_cloud_sources": {"current": "detection['pcd']", "candidate": "obj['pcd']"},
+            "point_cloud_projections": ["XY", "XZ", "YZ"],
+            "point_cloud_event_shared_ranges": range_payload,
+            "point_cloud_event_shared_ranges_uid": hashlib.sha256(
+                json.dumps(range_payload, sort_keys=True).encode("utf-8")
+            ).hexdigest(),
+            "current_point_count_rendered": int(len(current_points)),
+            "candidate_point_count_rendered": int(len(candidate_points)),
+            "current_point_color": "magenta",
+            "candidate_point_color": "cyan",
         }
 
     @staticmethod
     def _prompts(kind: str, aliases: Sequence[str]) -> Tuple[str, str]:
-        if kind == "association":
-            return ASSOCIATION_SYSTEM_PROMPT, (
-                "I1 is the current scene context; I1-crop is the current masked observation. "
-                "I2 and I3 are frozen historical views for candidates A and B. "
-                "In every image, judge the red-masked target; use unmasked background only as supporting context. "
-                "Apply the mandatory quality gate using only I1 and I1-crop before looking at candidates. "
-                "Select exactly one of A, B, NEW, DISCARD, or UNCERTAIN and report observation_quality. "
-                "MIXED_INSTANCES/SEVERE_FRAGMENT require DISCARD; BORDERLINE requires UNCERTAIN; only USABLE permits A, B, or NEW."
-            )
-        options = ", ".join(list(aliases) + ["NEW", "DISCARD", "UNCERTAIN"])
-        return CREATE_SYSTEM_PROMPT, (
-            "I1 is the current scene context; I1-crop is the current masked observation. "
-            "The remaining images are frozen historical candidate views. In every image, judge the red-masked target; "
-            "use unmasked background only as supporting context. Apply the mandatory quality gate using only I1 and I1-crop before looking at candidates. "
-            f"Select exactly one of {options} and report observation_quality. MIXED_INSTANCES/SEVERE_FRAGMENT require DISCARD; "
-            "BORDERLINE requires UNCERTAIN; only USABLE permits a candidate or NEW."
+        options = ", ".join(list(aliases) + ["NEW", "UNCERTAIN"])
+        system = ASSOCIATION_SYSTEM_PROMPT if kind == "association" else CREATE_SYSTEM_PROMPT
+        return system, (
+            "Review this association event.\n\n"
+            "Image order:\n"
+            "I1: CURRENT scene context.\n"
+            "I2: CURRENT cropped observation.\n"
+            "Then: one evidence card for each listed candidate. Each card contains up to three historical red-mask views above and the shared-scale XY/XZ/YZ point-cloud comparison below.\n\n"
+            "Assess every candidate independently using both its 2D history and 3D evidence. "
+            "Decide which candidate, if any, is the same individual physical object as CURRENT.\n\n"
+            f"Allowed final choices: {options}."
         )
 
     def _request_payload(self, system_prompt: str, user_prompt: str, images: Sequence[Tuple[str, Path]], aliases: Sequence[str]) -> dict:
-        allowed = list(aliases) + ["NEW", "DISCARD", "UNCERTAIN"]
+        allowed = list(aliases) + ["NEW", "UNCERTAIN"]
         content: List[dict] = [{"type": "text", "text": user_prompt}]
         for label, path in images:
             content.extend([
@@ -587,20 +977,31 @@ class BlockingAssociationGate:
                     "schema": {
                         "type": "object",
                         "properties": {
-                            "observation_quality": {
-                                "type": "string",
-                                "enum": ["USABLE", "BORDERLINE", "MIXED_INSTANCES", "SEVERE_FRAGMENT"],
+                            "candidate_assessments": {
+                                "type": "array",
+                                "minItems": len(aliases),
+                                "maxItems": len(aliases),
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "code": {"type": "string", "enum": list(aliases)},
+                                        "relation": {"type": "string", "enum": ["SAME", "DIFFERENT", "UNCERTAIN"]},
+                                        "evidence": {"type": "string"},
+                                    },
+                                    "required": ["code", "relation", "evidence"],
+                                    "additionalProperties": False,
+                                },
                             },
                             "choice": {"type": "string", "enum": allowed},
                             "confidence": {"type": "number", "minimum": 0.0, "maximum": 1.0},
                             "reason": {"type": "string"},
                         },
-                        "required": ["observation_quality", "choice", "confidence", "reason"],
+                        "required": ["candidate_assessments", "choice", "confidence", "reason"],
                         "additionalProperties": False,
                     },
                 },
             },
-            "max_completion_tokens": 1600,
+            "max_completion_tokens": 1400,
         }
         if self.reasoning_effort:
             payload["reasoning_effort"] = self.reasoning_effort
@@ -618,6 +1019,139 @@ class BlockingAssociationGate:
                     f"<redacted label={label!r} sha256={_sha256_file(path)}>"
                 )
         return redacted
+
+    def _write_human_annotation_case(
+        self,
+        *,
+        event_id: str,
+        snapshot_uid: str,
+        system_prompt: str,
+        user_prompt: str,
+        images: Sequence[Tuple[str, Path]],
+        aliases: Sequence[str],
+    ) -> str:
+        """Copy exact VLM inputs into a neutral packet with every answer hidden."""
+        case_id = f"case_{len(self.annotation_cases) + 1:04d}"
+        case_dir = self.annotation_cases_dir / case_id
+        case_dir.mkdir(parents=True, exist_ok=False)
+        public_images = []
+        for order, (label, source) in enumerate(images, 1):
+            destination = case_dir / source.name
+            shutil.copy2(source, destination)
+            descriptor = _image_media_descriptor(destination)
+            public_images.append({
+                "order": order,
+                "label": label,
+                "path": destination.name,
+                "sha256": descriptor["payload_sha256"],
+                "width": descriptor["width"],
+                "height": descriptor["height"],
+                "mime_type": descriptor["mime_type"],
+            })
+        (case_dir / "system_prompt.txt").write_text(system_prompt + "\n", encoding="utf-8")
+        (case_dir / "user_prompt.txt").write_text(user_prompt + "\n", encoding="utf-8")
+        public_case = {
+            "schema_version": SCHEMA_VERSION,
+            "case_id": case_id,
+            "blind": True,
+            "images": public_images,
+            "prompt_files": ["system_prompt.txt", "user_prompt.txt"],
+            "allowed_choices": list(aliases) + ["NEW", "UNCERTAIN"],
+            "annotation_fields": {
+                "choice": None,
+                "confidence": None,
+                "candidate_notes": {alias: "" for alias in aliases},
+                "reason": "",
+            },
+        }
+        _json_dump(case_dir / "case.json", public_case)
+        self.annotation_cases.append(public_case)
+        _jsonl_append(self.annotation_map_path, {
+            "schema_version": SCHEMA_VERSION,
+            "case_id": case_id,
+            "event_id": event_id,
+            "h_snapshot_uid": snapshot_uid,
+        })
+        self.stats["human_annotation_cases"] += 1
+        self._write_human_annotation_index()
+        return case_id
+
+    def _write_human_annotation_index(self) -> None:
+        (self.annotation_dir / "README.md").write_text(
+            "# Blind human annotation inputs\n\n"
+            "Open `index.html` and choose one Candidate, `NEW`, or `UNCERTAIN` with the option buttons. "
+            "You may skip any case; only explicitly saved cases are included by **Export labeled JSONL**. "
+            "Progress is stored in this browser's local storage. `labels_template.jsonl` remains a manual fallback.\n\n"
+            "Each `case_XXXX` directory is a copy of the exact images and prompts sent for one online gate event. "
+            "The packet deliberately omits frame identity, trigger type, baseline action, scores, object IDs, "
+            "VLM responses, parsed choices, and final mapping decisions.\n",
+            encoding="utf-8",
+        )
+        _json_dump(self.annotation_dir / "manifest.json", {
+            "schema_version": SCHEMA_VERSION,
+            "blind": True,
+            "case_count": len(self.annotation_cases),
+            "cases": [
+                {"case_id": case["case_id"], "path": f"cases/{case['case_id']}/case.json"}
+                for case in self.annotation_cases
+            ],
+        })
+        with (self.annotation_dir / "labels_template.jsonl").open("w", encoding="utf-8") as handle:
+            for case in self.annotation_cases:
+                handle.write(json.dumps({
+                    "case_id": case["case_id"],
+                    "choice": None,
+                    "confidence": None,
+                    "candidate_notes": case["annotation_fields"]["candidate_notes"],
+                    "reason": "",
+                }, ensure_ascii=False, sort_keys=True) + "\n")
+        public_cases_json = json.dumps(
+            self.annotation_cases, ensure_ascii=False, separators=(",", ":")
+        ).replace("<", "\\u003c")
+        document = """<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>门控事件人工盲标</title>
+<style>
+:root{--bg:#0b1018;--panel:#131b27;--panel2:#182334;--line:#334155;--text:#e5edf7;--muted:#9cabc0;--blue:#2563eb;--green:#15803d;--amber:#d97706;--red:#dc2626}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,"Microsoft YaHei",sans-serif}button,select,textarea{font:inherit}
+header{position:sticky;top:0;z-index:5;background:#0f172a;border-bottom:1px solid var(--line);padding:12px 18px}.top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.top h1{font-size:21px;margin:0 12px 0 0}.status{color:#bfdbfe}.help{color:var(--muted);margin:7px 0 0;line-height:1.5}.layout{display:grid;grid-template-columns:210px minmax(640px,1fr) 320px;min-height:calc(100vh - 92px)}
+nav{border-right:1px solid var(--line);padding:12px;overflow:auto;background:#0f172a}.case-item{display:block;width:100%;text-align:left;color:var(--text);background:var(--panel);border:1px solid var(--line);border-left:4px solid #64748b;border-radius:7px;padding:9px;margin:0 0 7px;cursor:pointer}.case-item.done{border-left-color:#22c55e}.case-item.current{background:#1d4ed8}.case-item small{display:block;color:#cbd5e1;margin-top:3px}
+main{padding:16px;overflow:auto}.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:14px}h2{font-size:18px;margin:0 0 10px}.current-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:12px}.candidate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.evidence{margin:0;background:#080c12;border:1px solid var(--line);border-radius:8px;padding:8px}.evidence img{display:block;width:100%;max-height:720px;object-fit:contain;cursor:zoom-in}.current-grid .evidence img{max-height:480px}.evidence figcaption{color:#cbd5e1;padding:7px 3px 1px;font-weight:650}
+aside{border-left:1px solid var(--line);padding:14px;background:#0f172a}.sticky{position:sticky;top:105px}.choice{display:block;width:100%;text-align:left;color:var(--text);background:var(--panel2);border:1px solid #475569;border-radius:8px;padding:11px;margin:8px 0;cursor:pointer;font-weight:700}.choice.selected{background:#1d4ed8;outline:3px solid #60a5fa}.field{margin:14px 0}.field label{display:block;color:#cbd5e1;margin-bottom:6px}.field select,.field textarea{width:100%;color:var(--text);background:var(--panel2);border:1px solid #475569;border-radius:7px;padding:8px}.field textarea{min-height:90px;resize:vertical}.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.wide{grid-column:1/3}.btn{border:0;border-radius:8px;padding:9px 10px;color:white;background:#334155;cursor:pointer}.primary{background:var(--blue)}.ok{background:var(--green)}.warn{background:var(--amber)}.danger{background:#7f1d1d}.message{min-height:24px;color:#93c5fd;margin-top:10px}.links{line-height:1.8}.links a{color:#7dd3fc}.export{border-top:1px solid var(--line);margin-top:16px;padding-top:13px}.export .btn{width:100%;margin:4px 0}
+#zoom{display:none;position:fixed;inset:0;z-index:20;background:#000e;padding:24px;align-items:center;justify-content:center}#zoom.open{display:flex}#zoom img{max-width:98vw;max-height:96vh;object-fit:contain}.badge{display:inline-block;background:#334155;border-radius:999px;padding:2px 8px;color:#dbeafe}
+@media(max-width:1150px){.layout{grid-template-columns:170px 1fr}.layout aside{grid-column:1/3;border-left:0;border-top:1px solid var(--line)}.sticky{position:static}.candidate-grid{grid-template-columns:1fr}}@media(max-width:760px){.layout{display:block}nav{display:flex;gap:6px;overflow:auto}.case-item{min-width:125px}.current-grid{grid-template-columns:1fr}main{padding:9px}}
+</style></head><body>
+<header><div class="top"><h1>门控事件人工盲标</h1><span id="counter" class="badge"></span><span id="progress" class="status"></span></div><p class="help">单选 Candidate / NEW / UNCERTAIN。无需逐例标注：可以直接上一例、下一例或跳过；只有点击“只保存”或“保存并下一例”的案例才进入导出文件。数据仅保存在当前浏览器，不包含 mapper/VLM 答案。</p></header>
+<div class="layout"><nav id="caseList"></nav><main><section class="panel"><h2>当前观测</h2><div id="currentImages" class="current-grid"></div></section><section class="panel"><h2>候选证据</h2><div id="candidateImages" class="candidate-grid"></div></section></main>
+<aside><div class="sticky"><h2>本例选择</h2><div id="choices"></div><div class="field"><label for="confidence">置信度（可不填）</label><select id="confidence"><option value="">不填写</option><option value="1">高</option><option value="0.67">中</option><option value="0.33">低</option></select></div><div class="field"><label for="reason">备注（可不填）</label><textarea id="reason" placeholder="只写有助于之后复核的简短依据"></textarea></div><div class="actions"><button id="save" class="btn primary">只保存</button><button id="saveNext" class="btn ok">保存并下一例</button><button id="prev" class="btn">上一例</button><button id="next" class="btn">下一例/跳过</button><button id="nextBlank" class="btn warn wide">下一未标注</button><button id="clear" class="btn danger wide">清除本例标签</button></div><div id="message" class="message"></div><div class="links"><a id="caseJson">查看 case.json</a> · <a id="systemPrompt">system prompt</a> · <a id="userPrompt">user prompt</a></div><div class="export"><button id="exportLabeled" class="btn ok">导出已标注 JSONL</button><button id="exportAll" class="btn">导出全部状态 JSON</button><button id="importLabels" class="btn">导入已有 JSONL</button><input id="importFile" type="file" accept=".jsonl,.json" hidden><a href="labels_template.jsonl">空标签模板</a></div></div></aside></div>
+<div id="zoom"><img alt="放大证据"></div>
+<script>
+const CASES=__CASES_JSON__;
+const STORAGE_KEY='blocking-gate-blind-labels:'+location.pathname;
+let index=0,labels={},draftChoice=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+try{labels=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(_){labels={}}
+function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(labels));renderNav()}
+function showMessage(text,error=false){$('message').textContent=text;$('message').style.color=error?'#fca5a5':'#93c5fd'}
+function choiceText(value){return value==='NEW'?'NEW（新建对象）':value==='UNCERTAIN'?'UNCERTAIN（无法可靠判断）':`Candidate ${value}`}
+function renderNav(){const done=CASES.filter(c=>labels[c.case_id]?.choice).length;$('progress').textContent=`已保存 ${done} / ${CASES.length}；未标 ${CASES.length-done}`;$('caseList').innerHTML=CASES.map((c,i)=>`<button class="case-item ${labels[c.case_id]?.choice?'done':''} ${i===index?'current':''}" data-i="${i}">${esc(c.case_id)}<small>${labels[c.case_id]?.choice?'已标：'+esc(labels[c.case_id].choice):'未标，可跳过'}</small></button>`).join('');document.querySelectorAll('.case-item').forEach(b=>b.onclick=()=>load(Number(b.dataset.i)))}
+function figure(c,item){return `<figure class="evidence"><img src="cases/${encodeURIComponent(c.case_id)}/${encodeURIComponent(item.path)}" alt="${esc(item.label)}"><figcaption>${esc(item.label)}</figcaption></figure>`}
+function bindZoom(){document.querySelectorAll('.evidence img').forEach(img=>img.onclick=()=>{$('#zoom img').src=img.src;$('zoom').classList.add('open')})}
+function load(i){if(!CASES.length)return;index=Math.max(0,Math.min(i,CASES.length-1));const c=CASES[index],saved=labels[c.case_id]||{};draftChoice=saved.choice||null;$('counter').textContent=`${index+1} / ${CASES.length} · ${c.case_id}`;const current=c.images.filter(x=>x.path.startsWith('current_'));const candidates=c.images.filter(x=>x.path.startsWith('candidate_'));$('currentImages').innerHTML=current.map(x=>figure(c,x)).join('');$('candidateImages').innerHTML=candidates.map(x=>figure(c,x)).join('');$('choices').innerHTML=c.allowed_choices.map(v=>`<button class="choice ${draftChoice===v?'selected':''}" data-value="${esc(v)}">${esc(choiceText(v))}</button>`).join('');document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>selectChoice(b.dataset.value));$('confidence').value=saved.confidence==null?'':String(saved.confidence);$('reason').value=saved.reason||'';$('caseJson').href=`cases/${c.case_id}/case.json`;$('systemPrompt').href=`cases/${c.case_id}/system_prompt.txt`;$('userPrompt').href=`cases/${c.case_id}/user_prompt.txt`;$('prev').disabled=index===0;$('next').disabled=index===CASES.length-1;showMessage(saved.choice?'已加载本浏览器保存的标签':'本例未标，可直接跳过');renderNav();bindZoom();window.scrollTo({top:0,behavior:'smooth'})}
+function selectChoice(value){draftChoice=value;document.querySelectorAll('.choice').forEach(b=>b.classList.toggle('selected',b.dataset.value===value));showMessage(`已选择 ${value}，点击保存后才会写入`) }
+function save(goNext){const c=CASES[index];if(!draftChoice){showMessage('请先选择一个选项；若不想标本例，直接点击“下一例/跳过”',true);return}labels[c.case_id]={case_id:c.case_id,choice:draftChoice,confidence:$('confidence').value===''?null:Number($('confidence').value),candidate_notes:Object.fromEntries(c.allowed_choices.filter(x=>/^[A-Z]$/.test(x)).map(x=>[x,''])),reason:$('reason').value.trim()};persist();showMessage(`已保存 ${c.case_id}`);if(goNext&&index<CASES.length-1)load(index+1)}
+function clearCurrent(){const id=CASES[index].case_id;delete labels[id];persist();load(index);showMessage(`已清除 ${id}`)}
+function nextBlank(){for(let offset=1;offset<=CASES.length;offset++){const i=(index+offset)%CASES.length;if(!labels[CASES[i].case_id]?.choice){load(i);return}}showMessage('当前所有案例均已标注')}
+function download(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+function exportLabeled(){const rows=CASES.map(c=>labels[c.case_id]).filter(x=>x?.choice);if(!rows.length){showMessage('目前没有已保存标签',true);return}download('blocking_gate_manual_labels.jsonl',rows.map(x=>JSON.stringify(x)).join('\\n')+'\\n','application/x-ndjson');showMessage(`已导出 ${rows.length} 条已标注结果`)}
+function exportAll(){download('blocking_gate_annotation_state.json',JSON.stringify({schema_version:'blocking-gate-human-labels-v1',saved_at:new Date().toISOString(),labels},null,2),'application/json');showMessage('已导出全部浏览器状态')}
+async function importFile(file){try{const text=await file.text();let rows;try{const parsed=JSON.parse(text);rows=parsed.labels?Object.values(parsed.labels):(Array.isArray(parsed)?parsed:[parsed])}catch(_){rows=text.split(/\\r?\\n/).filter(Boolean).map(JSON.parse)}const known=new Map(CASES.map(c=>[c.case_id,c]));let count=0;for(const row of rows){const c=known.get(row.case_id);if(c&&c.allowed_choices.includes(row.choice)){labels[row.case_id]=row;count++}}persist();load(index);showMessage(`已导入 ${count} 条有效标签`)}catch(e){showMessage(`导入失败：${e.message}`,true)}}
+$('save').onclick=()=>save(false);$('saveNext').onclick=()=>save(true);$('prev').onclick=()=>load(index-1);$('next').onclick=()=>load(index+1);$('nextBlank').onclick=nextBlank;$('clear').onclick=clearCurrent;$('exportLabeled').onclick=exportLabeled;$('exportAll').onclick=exportAll;$('importLabels').onclick=()=>$('importFile').click();$('importFile').onchange=e=>e.target.files[0]&&importFile(e.target.files[0]);$('zoom').onclick=()=>$('zoom').classList.remove('open');
+document.onkeydown=e=>{if(['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName))return;if(e.key==='ArrowLeft')load(index-1);else if(e.key==='ArrowRight')load(index+1);else{const c=CASES[index],key=e.key.toUpperCase(),value=key==='N'?'NEW':key==='U'?'UNCERTAIN':key;if(c.allowed_choices.includes(value))selectChoice(value)}};
+renderNav();load(0);
+</script></body></html>""".replace("__CASES_JSON__", public_cases_json)
+        (self.annotation_dir / "index.html").write_text(document, encoding="utf-8")
 
     def _call_vlm(self, payload: dict, failure_log_path: Optional[Path] = None) -> Tuple[dict, dict, float]:
         """Call the OpenAI-compatible endpoint through the official SDK.
@@ -730,6 +1264,22 @@ class BlockingAssociationGate:
         if not masks:
             raise ValueError("current detection has no mask")
         mask, bbox = masks[-1], boxes[-1] if boxes else None
+        current_points = _sample_points(
+            _point_array(detection), 900, f"current:{event_dir.name}"
+        )
+        prepared_candidates = [
+            (
+                alias,
+                obj,
+                _sample_points(
+                    _point_array(obj), 1600, f"candidate:{obj.get('id')}:{event_dir.name}"
+                ),
+            )
+            for alias, _, obj in candidates
+        ]
+        projection_ranges = _shared_projection_ranges(
+            [current_points] + [candidate_points for _, _, candidate_points in prepared_candidates]
+        )
         context_path, crop_path = event_dir / "current_context.jpg", event_dir / "current_crop.jpg"
         _write_rgb(context_path, _annotated_context(image_rgb, mask, bbox))
         _write_rgb(crop_path, _annotated_crop(image_rgb, mask, bbox, "CURRENT OBSERVATION"))
@@ -740,10 +1290,16 @@ class BlockingAssociationGate:
         request_images: List[Tuple[str, Path]] = [
             ("I1 current context", context_path), ("I1-crop current observation", crop_path)
         ]
-        for alias, _, obj in candidates:
-            item = self._save_candidate_image(event_dir, alias, obj)
+        for alias, obj, candidate_points in prepared_candidates:
+            item = self._save_candidate_image(
+                event_dir, alias, obj, current_points, candidate_points, projection_ranges,
+            )
             manifest.append({"role": f"candidate-{alias}", **item})
-            request_images.append((f"Candidate {alias} frozen history", event_dir / item["image_path"]))
+            request_images.append((
+                f"Candidate {alias}: top three historical RGB/red-mask views; "
+                "bottom event-shared-scale CURRENT-vs-candidate 3D",
+                event_dir / item["image_path"],
+            ))
         return manifest, request_images
 
     def route_frame(
@@ -842,7 +1398,24 @@ class BlockingAssociationGate:
                 ],
             }
             snapshot_uid = hashlib.sha256(json.dumps(snapshot_payload, sort_keys=True).encode("utf-8")).hexdigest()
-            output = {"choice": "UNCERTAIN", "confidence": 0.0, "reason": "audit mode: no adjudication requested"}
+            human_case_id = self._write_human_annotation_case(
+                event_id=event_id,
+                snapshot_uid=snapshot_uid,
+                system_prompt=system_prompt,
+                user_prompt=user_prompt,
+                images=request_images,
+                aliases=list(aliases_to_indices),
+            )
+            neutral_assessments = [
+                {"code": alias, "relation": "UNCERTAIN", "evidence": "not adjudicated"}
+                for alias in aliases_to_indices
+            ]
+            output = {
+                "candidate_assessments": neutral_assessments,
+                "choice": "UNCERTAIN",
+                "confidence": 0.0,
+                "reason": "audit mode: no adjudication requested",
+            }
             decision_source, raw_response, error, latency_seconds, oracle_diagnostics = self.mode, None, None, 0.0, None
             adjudication_started = time.perf_counter()
             try:
@@ -864,7 +1437,19 @@ class BlockingAssociationGate:
                     decision_source = "vlm"
                 elif self.mode == "oracle":
                     choice, oracle_diagnostics = self._oracle_choice(frame_idx, detection, candidates)
-                    output = {"choice": choice, "confidence": 1.0 if choice != "UNCERTAIN" else 0.0, "reason": "GT sidecar oracle"}
+                    output = {
+                        "candidate_assessments": [
+                            {
+                                "code": alias,
+                                "relation": "SAME" if alias == choice else "DIFFERENT",
+                                "evidence": "GT sidecar oracle",
+                            }
+                            for alias in aliases_to_indices
+                        ],
+                        "choice": choice,
+                        "confidence": 1.0 if choice != "UNCERTAIN" else 0.0,
+                        "reason": "GT sidecar oracle",
+                    }
                     decision_source = "oracle"
                     _json_dump(event_dir / "actual_request_redacted.json", {
                         "not_sent": True,
@@ -881,16 +1466,32 @@ class BlockingAssociationGate:
                         "user_prompt": user_prompt,
                         "images": [{"label": label, "path": path.name, "sha256": _sha256_file(path)} for label, path in request_images],
                     })
-                allowed = set(aliases_to_indices) | {"NEW", "DISCARD", "UNCERTAIN"}
+                allowed = set(aliases_to_indices) | {"NEW", "UNCERTAIN"}
                 if str(output.get("choice", "")).upper() not in allowed:
                     raise ValueError(f"invalid choice: {output.get('choice')}")
+                if self.mode == "vlm":
+                    assessments = list(output.get("candidate_assessments") or [])
+                    assessment_codes = [str(item.get("code", "")).upper() for item in assessments]
+                    if len(assessment_codes) != len(aliases_to_indices) or set(assessment_codes) != set(aliases_to_indices):
+                        raise ValueError(f"candidate assessments do not cover aliases exactly once: {assessment_codes}")
+                    invalid_relations = [
+                        item.get("relation") for item in assessments
+                        if str(item.get("relation", "")).upper() not in {"SAME", "DIFFERENT", "UNCERTAIN"}
+                    ]
+                    if invalid_relations:
+                        raise ValueError(f"invalid candidate assessment relations: {invalid_relations}")
                 confidence = float(output.get("confidence", 0.0))
                 if not 0.0 <= confidence <= 1.0:
                     raise ValueError(f"invalid confidence: {confidence}")
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
                 latency_seconds = time.perf_counter() - adjudication_started
-                output = {"choice": "UNCERTAIN", "confidence": 0.0, "reason": "invalid response or API failure; baseline fallback"}
+                output = {
+                    "candidate_assessments": neutral_assessments,
+                    "choice": "UNCERTAIN",
+                    "confidence": 0.0,
+                    "reason": "invalid response or API failure; baseline fallback",
+                }
                 decision_source = f"{decision_source}_failure"
                 self.stats["failures"] += 1
             _json_dump(event_dir / "vlm_output.json", output)
@@ -933,6 +1534,7 @@ class BlockingAssociationGate:
                 "candidate_object_uids_distinct": len({str(obj.get("id")) for _, _, obj in candidates}) == len(candidates),
                 "evidence": evidence_manifest,
                 "prompt_files": {"system": "system_prompt.txt", "user": "user_prompt.txt"},
+                "human_annotation_case_id": human_case_id,
                 "baseline_match_index": baseline_match,
                 "decision_source": decision_source,
                 "model_output": output,
@@ -984,6 +1586,8 @@ class BlockingAssociationGate:
             "events_jsonl": self.events_path.name,
             "iou_prefilter_jsonl": self.iou_prefilter_path.name,
             "dashboard": "index.html",
+            "human_annotation_blind": "human_annotation_blind/index.html",
+            "human_annotation_private_map": self.annotation_map_path.name,
         })
 
     def _write_index(self) -> None:
@@ -1017,3 +1621,4 @@ class BlockingAssociationGate:
     def close(self, *, status: str = "completed") -> None:
         self._write_summary(status=status)
         self._write_index()
+        self._write_human_annotation_index()

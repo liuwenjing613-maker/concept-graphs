@@ -11,8 +11,11 @@ from conceptgraph.slam.association_gate import (
     BlockingAssociationGate,
     CREATE_SYSTEM_PROMPT,
     DISCARD_MATCH_INDEX,
+    POINT_CLOUD_READING_POLICY,
+    _candidate_evidence_composite,
     _image_data_url,
     _image_media_descriptor,
+    _shared_projection_ranges,
     _write_rgb,
     compute_trigger,
     deduplicate_ranked_candidates,
@@ -42,36 +45,77 @@ def test_route_choice_fallback():
     assert route_choice("UNCERTAIN", aliases, 7) == (7, "fallback_baseline")
 
 
-def test_both_prompts_use_the_same_conservative_discard_policy():
+def test_prompts_lock_red_mask_target_and_keep_simple_identity_actions():
     for prompt in (ASSOCIATION_SYSTEM_PROMPT, CREATE_SYSTEM_PROMPT):
-        assert "semi-transparent RED overlay" in prompt
-        assert "unhighlighted pixels are background/context only" in prompt
+        assert "CURRENT CONTEXT" in prompt
+        assert "H1/H2/H3 are frozen historical observations" in prompt
+        assert "MANDATORY TARGET-LOCK RULE" in prompt
+        assert "red mask actually covers that object" in prompt
+        assert "Once a target is locked, never switch attention" in prompt
+        assert "Use unmasked pixels only to understand spatial context" in prompt
         assert "Never select a candidate merely because" in prompt
-        assert "Dark letterbox padding" in prompt
-        assert "INSTANCE re-identification, not category classification" in prompt
-        assert "Category agreement is only a weak contextual cue and is never sufficient" in prompt
-        assert "category or label disagreement alone is not decisive" in prompt
+        assert "physical INSTANCE matching, not category recognition" in prompt
+        assert "Category agreement is weak evidence" in prompt
+        assert "Category disagreement is also not decisive" in prompt
         assert "same individual physical object" in prompt
-        assert "matching class, label, or object type is invalid" in prompt
-        assert "repeated or near-identical objects" in prompt
-        assert "MIXED_INSTANCES" in prompt
-        assert "SEVERE_FRAGMENT" in prompt
-        assert "mandatory CURRENT-observation quality gate" in prompt
-        assert "use only I1 and I1-crop" in prompt
-        assert "excluding masks that are fragmented merely due to occlusion" in prompt
-        assert "BORDERLINE => choose UNCERTAIN and stop" in prompt
-        assert "Only USABLE permits candidate comparison" in prompt
-        assert "ordinary occlusion" in prompt.lower()
-        assert "Candidate-image weakness is not a reason" in prompt
-        assert "DISCARD" in prompt and "UNCERTAIN" in prompt
+        assert "Repeated or adjacent objects require stronger evidence" in prompt
+        assert "XY, XZ, and YZ are three orthographic projections" in prompt
+        assert "same online world coordinate system" in prompt
+        assert "same world bounds and metric scale" in prompt
+        assert "centroid proximity alone" in prompt
+        assert "UNCERTAIN" in prompt
+        assert "DISCARD" not in prompt
+        assert "observation_quality" not in prompt
     _, association_user = BlockingAssociationGate._prompts("association", ["A", "B"])
     _, create_user = BlockingAssociationGate._prompts("create", ["A", "B", "C"])
-    assert "DISCARD" in association_user
-    assert "DISCARD" in create_user
-    assert "judge the red-masked target" in association_user
-    assert "judge the red-masked target" in create_user
-    assert "using only I1 and I1-crop before looking at candidates" in association_user
-    assert "using only I1 and I1-crop before looking at candidates" in create_user
+    assert "A, B, NEW, UNCERTAIN" in association_user
+    assert "A, B, C, NEW, UNCERTAIN" in create_user
+    assert "DISCARD" not in association_user + create_user
+    assert "up to three historical red-mask views" in association_user
+    assert "shared-scale XY/XZ/YZ" in create_user
+
+
+def test_candidate_card_contains_rgb_and_annotation_style_3d_views():
+    histories = [np.full((180, 140 + index * 20, 3), 80 + index * 20, dtype=np.uint8) for index in range(3)]
+    current = np.array([[0.0, 0.0, 0.0], [0.1, 0.2, 0.3], [0.2, 0.1, 0.4]])
+    candidate = np.array([[0.0, 0.0, 0.0], [0.12, 0.22, 0.32], [0.25, 0.12, 0.42]])
+    ranges = _shared_projection_ranges([current, candidate, candidate + 4.0])
+    card = _candidate_evidence_composite(
+        histories, ["H1 BEST MASK", "H2 RECENT", "H3 DIVERSE"],
+        current, candidate, "A", ranges,
+    )
+    assert card.shape == (1024, 1024, 3)
+    assert np.any((card[:, :, 0] > 180) & (card[:, :, 1] < 110))  # magenta current
+    assert np.any((card[:, :, 0] < 80) & (card[:, :, 1] > 120) & (card[:, :, 2] > 140))  # cyan candidate
+    assert len(ranges) == 3
+    assert all(extent > 4.0 for _, _, extent in ranges)
+    assert "same world bounds and metric scale" in POINT_CLOUD_READING_POLICY
+
+
+def test_three_representative_history_members(tmp_path: Path):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    source = tmp_path / "source.jpg"
+    assert cv2.imwrite(str(source), np.full((64, 96, 3), 120, dtype=np.uint8))
+    obj = _object(source, 0, 0, 5)
+    masks = []
+    for width in (10, 30, 14, 20, 25):
+        mask = np.zeros((64, 96), dtype=bool)
+        mask[10:40, 5:5 + width] = True
+        masks.append(mask)
+    obj.update({
+        "color_path": [source] * 5,
+        "mask": masks,
+        "xyxy": [[5, 10, 5 + width, 40] for width in (10, 30, 14, 20, 25)],
+        "image_idx": [0, 2, 4, 6, 8],
+        "obs_uids": [f"run_f{frame:06d}_r0000" for frame in (0, 2, 4, 6, 8)],
+        "conf": [0.8, 0.7, 0.99, 0.85, 0.9],
+        "num_detections": 5,
+    })
+    selected = BlockingAssociationGate._representative_members(obj)
+    assert [role for role, _ in selected] == ["H1 BEST MASK", "H2 RECENT", "H3 DIVERSE"]
+    assert len({index for _, index in selected}) == 3
+    assert selected[0][1] == 1  # largest processed mask
+    assert selected[1][1] == 4  # latest view with a sufficiently large mask
 
 
 def test_vlm_media_is_validated_jpeg(tmp_path: Path):
@@ -144,6 +188,11 @@ def _object(path: Path, frame: int, raw_idx: int, x1: int) -> dict:
         "xyxy": [[x1, 12, x1 + 25, 52]],
         "image_idx": [frame],
         "obs_uids": [f"run_f{frame:06d}_r{raw_idx:04d}"],
+        "pcd_np": np.array([
+            [x1 / 20.0, 0.00, 0.00],
+            [x1 / 20.0 + 0.10, 0.20, 0.30],
+            [x1 / 20.0 + 0.20, 0.10, 0.40],
+        ], dtype=np.float64),
     }
 
 
@@ -183,7 +232,44 @@ def test_audit_writes_evidence_but_keeps_baseline(tmp_path: Path):
     event_dir = tmp_path / "gate" / "events" / rows[0]["event_id"]
     assert (event_dir / "current_context.jpg").is_file()
     assert (event_dir / "candidate_A.jpg").is_file()
+    card = cv2.imread(str(event_dir / "candidate_A.jpg"), cv2.IMREAD_COLOR)
+    assert card is not None and card.shape[:2] == (1024, 1024)
+    decision = json.loads((event_dir / "decision.json").read_text())
+    candidate_evidence = next(item for item in decision["evidence"] if item["role"] == "candidate-A")
+    candidate_b = next(item for item in decision["evidence"] if item["role"] == "candidate-B")
+    assert len(candidate_evidence["selected_history"]) == 1
+    assert candidate_evidence["point_cloud_projections"] == ["XY", "XZ", "YZ"]
+    assert candidate_evidence["point_cloud_sources"] == {"current": "detection['pcd']", "candidate": "obj['pcd']"}
+    assert candidate_evidence["point_cloud_event_shared_ranges_uid"] == candidate_b["point_cloud_event_shared_ranges_uid"]
+    assert candidate_evidence["current_point_count_rendered"] == 3
+    assert candidate_evidence["candidate_point_count_rendered"] == 3
     assert (tmp_path / "gate" / "index.html").is_file()
+    case_id = decision["human_annotation_case_id"]
+    blind_case = tmp_path / "gate" / "human_annotation_blind" / "cases" / case_id
+    assert (blind_case / "case.json").is_file()
+    assert (blind_case / "candidate_A.jpg").is_file()
+    assert not any("vlm" in path.name.lower() or path.name == "decision.json" for path in blind_case.iterdir())
+    blind_payload = json.loads((blind_case / "case.json").read_text())
+    assert "event_id" not in blind_payload and "baseline" not in json.dumps(blind_payload).lower()
+    assert blind_payload["allowed_choices"] == ["A", "B", "NEW", "UNCERTAIN"]
+    annotation_index = (
+        tmp_path / "gate" / "human_annotation_blind" / "index.html"
+    ).read_text(encoding="utf-8")
+    assert "下一例/跳过" in annotation_index
+    assert "下一未标注" in annotation_index
+    assert "导出已标注 JSONL" in annotation_index
+    assert "localStorage" in annotation_index
+    assert "class=\"choice" in annotation_index
+    assert "http-equiv=\"refresh\"" not in annotation_index
+    assert "vlm_output.json" not in annotation_index
+    assert "decision.json" not in annotation_index
+    annotation_readme = (
+        tmp_path / "gate" / "human_annotation_blind" / "README.md"
+    ).read_text(encoding="utf-8")
+    assert "Open `index.html`" in annotation_readme
+    assert "You may skip any case" in annotation_readme
+    assert "Export labeled JSONL" in annotation_readme
+    assert (tmp_path / "gate" / "human_annotation_case_map.jsonl").is_file()
 
 
 def test_off_is_identity(tmp_path: Path):
@@ -204,7 +290,7 @@ def test_off_is_identity(tmp_path: Path):
     ) == baseline
 
 
-def test_vlm_discard_is_a_terminal_non_mapping_action(tmp_path: Path):
+def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
     tmp_path.mkdir(parents=True, exist_ok=True)
     source = tmp_path / "source.jpg"
     image = np.full((64, 96, 3), 120, dtype=np.uint8)
@@ -226,10 +312,13 @@ def test_vlm_discard_is_a_terminal_non_mapping_action(tmp_path: Path):
     gate._call_vlm = lambda payload, **kwargs: (
         {"mock": True},
         {
-            "observation_quality": "MIXED_INSTANCES",
-            "choice": "DISCARD",
+            "candidate_assessments": [
+                {"code": "A", "relation": "SAME", "evidence": "matching history and 3D"},
+                {"code": "B", "relation": "DIFFERENT", "evidence": "separated in 3D"},
+            ],
+            "choice": "A",
             "confidence": 0.98,
-            "reason": "MIXED_INSTANCES",
+            "reason": "A is supported by both evidence types",
         },
         0.01,
     )
@@ -248,14 +337,15 @@ def test_vlm_discard_is_a_terminal_non_mapping_action(tmp_path: Path):
     request = json.loads((event_dir / "actual_request_redacted.json").read_text())
     response_schema = request["response_format"]["json_schema"]["schema"]
     choices = response_schema["properties"]["choice"]["enum"]
-    qualities = response_schema["properties"]["observation_quality"]["enum"]
-    assert routed == [DISCARD_MATCH_INDEX]
-    assert decision["route_reason"] == "model_discard_observation"
-    assert decision["final_match_index"] == DISCARD_MATCH_INDEX
-    assert decision["changed"] is True
-    assert "DISCARD" in choices
-    assert set(qualities) == {"USABLE", "BORDERLINE", "MIXED_INSTANCES", "SEVERE_FRAGMENT"}
-    assert "observation_quality" in response_schema["required"]
+    assert routed == [0]
+    assert decision["route_reason"] == "model_candidate"
+    assert decision["final_match_index"] == 0
+    assert "DISCARD" not in choices
+    assert "observation_quality" not in response_schema["properties"]
+    assert "candidate_assessments" in response_schema["required"]
+    assert route_choice("DISCARD", {"A": 0, "B": 1}, 0) == (
+        DISCARD_MATCH_INDEX, "model_discard_observation",
+    )
 
 
 def test_oracle_uses_processed_frame_index(tmp_path: Path):
@@ -299,13 +389,15 @@ def test_oracle_uses_processed_frame_index(tmp_path: Path):
 if __name__ == "__main__":
     test_trigger_rules_create_only()
     test_route_choice_fallback()
-    test_both_prompts_use_the_same_conservative_discard_policy()
+    test_prompts_lock_red_mask_target_and_keep_simple_identity_actions()
+    test_candidate_card_contains_rgb_and_annotation_style_3d_views()
     with tempfile.TemporaryDirectory(prefix="association_gate_test_") as temp_dir:
         root = Path(temp_dir)
+        test_three_representative_history_members(root / "history_case")
         test_vlm_media_is_validated_jpeg(root / "media_case")
         test_iou_prefilter_keeps_highest_score_and_changes_top2(root / "iou_case")
         test_audit_writes_evidence_but_keeps_baseline(root / "audit_case")
         test_off_is_identity(root / "off_case")
-        test_vlm_discard_is_a_terminal_non_mapping_action(root / "discard_case")
+        test_discard_route_is_retained_but_not_a_formal_vlm_action(root / "discard_case")
         test_oracle_uses_processed_frame_index(root / "oracle_case")
-    print("9 association-gate tests passed")
+    print("11 association-gate tests passed")
