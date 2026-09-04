@@ -220,6 +220,7 @@ def test_audit_writes_evidence_but_keeps_baseline(tmp_path: Path):
         detection_list=[detection],
         objects=objects,
         aggregate_sim=np.array([[1.31, 1.18]], dtype=np.float32),
+        spatial_sim=np.zeros((1, 2)),
         baseline_match_indices=[0],
     )
     gate.close()
@@ -320,6 +321,7 @@ def test_human_mode_blocks_for_one_option_and_routes_without_api(tmp_path: Path)
         detection_list=[detection],
         objects=objects,
         aggregate_sim=np.array([[1.31, 1.18]], dtype=np.float32),
+        spatial_sim=np.zeros((1, 2)),
         baseline_match_indices=[0],
     )
     gate.close()
@@ -335,7 +337,7 @@ def test_human_mode_blocks_for_one_option_and_routes_without_api(tmp_path: Path)
     assert decision["final_match_index"] == 1
     assert decision["route_reason"] == "model_candidate"
     assert request["not_sent"] is True and request["mode"] == "human"
-    assert request["allowed_choices"] == ["A", "B", "NEW", "UNCERTAIN"]
+    assert request["allowed_choices"] == ["A", "B", "NEW", "UNCERTAIN", "DISCARD"]
     review_path = tmp_path / "gate" / "human_review.html"
     assert review_path.is_file()
     review_html = review_path.read_text(encoding="utf-8")
@@ -347,6 +349,27 @@ def test_human_mode_blocks_for_one_option_and_routes_without_api(tmp_path: Path)
     summary = json.loads((tmp_path / "gate" / "summary.json").read_text())
     assert summary["stats"]["human_invalid_inputs"] == 1
     assert summary["stats"]["choice_B"] == 1
+
+    # Both trigger types must discard, never create (-1 != None) or fall back.
+    gate._human_input = lambda _prompt: " discard "
+    for frame, baseline, scores in ((6, 0, [1.31, 1.18]), (7, None, [1.05, 0.95])):
+        routed = gate.route_frame(
+            frame_idx=frame, source_frame_id=str(frame), image_rgb=image,
+            detection_list=[detection], objects=objects,
+            aggregate_sim=np.array([scores], dtype=np.float32),
+            spatial_sim=np.zeros((1, 2)),
+            baseline_match_indices=[baseline],
+        )
+        assert routed == [DISCARD_MATCH_INDEX]
+        event = gate.events[-1]
+        assert event["model_output"] == {"choice": "DISCARD"}
+        assert event["decision_source"] == "human" and event["error"] is None
+        assert event["route_reason"] == "model_discard_observation"
+        assert "DISCARD" in review_path.read_text(encoding="utf-8")
+        case = tmp_path / "gate" / "human_annotation_blind" / "cases" / event["human_annotation_case_id"] / "case.json"
+        assert "DISCARD" in json.loads(case.read_text())["allowed_choices"]
+    gate.close()
+    assert gate.stats["choice_DISCARD"] == 2
 
 
 def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
@@ -388,6 +411,7 @@ def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
         detection_list=[detection],
         objects=objects,
         aggregate_sim=np.array([[1.31, 1.18]], dtype=np.float32),
+        spatial_sim=np.zeros((1, 2)),
         baseline_match_indices=[0],
     )
     gate.close()
@@ -440,6 +464,7 @@ def test_oracle_uses_processed_frame_index(tmp_path: Path):
         detection_list=[detection],
         objects=objects,
         aggregate_sim=np.array([[1.31, 1.18]], dtype=np.float32),
+        spatial_sim=np.zeros((1, 2)),
         baseline_match_indices=[0],
     )
     assert routed == [1]

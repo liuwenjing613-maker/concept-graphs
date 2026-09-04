@@ -38,6 +38,12 @@ association_gate:
   margin_threshold: 0.20
   threshold_distance: 0.30
   threshold_scope: create_only  # create_only | both
+  review_all_new: true  # supplemental review of every still-untriggered baseline NEW, including bootstrap
+  mask_change_enabled: true  # baseline ATTACH only; requires overlap spatial similarity
+  support_window: 5
+  support_min_history: 3
+  support_reference_min: 0.75
+  support_drop_threshold: 0.20  # exploratory default; not a calibrated accuracy claim
   association_top_k: 2
   create_top_k: 3
   candidate_iou_filter_enabled: true

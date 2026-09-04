@@ -539,19 +539,26 @@ def main(cfg : DictConfig):
         if len(detection_list) == 0: # no detections, skip
             continue
 
-        # if no objects yet in the map,
-        # just add all the objects from the current frame
-        # then continue, no need to match or merge
+        # Empty-map NEWs are reviewed against the same frozen empty snapshot.
+        # Preserve baseline bootstrap behavior except for explicit gate DISCARD.
         if len(objects) == 0:
             initial_matches = [None] * len(detection_list)
             empty_similarity = np.empty((len(detection_list), 0), dtype=np.float32)
+            initial_matches = association_gate.route_frame(
+                frame_idx=frame_idx, source_frame_id=color_path.stem,
+                image_rgb=image_rgb, detection_list=detection_list, objects=objects,
+                aggregate_sim=empty_similarity, spatial_sim=empty_similarity,
+                baseline_match_indices=initial_matches,
+            )
             evidence.record_associations(
                 frame_idx, detection_list, objects,
                 empty_similarity, empty_similarity, empty_similarity,
                 initial_matches,
             )
-            objects.extend(detection_list)
             for detected_obj_idx, created_object in enumerate(detection_list):
+                if initial_matches[detected_obj_idx] == DISCARD_MATCH_INDEX:
+                    continue
+                objects.append(created_object)
                 evidence.record_association_object_version(
                     frame_idx=frame_idx,
                     detected_obj_idx=detected_obj_idx,
@@ -559,10 +566,10 @@ def main(cfg : DictConfig):
                     before_object=None,
                     after_object=created_object,
                 )
-            tracker.increment_total_objects(len(detection_list))
+            tracker.increment_total_objects(len(objects))
             owandb.log({
                     "total_objects_so_far": tracker.get_total_objects(),
-                    "objects_this_frame": len(detection_list),
+                    "objects_this_frame": len(objects),
                 })
             continue 
 
@@ -596,6 +603,7 @@ def main(cfg : DictConfig):
             detection_list=detection_list,
             objects=objects,
             aggregate_sim=agg_sim,
+            spatial_sim=spatial_sim,
             baseline_match_indices=baseline_match_indices,
         )
         gate_discarded_indices = {

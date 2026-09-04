@@ -15,7 +15,7 @@ import os
 import re
 import shutil
 import time
-from collections import Counter
+from collections import Counter, deque
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
@@ -27,7 +27,7 @@ import openai
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
 
-SCHEMA_VERSION = "blocking-association-gate-v1.2"
+SCHEMA_VERSION = "blocking-association-gate-v1.3"
 VALID_MODES = {"off", "audit", "oracle", "vlm", "human"}
 VALID_SCOPES = {"create_only", "both"}
 ALIASES = ("A", "B", "C")
@@ -596,6 +596,23 @@ def compute_trigger(
     return None
 
 
+def compute_support_drop(
+    current: float, history: Sequence[float], *, min_history: int = 3,
+    reference_min: float = 0.75, drop_threshold: float = 0.20,
+) -> dict:
+    """Use only already-committed, non-triggered ATTACH support samples."""
+    reference = float(np.median(history)) if len(history) else None
+    drop = reference - float(current) if reference is not None else None
+    return {
+        "current": float(current), "reference": reference, "drop": drop,
+        "history_count": len(history), "history_supports": list(history),
+        "triggered": bool(
+            len(history) >= min_history and reference >= reference_min
+            and drop >= drop_threshold - 1e-7
+        ),
+    }
+
+
 def route_choice(
     choice: str,
     aliases_to_indices: Mapping[str, int],
@@ -724,6 +741,20 @@ class BlockingAssociationGate:
         self.candidate_iou_filter_enabled = bool(gate_cfg.get("candidate_iou_filter_enabled", True))
         self.candidate_iou_threshold = float(gate_cfg.get("candidate_iou_threshold", 0.85))
         self.sim_threshold = float(cfg.get("sim_threshold"))
+        self.review_all_new = bool(gate_cfg.get("review_all_new", True))
+        self.mask_change_enabled = bool(gate_cfg.get("mask_change_enabled", True))
+        self.support_window = int(gate_cfg.get("support_window", 5))
+        self.support_min_history = int(gate_cfg.get("support_min_history", 3))
+        self.support_reference_min = float(gate_cfg.get("support_reference_min", 0.75))
+        self.support_drop_threshold = float(gate_cfg.get("support_drop_threshold", 0.20))
+        if not 1 <= self.support_min_history <= self.support_window:
+            raise ValueError("support history must satisfy 1 <= min_history <= window")
+        if not (0 <= self.support_reference_min <= 1 and 0 < self.support_drop_threshold <= 1):
+            raise ValueError("support thresholds must be in [0,1], with drop > 0")
+        if self.mode != "off" and self.mask_change_enabled and cfg.get("spatial_sim_type", "overlap") != "overlap":
+            raise ValueError("mask_change requires spatial_sim_type=overlap; disable it for other metrics")
+        self._support_history: Dict[str, deque] = {}
+        self._last_support_frame: Optional[int] = None
         self.model = str(gate_cfg.get("model", "gpt-5.6-terra"))
         reasoning_effort = gate_cfg.get("reasoning_effort", "high")
         self.reasoning_effort = None if reasoning_effort is None or str(reasoning_effort).lower() in {"", "none", "null"} else str(reasoning_effort)
@@ -740,6 +771,7 @@ class BlockingAssociationGate:
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.events_path = self.output_dir / "events.jsonl"
         self.iou_prefilter_path = self.output_dir / "iou_prefilter.jsonl"
+        self.support_path = self.output_dir / "spatial_support.jsonl"
         self.annotation_dir = self.output_dir / "human_annotation_blind"
         self.annotation_cases_dir = self.annotation_dir / "cases"
         self.annotation_cases_dir.mkdir(parents=True, exist_ok=True)
@@ -759,6 +791,14 @@ class BlockingAssociationGate:
             "margin_threshold": self.margin_threshold,
             "threshold_distance": self.threshold_distance,
             "threshold_scope": self.threshold_scope,
+            "review_all_new": self.review_all_new,
+            "mask_change_enabled": self.mask_change_enabled,
+            "support_window": self.support_window,
+            "support_min_history": self.support_min_history,
+            "support_reference_min": self.support_reference_min,
+            "support_drop_threshold": self.support_drop_threshold,
+            "support_metric": "overlap: current points within 0.025m of pre-fusion object / current points",
+            "support_history_policy": "stable object UID; previous frames only; non-triggered baseline ATTACH only; no history transfer between merged UIDs",
             "association_top_k": self.association_top_k,
             "create_top_k": self.create_top_k,
             "candidate_iou_filter_enabled": self.candidate_iou_filter_enabled,
@@ -772,7 +812,7 @@ class BlockingAssociationGate:
             "oracle_gt_path": str(self.oracle_gt_path) if self.oracle_gt_path else None,
             "max_events": self.max_events,
             "formal_vlm_actions": list(ALIASES) + ["NEW", "UNCERTAIN"],
-            "formal_human_actions": list(ALIASES) + ["NEW", "UNCERTAIN"],
+            "formal_human_actions": list(ALIASES) + ["NEW", "UNCERTAIN", "DISCARD"],
             "human_interaction": "blocking terminal choice only; evidence saved before prompt",
             "discard_route_implemented_but_prompt_disabled": True,
             "candidate_history_views": 3,
@@ -991,7 +1031,7 @@ class BlockingAssociationGate:
                                 "items": {
                                     "type": "object",
                                     "properties": {
-                                        "code": {"type": "string", "enum": list(aliases)},
+                                        "code": {"type": "string", **({"enum": list(aliases)} if aliases else {})},
                                         "relation": {"type": "string", "enum": ["SAME", "DIFFERENT", "UNCERTAIN"]},
                                         "evidence": {"type": "string"},
                                     },
@@ -1063,7 +1103,7 @@ class BlockingAssociationGate:
             "blind": True,
             "images": public_images,
             "prompt_files": ["system_prompt.txt", "user_prompt.txt"],
-            "allowed_choices": list(aliases) + ["NEW", "UNCERTAIN"],
+            "allowed_choices": list(aliases) + ["NEW", "UNCERTAIN"] + (["DISCARD"] if self.mode == "human" else []),
             "annotation_fields": {
                 "choice": None,
                 "confidence": None,
@@ -1141,7 +1181,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 try{labels=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch(_){labels={}}
 function persist(){localStorage.setItem(STORAGE_KEY,JSON.stringify(labels));renderNav()}
 function showMessage(text,error=false){$('message').textContent=text;$('message').style.color=error?'#fca5a5':'#93c5fd'}
-function choiceText(value){return value==='NEW'?'NEW（新建对象）':value==='UNCERTAIN'?'UNCERTAIN（无法可靠判断）':`Candidate ${value}`}
+function choiceText(value){return value==='NEW'?'NEW（新建对象）':value==='UNCERTAIN'?'UNCERTAIN（无法可靠判断）':value==='DISCARD'?'DISCARD（舍弃当前观测）':`Candidate ${value}`}
 function renderNav(){const done=CASES.filter(c=>labels[c.case_id]?.choice).length;$('progress').textContent=`已保存 ${done} / ${CASES.length}；未标 ${CASES.length-done}`;$('caseList').innerHTML=CASES.map((c,i)=>`<button class="case-item ${labels[c.case_id]?.choice?'done':''} ${i===index?'current':''}" data-i="${i}">${esc(c.case_id)}<small>${labels[c.case_id]?.choice?'已标：'+esc(labels[c.case_id].choice):'未标，可跳过'}</small></button>`).join('');document.querySelectorAll('.case-item').forEach(b=>b.onclick=()=>load(Number(b.dataset.i)))}
 function figure(c,item){return `<figure class="evidence"><img src="cases/${encodeURIComponent(c.case_id)}/${encodeURIComponent(item.path)}" alt="${esc(item.label)}"><figcaption>${esc(item.label)}</figcaption></figure>`}
 function bindZoom(){document.querySelectorAll('.evidence img').forEach(img=>img.onclick=()=>{$('#zoom img').src=img.src;$('zoom').classList.add('open')})}
@@ -1244,7 +1284,7 @@ renderNav();load(0);
         aliases: Sequence[str],
     ) -> Path:
         """Replace the single live review page with the currently blocking event."""
-        allowed = list(aliases) + ["NEW", "UNCERTAIN"]
+        allowed = list(aliases) + ["NEW", "UNCERTAIN", "DISCARD"]
         event_prefix = f"events/{event_dir.name}"
         figures = [
             f'<figure><img src="{event_prefix}/current_context.jpg" alt="CURRENT context">'
@@ -1270,7 +1310,9 @@ figcaption{{margin-top:8px;font-weight:700}}code{{color:#7dd3fc}}</style></head>
 <body><h1>Blocking human review</h1>
 <p class="notice">Event <code>{html.escape(event_id)}</code> is paused. Inspect the RED-masked
 CURRENT target and each candidate card, then return to the terminal and enter exactly one option:
-<strong>{html.escape(' / '.join(allowed))}</strong>.</p>
+<strong>{html.escape(' / '.join(allowed))}</strong>.<br>
+DISCARD = skip this CURRENT observation (no association or new object).
+UNCERTAIN = retain the mapper's original decision.</p>
 <div class="images">{''.join(figures)}</div></body></html>"""
         review_path = self.output_dir / "human_review.html"
         temporary_path = self.output_dir / ".human_review.html.tmp"
@@ -1286,7 +1328,7 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
         aliases: Sequence[str],
     ) -> dict:
         """Block until the operator supplies one valid final action."""
-        allowed = list(aliases) + ["NEW", "UNCERTAIN"]
+        allowed = list(aliases) + ["NEW", "UNCERTAIN", "DISCARD"]
         allowed_set = set(allowed)
         review_path = self._write_live_human_review(event_dir, event_id, aliases)
         print("\n[human-gate] Mapping is paused for a human decision.", flush=True)
@@ -1392,22 +1434,65 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
         objects: Sequence[Mapping[str, Any]],
         aggregate_sim: Any,
         baseline_match_indices: Sequence[Optional[int]],
+        spatial_sim: Any = None,
     ) -> List[Optional[int]]:
         final_matches = list(baseline_match_indices)
-        if self.mode == "off" or not objects:
+        if self.mode == "off":
             return final_matches
         scores = _as_numpy(aggregate_sim).astype(float, copy=False)
         if scores.shape != (len(detection_list), len(objects)):
             raise ValueError(f"aggregate similarity shape {scores.shape} != {(len(detection_list), len(objects))}")
+        if len(final_matches) != len(detection_list):
+            raise ValueError("baseline match count must equal detection count")
+        support_checks = {}
+        excluded_from_history = set()
+        if self.mask_change_enabled:
+            if self._last_support_frame is not None and frame_idx <= self._last_support_frame:
+                raise ValueError("support history requires strictly increasing online frame indices")
+            if spatial_sim is None:
+                raise ValueError("mask_change requires the pre-fusion spatial_sim matrix")
+            support = _as_numpy(spatial_sim).astype(float, copy=False)
+            if support.shape != scores.shape:
+                raise ValueError("spatial similarity shape must equal aggregate similarity shape")
+            if not np.isfinite(support).all() or np.any((support < 0) | (support > 1)):
+                raise ValueError("overlap support values must be finite and in [0,1]")
+            object_uids = [str(obj["id"]) for obj in objects]
+            active_uids = set(object_uids)
+            if len(active_uids) != len(object_uids):
+                raise ValueError("support history requires distinct stable object UIDs")
+            self._support_history = {
+                uid: history for uid, history in self._support_history.items() if uid in active_uids
+            }
+            # Freeze every check before processing any observation in this frame.
+            for index, match in enumerate(baseline_match_indices):
+                if match is None:
+                    continue
+                if not 0 <= match < len(objects):
+                    raise ValueError(f"invalid baseline association index: {match}")
+                uid = object_uids[match]
+                history = list(self._support_history.get(uid, ()))
+                support_checks[index] = {
+                    "object_uid": uid, "baseline_match_index": int(match),
+                    "history_frames": [sample[0] for sample in history],
+                    **compute_support_drop(
+                        support[index, match], [sample[1] for sample in history],
+                        min_history=self.support_min_history,
+                        reference_min=self.support_reference_min,
+                        drop_threshold=self.support_drop_threshold,
+                    ),
+                }
         for detected_idx, detection in enumerate(detection_list):
             baseline_match = baseline_match_indices[detected_idx]
             raw_trigger = compute_trigger(
                 scores[detected_idx], baseline_match, self.sim_threshold,
                 self.margin_threshold, self.threshold_distance, self.threshold_scope,
             )
-            if raw_trigger is None:
+            support_check = support_checks.get(detected_idx)
+            mask_change = bool(support_check and support_check["triggered"])
+            review_new = self.review_all_new and baseline_match is None
+            if raw_trigger is None and not mask_change and not review_new:
                 continue
-            self.stats["raw_triggered_before_iou"] += 1
+            self.stats["raw_triggered_before_iou"] += int(raw_trigger is not None)
             max_ranked = min(max(self.association_top_k, self.create_top_k), len(ALIASES))
             if self.candidate_iou_filter_enabled:
                 ranked, iou_filter = deduplicate_ranked_candidates(
@@ -1431,7 +1516,8 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
                 filtered_scores, baseline_match, self.sim_threshold,
                 self.margin_threshold, self.threshold_distance, self.threshold_scope,
             )
-            if trigger is None:
+            score_suppressed = raw_trigger is not None and trigger is None
+            if score_suppressed:
                 self.stats["suppressed_by_iou_prefilter"] += 1
                 self.stats["iou_candidates_dropped"] += len(iou_filter["dropped"])
                 obs_uids = list(detection.get("obs_uids", []))
@@ -1445,19 +1531,34 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
                     "raw_trigger_before_iou": raw_trigger,
                     "filtered_trigger": None,
                     "candidate_iou_prefilter_hidden_from_vlm": iou_filter,
-                    "outcome": "trigger_suppressed",
+                    "outcome": "score_trigger_suppressed_event_retained" if mask_change or review_new else "trigger_suppressed",
                 })
+            reasons = []
+            if trigger is not None:
+                reasons.append("association_margin" if "margin" in trigger else "score_threshold_distance")
+            if mask_change:
+                reasons.append("mask_change")
+            # Supplemental NEW review only when the existing score gate did not fire.
+            if trigger is None and review_new:
+                reasons.append("all_new")
+            if not reasons:
                 continue
+            trigger = dict(trigger or {"kind": "create" if baseline_match is None else "association"})
+            trigger["reasons"] = reasons
+            excluded_from_history.add(detected_idx)
+            for reason in reasons:
+                self.stats[f"trigger_reason_{reason}"] += 1
             self.stats["triggered"] += 1
             self.stats[f"triggered_{trigger['kind']}"] += 1
             self.stats["events_with_iou_drops"] += int(bool(iou_filter["dropped"]))
-            self.stats["iou_candidates_dropped"] += len(iou_filter["dropped"])
+            if not score_suppressed:
+                self.stats["iou_candidates_dropped"] += len(iou_filter["dropped"])
             if self.max_events > 0 and self.stats["processed"] >= self.max_events:
                 self.stats["suppressed_by_max_events"] += 1
                 continue
             top_k = self.association_top_k if trigger["kind"] == "association" else self.create_top_k
             ranked = ranked[: min(top_k, len(ALIASES))]
-            if trigger["kind"] == "association" and len(ranked) < 2:
+            if trigger["kind"] == "association" and len(ranked) < 2 and not mask_change:
                 self.stats["skipped_insufficient_candidates"] += 1
                 continue
             candidates = [(ALIASES[pos], obj_idx, objects[obj_idx]) for pos, obj_idx in enumerate(ranked)]
@@ -1521,7 +1622,7 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
                         "mode": "human",
                         "system_prompt": system_prompt,
                         "user_prompt": user_prompt,
-                        "allowed_choices": list(aliases_to_indices) + ["NEW", "UNCERTAIN"],
+                        "allowed_choices": list(aliases_to_indices) + ["NEW", "UNCERTAIN", "DISCARD"],
                         "images": [
                             {"label": label, "path": path.name, "sha256": _sha256_file(path)}
                             for label, path in request_images
@@ -1566,6 +1667,8 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
                         "images": [{"label": label, "path": path.name, "sha256": _sha256_file(path)} for label, path in request_images],
                     })
                 allowed = set(aliases_to_indices) | {"NEW", "UNCERTAIN"}
+                if self.mode == "human":
+                    allowed.add("DISCARD")
                 if str(output.get("choice", "")).upper() not in allowed:
                     raise ValueError(f"invalid choice: {output.get('choice')}")
                 if self.mode == "vlm":
@@ -1625,6 +1728,7 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
                 "candidate_alias_to_object_index": aliases_to_indices,
                 "candidate_iou_prefilter_hidden_from_vlm": iou_filter,
                 "raw_trigger_before_iou": raw_trigger,
+                "spatial_support_hidden_from_reviewer": support_check,
                 "audit_scores_hidden_from_vlm": {
                     "sim_threshold": self.sim_threshold,
                     "margin_threshold": self.margin_threshold,
@@ -1663,6 +1767,24 @@ CURRENT target and each candidate card, then return to the terminal and enter ex
             self._log_rerun(event_dir, event)
             self._write_summary(status="running")
             self._write_index()
+        # Only untriggered baseline associations enter the next frame's reference.
+        # Triggered/limited/discarded/overridden observations never train this window.
+        for index, check in support_checks.items():
+            recorded = index not in excluded_from_history
+            if recorded:
+                self._support_history.setdefault(check["object_uid"], deque(maxlen=self.support_window)).append(
+                    (int(frame_idx), check["current"])
+                )
+                self.stats["support_history_samples"] += 1
+            obs_uids = list(detection_list[index].get("obs_uids", []))
+            _jsonl_append(self.support_path, {
+                "frame_idx": int(frame_idx), "source_frame_id": source_frame_id,
+                "current_observation_uid": str(obs_uids[0]) if obs_uids else None,
+                "detected_obj_idx": index, **check, "history_updated": recorded,
+                "excluded_by_gate_trigger": index in excluded_from_history,
+            })
+        if self.mask_change_enabled:
+            self._last_support_frame = int(frame_idx)
         return final_matches
 
     def _log_rerun(self, event_dir: Path, event: dict) -> None:

@@ -31,6 +31,9 @@ def main() -> int:
     parser.add_argument("--threshold-scope", choices=("create_only", "both"), default="create_only")
     parser.add_argument("--candidate-iou-threshold", type=float, default=0.85)
     parser.add_argument("--no-candidate-iou-filter", action="store_true")
+    parser.add_argument("--no-review-all-new", action="store_true", help="Disable supplemental NEW review (ablation)")
+    parser.add_argument("--no-mask-change", action="store_true", help="Disable 3D support-drop trigger (ablation)")
+    parser.add_argument("--support-drop-threshold", type=float, default=0.20)
     parser.add_argument("--max-events", type=int, default=0)
     parser.add_argument("--model", default="gpt-5.6-terra")
     parser.add_argument("--reasoning-effort", default="high", choices=("none", "low", "medium", "high"))
@@ -99,6 +102,9 @@ def main() -> int:
         f"association_gate.margin_threshold={args.margin_threshold}",
         f"association_gate.threshold_distance={args.threshold_distance}",
         f"association_gate.threshold_scope={args.threshold_scope}",
+        f"association_gate.review_all_new={_bool(not args.no_review_all_new)}",
+        f"association_gate.mask_change_enabled={_bool(not args.no_mask_change)}",
+        f"association_gate.support_drop_threshold={args.support_drop_threshold}",
         "association_gate.association_top_k=2",
         "association_gate.create_top_k=3",
         f"association_gate.candidate_iou_filter_enabled={_bool(not args.no_candidate_iou_filter)}",
