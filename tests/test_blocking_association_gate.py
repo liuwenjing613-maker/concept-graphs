@@ -290,6 +290,65 @@ def test_off_is_identity(tmp_path: Path):
     ) == baseline
 
 
+def test_human_mode_blocks_for_one_option_and_routes_without_api(tmp_path: Path):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    source = tmp_path / "source.jpg"
+    image = np.full((64, 96, 3), 120, dtype=np.uint8)
+    assert cv2.imwrite(str(source), image)
+    objects = [_object(source, 0, 0, 5), _object(source, 0, 1, 55)]
+    detection = _object(source, 5, 3, 8)
+    gate = BlockingAssociationGate(
+        cfg={
+            "sim_threshold": 1.2,
+            "association_gate": {
+                "mode": "human",
+                "margin_threshold": 0.20,
+                "candidate_iou_filter_enabled": False,
+            },
+        },
+        output_dir=tmp_path / "gate",
+    )
+    choices = iter(["invalid", " b "])
+    gate._human_input = lambda _prompt: next(choices)
+    gate._call_vlm = lambda *_args, **_kwargs: (_ for _ in ()).throw(
+        AssertionError("human mode must not call the VLM")
+    )
+    routed = gate.route_frame(
+        frame_idx=5,
+        source_frame_id="5",
+        image_rgb=cv2.cvtColor(image, cv2.COLOR_BGR2RGB),
+        detection_list=[detection],
+        objects=objects,
+        aggregate_sim=np.array([[1.31, 1.18]], dtype=np.float32),
+        baseline_match_indices=[0],
+    )
+    gate.close()
+    event_dir = next((tmp_path / "gate" / "events").iterdir())
+    decision = json.loads((event_dir / "decision.json").read_text())
+    human_output = json.loads((event_dir / "human_output.json").read_text())
+    request = json.loads((event_dir / "actual_request_redacted.json").read_text())
+    assert routed == [1]
+    assert human_output == {"choice": "B"}
+    assert decision["model_output"] == {"choice": "B"}
+    assert decision["decision_source"] == "human"
+    assert decision["output_file"] == "human_output.json"
+    assert decision["final_match_index"] == 1
+    assert decision["route_reason"] == "model_candidate"
+    assert request["not_sent"] is True and request["mode"] == "human"
+    assert request["allowed_choices"] == ["A", "B", "NEW", "UNCERTAIN"]
+    review_path = tmp_path / "gate" / "human_review.html"
+    assert review_path.is_file()
+    review_html = review_path.read_text(encoding="utf-8")
+    assert f"events/{event_dir.name}/current_context.jpg" in review_html
+    assert f"events/{event_dir.name}/candidate_B.jpg" in review_html
+    assert 'http-equiv="refresh" content="2"' in review_html
+    assert not (event_dir / "human_review.html").exists()
+    assert not (event_dir / "vlm_output.json").exists()
+    summary = json.loads((tmp_path / "gate" / "summary.json").read_text())
+    assert summary["stats"]["human_invalid_inputs"] == 1
+    assert summary["stats"]["choice_B"] == 1
+
+
 def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
     tmp_path.mkdir(parents=True, exist_ok=True)
     source = tmp_path / "source.jpg"
@@ -398,6 +457,7 @@ if __name__ == "__main__":
         test_iou_prefilter_keeps_highest_score_and_changes_top2(root / "iou_case")
         test_audit_writes_evidence_but_keeps_baseline(root / "audit_case")
         test_off_is_identity(root / "off_case")
+        test_human_mode_blocks_for_one_option_and_routes_without_api(root / "human_case")
         test_discard_route_is_retained_but_not_a_formal_vlm_action(root / "discard_case")
         test_oracle_uses_processed_frame_index(root / "oracle_case")
-    print("11 association-gate tests passed")
+    print("12 association-gate tests passed")

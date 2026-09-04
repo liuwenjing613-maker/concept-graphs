@@ -7,6 +7,7 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -17,7 +18,7 @@ def _bool(value: bool) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--mode", required=True, choices=("off", "audit", "oracle", "vlm"))
+    parser.add_argument("--mode", required=True, choices=("off", "audit", "oracle", "vlm", "human"))
     parser.add_argument("--exp-suffix", required=True)
     parser.add_argument("--scene", default="room0")
     parser.add_argument("--start", type=int, default=0)
@@ -60,6 +61,8 @@ def main() -> int:
         raise RuntimeError("GATE_API_KEY must be present only in the process environment for vlm mode")
     if args.mode == "oracle" and not Path(args.oracle_gt_path).is_file():
         raise FileNotFoundError(args.oracle_gt_path)
+    if args.mode == "human" and not sys.stdin.isatty():
+        raise RuntimeError("human mode requires an interactive terminal (TTY)")
 
     use_rerun = bool(args.rerun_connect_addr)
     command = [
@@ -125,10 +128,13 @@ def main() -> int:
         "cuda_visible_devices": args.gpu,
         "command": command,
         "credentials": "environment only; not recorded",
+        "interactive_stdin_required": args.mode == "human",
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"[launch] mode={args.mode} fresh_output={exp_root}", flush=True)
     print(f"[launch] GPU={args.gpu} frames=[{args.start},{args.end}) stride={args.stride}", flush=True)
+    if args.mode == "human":
+        print("[launch] human mode: mapping will pause at every gate event for one terminal choice", flush=True)
     environment = os.environ.copy()
     environment["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     existing_pythonpath = environment.get("PYTHONPATH")

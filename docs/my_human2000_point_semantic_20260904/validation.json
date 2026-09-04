@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "scope": "my_human2000 room0 only",
+  "status": "PASS_WITH_AUDIT_REPORT_NOT_PRESENT",
+  "metrics_percent": {
+    "miou": 19.894672219956544,
+    "macc_mrecall": 37.53383216356859,
+    "mprecision": 22.47541988540486,
+    "mf1score": 24.16700366116194,
+    "fwiou": 49.189219160101835,
+    "point_accuracy": 61.62344380946973
+  },
+  "counts": {
+    "frames": 400,
+    "source_frame_first": 0,
+    "source_frame_last": 1995,
+    "source_frame_stride": 5,
+    "human_gate_events": 85,
+    "human_changed_events": 25,
+    "predicted_objects": 64,
+    "predicted_object_points": 729935,
+    "evaluated_classes": 23,
+    "evaluated_points": 4085377
+  },
+  "checks": {
+    "formal_evaluation_exit_zero": true,
+    "manifest_completed": true,
+    "gate_summary_completed": true,
+    "frame_sequence_exact": true,
+    "all_points_and_clip_features_finite": true,
+    "all_clip_features_1024d": true,
+    "input_map_hash_matches": true,
+    "native_clip_protocol": true,
+    "n_exclude_exactly_6": true,
+    "json_csv_npz_consistent": true,
+    "metrics_recomputed_from_confusion_matrix": true,
+    "standalone_evidence_audit_report_present": false
+  },
+  "hashes_sha256": {
+    "map_pickle": "edeeeb3d1a0a6277fe1c9392eefd4271978b9d3c4d6c1157fa9ce38b8bfe5999d",
+    "semseg_results_json": "790dc87bffc39586a950cffb699f6a58032583223ff55de79535d248661e3a07",
+    "semseg_results_csv": "67b4f3dcbe3a21e98cc7498b1d77e01822db696fbb800ecd80956c770d8cbb90d",
+    "semseg_conf_matrices_npz": "d91a4d3909809eb7ad44415ca1fde64a20cd6df095d19bf929a758444b0d7577a"
+  }
+}

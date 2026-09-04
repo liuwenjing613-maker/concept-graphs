@@ -28,10 +28,14 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
 
 SCHEMA_VERSION = "blocking-association-gate-v1.2"
-VALID_MODES = {"off", "audit", "oracle", "vlm"}
+VALID_MODES = {"off", "audit", "oracle", "vlm", "human"}
 VALID_SCOPES = {"create_only", "both"}
 ALIASES = ("A", "B", "C")
 DISCARD_MATCH_INDEX = -1
+
+
+class HumanInputUnavailableError(RuntimeError):
+    """Raised when blocking human mode cannot read an interactive decision."""
 
 TARGET_READING_POLICY = """
 MANDATORY TARGET-LOCK RULE
@@ -744,6 +748,7 @@ class BlockingAssociationGate:
         self.stats = Counter()
         self.events: List[dict] = []
         self.annotation_cases: List[dict] = []
+        self._human_input = input
         self.gt = self._load_oracle_gt(self.oracle_gt_path) if self.mode == "oracle" else {}
         if self.mode == "vlm" and self.api_key_required and not os.environ.get(self.api_key_env):
             raise RuntimeError(f"{self.api_key_env} must be set for association_gate.mode=vlm")
@@ -767,6 +772,8 @@ class BlockingAssociationGate:
             "oracle_gt_path": str(self.oracle_gt_path) if self.oracle_gt_path else None,
             "max_events": self.max_events,
             "formal_vlm_actions": list(ALIASES) + ["NEW", "UNCERTAIN"],
+            "formal_human_actions": list(ALIASES) + ["NEW", "UNCERTAIN"],
+            "human_interaction": "blocking terminal choice only; evidence saved before prompt",
             "discard_route_implemented_but_prompt_disabled": True,
             "candidate_history_views": 3,
             "candidate_point_cloud_scale": "shared_across_all_candidates_per_event",
@@ -1230,6 +1237,79 @@ renderNav();load(0);
             })
         raise RuntimeError(f"VLM request failed after {self.max_retries + 1} attempts: {last_error}")
 
+    def _write_live_human_review(
+        self,
+        event_dir: Path,
+        event_id: str,
+        aliases: Sequence[str],
+    ) -> Path:
+        """Replace the single live review page with the currently blocking event."""
+        allowed = list(aliases) + ["NEW", "UNCERTAIN"]
+        event_prefix = f"events/{event_dir.name}"
+        figures = [
+            f'<figure><img src="{event_prefix}/current_context.jpg" alt="CURRENT context">'
+            '<figcaption>CURRENT context</figcaption></figure>',
+            f'<figure><img src="{event_prefix}/current_crop.jpg" alt="CURRENT crop">'
+            '<figcaption>CURRENT crop</figcaption></figure>',
+        ]
+        figures.extend(
+            f'<figure><img src="{event_prefix}/candidate_{html.escape(alias)}.jpg" '
+            f'alt="Candidate {html.escape(alias)}"><figcaption>Candidate '
+            f'{html.escape(alias)}</figcaption></figure>'
+            for alias in aliases
+        )
+        page = f"""<!doctype html><html><head><meta charset="utf-8">
+<meta http-equiv="refresh" content="2">
+<title>Human gate · {html.escape(event_id)}</title>
+<style>body{{font-family:system-ui;margin:20px;background:#111827;color:#f8fafc}}
+.notice{{padding:12px;background:#1e293b;border:1px solid #475569;border-radius:8px}}
+.images{{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:14px}}
+figure{{margin:0;padding:10px;background:#0f172a;border:1px solid #334155}}
+img{{width:100%;max-height:78vh;object-fit:contain;background:#020617}}
+figcaption{{margin-top:8px;font-weight:700}}code{{color:#7dd3fc}}</style></head>
+<body><h1>Blocking human review</h1>
+<p class="notice">Event <code>{html.escape(event_id)}</code> is paused. Inspect the RED-masked
+CURRENT target and each candidate card, then return to the terminal and enter exactly one option:
+<strong>{html.escape(' / '.join(allowed))}</strong>.</p>
+<div class="images">{''.join(figures)}</div></body></html>"""
+        review_path = self.output_dir / "human_review.html"
+        temporary_path = self.output_dir / ".human_review.html.tmp"
+        temporary_path.write_text(page, encoding="utf-8")
+        temporary_path.replace(review_path)
+        return review_path
+
+    def _call_human(
+        self,
+        *,
+        event_id: str,
+        event_dir: Path,
+        aliases: Sequence[str],
+    ) -> dict:
+        """Block until the operator supplies one valid final action."""
+        allowed = list(aliases) + ["NEW", "UNCERTAIN"]
+        allowed_set = set(allowed)
+        review_path = self._write_live_human_review(event_dir, event_id, aliases)
+        print("\n[human-gate] Mapping is paused for a human decision.", flush=True)
+        print(f"[human-gate] Review page: {review_path}", flush=True)
+        print(f"[human-gate] Allowed choices: {' / '.join(allowed)}", flush=True)
+        while True:
+            try:
+                raw_choice = self._human_input("[human-gate] Choice: ")
+            except EOFError as exc:
+                raise HumanInputUnavailableError(
+                    "human mode requires interactive stdin; mapping remains stopped "
+                    f"with evidence saved at {review_path}"
+                ) from exc
+            choice = str(raw_choice).strip().upper()
+            if choice in allowed_set:
+                return {"choice": choice}
+            self.stats["human_invalid_inputs"] += 1
+            print(
+                f"[human-gate] Invalid choice {raw_choice!r}; enter one of: "
+                f"{' / '.join(allowed)}",
+                flush=True,
+            )
+
     def _oracle_choice(
         self,
         frame_idx: int,
@@ -1435,6 +1515,25 @@ renderNav();load(0);
                     raw_response, output, latency_seconds = self._call_vlm(payload, failure_log_path=event_dir / "vlm_error.json")
                     _json_dump(event_dir / "vlm_raw_response.json", raw_response)
                     decision_source = "vlm"
+                elif self.mode == "human":
+                    _json_dump(event_dir / "actual_request_redacted.json", {
+                        "not_sent": True,
+                        "mode": "human",
+                        "system_prompt": system_prompt,
+                        "user_prompt": user_prompt,
+                        "allowed_choices": list(aliases_to_indices) + ["NEW", "UNCERTAIN"],
+                        "images": [
+                            {"label": label, "path": path.name, "sha256": _sha256_file(path)}
+                            for label, path in request_images
+                        ],
+                    })
+                    output = self._call_human(
+                        event_id=event_id,
+                        event_dir=event_dir,
+                        aliases=list(aliases_to_indices),
+                    )
+                    latency_seconds = time.perf_counter() - adjudication_started
+                    decision_source = "human"
                 elif self.mode == "oracle":
                     choice, oracle_diagnostics = self._oracle_choice(frame_idx, detection, candidates)
                     output = {
@@ -1483,6 +1582,9 @@ renderNav();load(0);
                 confidence = float(output.get("confidence", 0.0))
                 if not 0.0 <= confidence <= 1.0:
                     raise ValueError(f"invalid confidence: {confidence}")
+            except HumanInputUnavailableError:
+                self._write_summary(status="waiting_for_human_input")
+                raise
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
                 latency_seconds = time.perf_counter() - adjudication_started
@@ -1494,10 +1596,11 @@ renderNav();load(0);
                 }
                 decision_source = f"{decision_source}_failure"
                 self.stats["failures"] += 1
-            _json_dump(event_dir / "vlm_output.json", output)
+            output_file = "human_output.json" if self.mode == "human" else "vlm_output.json"
+            _json_dump(event_dir / output_file, output)
             if oracle_diagnostics is not None:
                 _json_dump(event_dir / "oracle_diagnostics.json", oracle_diagnostics)
-            if self.mode in {"oracle", "vlm"}:
+            if self.mode in {"oracle", "vlm", "human"}:
                 final_match, route_reason = route_choice(output["choice"], aliases_to_indices, baseline_match)
             else:
                 final_match, route_reason = baseline_match, "audit_keeps_baseline"
@@ -1537,6 +1640,7 @@ renderNav();load(0);
                 "human_annotation_case_id": human_case_id,
                 "baseline_match_index": baseline_match,
                 "decision_source": decision_source,
+                "output_file": output_file,
                 "model_output": output,
                 "final_match_index": final_match,
                 "route_reason": route_reason,
@@ -1610,7 +1714,7 @@ renderNav();load(0);
                 f'<div class="images">{"".join(images)}</div>'
                 f'<pre>{html.escape(json.dumps(event["model_output"], ensure_ascii=False, indent=2))}</pre>'
                 f'<p><a href="events/{event_id}/actual_request_redacted.json">redacted input</a> · '
-                f'<a href="events/{event_id}/vlm_output.json">parsed output</a> · '
+                f'<a href="events/{event_id}/{html.escape(event.get("output_file", "vlm_output.json"))}">parsed output</a> · '
                 f'<a href="events/{event_id}/decision.json">decision</a></p></section>'
             )
         document = f"""<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="refresh" content="5">

@@ -34,7 +34,7 @@ revision:
 # Selective pre-fusion arbitration. create_only means the threshold-distance
 # trigger applies only when ali-dev's original decision is NEW.
 association_gate:
-  mode: off  # off | audit | oracle | vlm
+  mode: off  # off | audit | oracle | vlm | human
   margin_threshold: 0.20
   threshold_distance: 0.30
   threshold_scope: create_only  # create_only | both
