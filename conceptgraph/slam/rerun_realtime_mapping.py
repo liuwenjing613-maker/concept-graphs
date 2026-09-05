@@ -780,6 +780,10 @@ def main(cfg : DictConfig):
                 device=cfg["device"],
                 do_edges=cfg["make_edges"],
                 map_edges=map_edges,
+                merge_review=association_gate.object_merge_reviewer(
+                    frame_idx=frame_idx, source_frame_id=color_path.stem,
+                    stage="final" if is_final_frame else "periodic",
+                ),
                 merge_event_callback=lambda source_object, target_object, overlap_ratio, visual_similarity, text_similarity: evidence.record_object_merge(
                     frame_idx=frame_idx,
                     source_object=source_object,

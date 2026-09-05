@@ -33,6 +33,7 @@ def main() -> int:
     parser.add_argument("--no-candidate-iou-filter", action="store_true")
     parser.add_argument("--no-review-all-new", action="store_true", help="Disable supplemental NEW review (ablation)")
     parser.add_argument("--no-mask-change", action="store_true", help="Disable 3D support-drop trigger (ablation)")
+    parser.add_argument("--no-human-merge-review", action="store_true", help="Disable manual approval of object merges (human ablation)")
     parser.add_argument("--support-drop-threshold", type=float, default=0.20)
     parser.add_argument("--max-events", type=int, default=0)
     parser.add_argument("--model", default="gpt-5.6-terra")
@@ -104,6 +105,7 @@ def main() -> int:
         f"association_gate.threshold_scope={args.threshold_scope}",
         f"association_gate.review_all_new={_bool(not args.no_review_all_new)}",
         f"association_gate.mask_change_enabled={_bool(not args.no_mask_change)}",
+        f"association_gate.human_merge_review={_bool(not args.no_human_merge_review)}",
         f"association_gate.support_drop_threshold={args.support_drop_threshold}",
         "association_gate.association_top_k=2",
         "association_gate.create_top_k=3",

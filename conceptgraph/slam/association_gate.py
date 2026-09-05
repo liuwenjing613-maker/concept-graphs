@@ -404,18 +404,21 @@ def _render_point_cloud_comparison(
     projection_ranges: Optional[Sequence[Tuple[float, float, float]]] = None,
     width: int = 1024,
     height: int = 456,
+    pair_labels: Optional[Tuple[str, str]] = None,
 ) -> np.ndarray:
     """Render XY/XZ/YZ without recentering; supplied ranges are shared by A/B/C."""
     canvas = np.full((height, width, 3), (248, 249, 252), dtype=np.uint8)
     dark, muted, border = (30, 38, 57), (70, 78, 96), (194, 203, 218)
     current_color, candidate_color = (220, 62, 108), (20, 162, 184)
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(canvas, f"3D  CURRENT vs CANDIDATE {alias}", (12, 25), font, 0.55, dark, 1, cv2.LINE_AA)
+    left_label, right_label = pair_labels or ("CURRENT", f"CANDIDATE {alias} @ H")
+    title = f"3D  {left_label} vs {right_label}" if pair_labels else f"3D  CURRENT vs CANDIDATE {alias}"
+    cv2.putText(canvas, title, (12, 25), font, 0.55, dark, 1, cv2.LINE_AA)
     legend_x = max(430, width - 420)
     cv2.circle(canvas, (legend_x, 20), 5, current_color, -1, cv2.LINE_AA)
-    cv2.putText(canvas, "CURRENT", (legend_x + 12, 25), font, 0.43, muted, 1, cv2.LINE_AA)
+    cv2.putText(canvas, left_label, (legend_x + 12, 25), font, 0.43, muted, 1, cv2.LINE_AA)
     cv2.circle(canvas, (legend_x + 145, 20), 5, candidate_color, -1, cv2.LINE_AA)
-    cv2.putText(canvas, f"CANDIDATE {alias} @ H", (legend_x + 157, 25), font, 0.43, muted, 1, cv2.LINE_AA)
+    cv2.putText(canvas, right_label, (legend_x + 157, 25), font, 0.43, muted, 1, cv2.LINE_AA)
 
     projections = ((0, 1, "XY (top)"), (0, 2, "XZ (front)"), (1, 2, "YZ (side)"))
     if projection_ranges is None:
@@ -471,12 +474,13 @@ def _candidate_evidence_composite(
     candidate_points: np.ndarray,
     alias: str,
     projection_ranges: Optional[Sequence[Tuple[float, float, float]]] = None,
+    pair_labels: Optional[Tuple[str, str]] = None,
 ) -> np.ndarray:
     """Build one 1024px card: three 2D histories above, shared-scale 3D below."""
     width, height, top_height, card_header = 1024, 1024, 563, 44
     canvas = np.full((height, width, 3), 20, dtype=np.uint8)
     cv2.putText(
-        canvas, f"CANDIDATE {alias}   |   2D HISTORY (RED MASK)", (18, 31),
+        canvas, f"{'OBJECT' if pair_labels else 'CANDIDATE'} {alias}   |   2D HISTORY (RED MASK)", (18, 31),
         cv2.FONT_HERSHEY_SIMPLEX, 0.76, (255, 255, 255), 2, cv2.LINE_AA,
     )
     margin, gap = 12, 8
@@ -495,6 +499,7 @@ def _candidate_evidence_composite(
     canvas[top_height + 5:] = _render_point_cloud_comparison(
         current_points, candidate_points, alias, projection_ranges,
         width=width, height=height - top_height - 5,
+        pair_labels=pair_labels,
     )
     return canvas
 
@@ -742,6 +747,8 @@ class BlockingAssociationGate:
         self.candidate_iou_threshold = float(gate_cfg.get("candidate_iou_threshold", 0.85))
         self.sim_threshold = float(cfg.get("sim_threshold"))
         self.review_all_new = bool(gate_cfg.get("review_all_new", True))
+        self.human_merge_review_enabled = self.mode == "human" and bool(gate_cfg.get("human_merge_review", True))
+        self._instance_merge_gate = None
         self.mask_change_enabled = bool(gate_cfg.get("mask_change_enabled", True))
         self.support_window = int(gate_cfg.get("support_window", 5))
         self.support_min_history = int(gate_cfg.get("support_min_history", 3))
@@ -792,6 +799,7 @@ class BlockingAssociationGate:
             "threshold_distance": self.threshold_distance,
             "threshold_scope": self.threshold_scope,
             "review_all_new": self.review_all_new,
+            "human_merge_review": self.human_merge_review_enabled,
             "mask_change_enabled": self.mask_change_enabled,
             "support_window": self.support_window,
             "support_min_history": self.support_min_history,
@@ -925,6 +933,7 @@ class BlockingAssociationGate:
         current_points: np.ndarray,
         candidate_points: np.ndarray,
         projection_ranges: Sequence[Tuple[float, float, float]],
+        pair_labels: Optional[Tuple[str, str]] = None,
     ) -> dict:
         paths, masks = list(obj.get("color_path", [])), list(obj.get("mask", []))
         boxes, obs_uids = list(obj.get("xyxy", [])), list(obj.get("obs_uids", []))
@@ -959,6 +968,7 @@ class BlockingAssociationGate:
             _candidate_evidence_composite(
                 history_rgbs, history_labels, current_points, candidate_points,
                 alias, projection_ranges,
+                pair_labels=pair_labels,
             ),
         )
         range_payload = [
@@ -1787,6 +1797,18 @@ UNCERTAIN = retain the mapper's original decision.</p>
             self._last_support_frame = int(frame_idx)
         return final_matches
 
+    def object_merge_reviewer(self, *, frame_idx: int, source_frame_id: str, stage: str):
+        """Return an approval callback only for the human merge experiment."""
+        if not self.human_merge_review_enabled:
+            return None
+        if self._instance_merge_gate is None:
+            from conceptgraph.slam.human_instance_merge import HumanInstanceMergeGate
+            self._instance_merge_gate = HumanInstanceMergeGate(self)
+        return lambda source, target, overlap, visual, text: self._instance_merge_gate.review(
+            source, target, frame_idx=frame_idx, source_frame_id=source_frame_id,
+            stage=stage, overlap=overlap, visual=visual, text=text,
+        )
+
     def _log_rerun(self, event_dir: Path, event: dict) -> None:
         if self.rerun is None:
             return
@@ -1845,6 +1867,8 @@ UNCERTAIN = retain the mapper's original decision.</p>
         (self.output_dir / "index.html").write_text(document, encoding="utf-8")
 
     def close(self, *, status: str = "completed") -> None:
+        if self._instance_merge_gate is not None:
+            self._instance_merge_gate.close(status=status)
         self._write_summary(status=status)
         self._write_index()
         self._write_human_annotation_index()

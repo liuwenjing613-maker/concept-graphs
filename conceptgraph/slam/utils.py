@@ -764,6 +764,7 @@ def merge_overlap_objects(
     merge_event_callback=None,
     merge_decision_callback=None,
     merge_guard=None,
+    merge_review=None,
 ):
     x, y = overlap_matrix.nonzero()
     overlap_ratio = overlap_matrix[x, y]
@@ -809,6 +810,12 @@ def merge_overlap_objects(
                 guard_reason = merge_guard(objects[i], objects[j])
                 if guard_reason:
                     reject_reasons.append(str(guard_reason))
+            # Review only proposals the original rules/guard would execute.
+            # Objects are live: earlier accepted merges in this pass may change them.
+            if not reject_reasons and merge_review is not None:
+                review_reason = merge_review(objects[i], objects[j], ratio, visual_sim, text_sim)
+                if review_reason:
+                    reject_reasons.append(str(review_reason))
             if merge_decision_callback is not None:
                 merge_decision_callback(
                     objects[i],
@@ -984,6 +991,7 @@ def merge_objects(
     merge_event_callback=None,
     merge_decision_callback=None,
     merge_guard=None,
+    merge_review=None,
 ):
     if len(objects) == 0:
         return objects
@@ -1015,6 +1023,7 @@ def merge_objects(
         merge_event_callback=merge_event_callback,
         merge_decision_callback=merge_decision_callback,
         merge_guard=merge_guard,
+        merge_review=merge_review,
     )
 
     # print(f"MERGE OPERATIONS: \n{merge_operations}")

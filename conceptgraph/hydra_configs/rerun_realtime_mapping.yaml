@@ -35,6 +35,7 @@ revision:
 # trigger applies only when ali-dev's original decision is NEW.
 association_gate:
   mode: off  # off | audit | oracle | vlm | human
+  human_merge_review: true  # human only; approve/reject every otherwise accepted periodic/final object merge
   margin_threshold: 0.20
   threshold_distance: 0.30
   threshold_scope: create_only  # create_only | both
