@@ -1,0 +1,111 @@
+{
+  "schema": "v5-visual-case-v1",
+  "case_id": "f000141_d011_association",
+  "scene": "Replica/room0",
+  "task": "observation",
+  "kind": "association",
+  "frame_idx": 141,
+  "aliases": [
+    "A",
+    "B"
+  ],
+  "allowed": [
+    "A",
+    "B",
+    "NEW",
+    "UNCERTAIN",
+    "DISCARD"
+  ],
+  "images": [
+    {
+      "label": "CURRENT CONTEXT",
+      "file": "current_context.jpg",
+      "sha256": "360dd4de0f3e9495ba8807d376b83a3fda0cbabfdadbafbfc217bd0d409dce8b",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 165342
+    },
+    {
+      "label": "CURRENT CROP",
+      "file": "current_crop.jpg",
+      "sha256": "8d7ee0e47e82ed11107624de804ecfa3057a32f9eccc0bc87bc96cea66e9a9d6",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 59069
+    },
+    {
+      "label": "CANDIDATE A",
+      "file": "candidate_A.jpg",
+      "sha256": "50b080a7ab79d15fcf0c0511b595ee35122a8b9d2d7fe77f69f661a30aedac5e",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 154193
+    },
+    {
+      "label": "CANDIDATE B",
+      "file": "candidate_B.jpg",
+      "sha256": "ac6489d61e6086cb0230b2dca63edc30896a5932edef8f1daa4216c830145f39",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 215981
+    }
+  ],
+  "reference": {
+    "choice": "A",
+    "eligible": true,
+    "status": "confirmed",
+    "source": "latest_user_review"
+  },
+  "saved_v5_output": {
+    "readable_output": {
+      "choice": "A",
+      "confidence": 5
+    },
+    "strict": true,
+    "status": "done"
+  },
+  "h_snapshot_uid": "6fda915cbcea7cca4c05b4f41881e43b465f4ea5b54f2eab0b6a70ee8acbd1f3",
+  "source_frame_timeline": {
+    "s_frame": 141,
+    "d_frame": 141,
+    "h_frame": 141,
+    "c_frame": 141
+  },
+  "request": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "system_prompt_file": "../../prompts/association_251bc9007212.txt",
+    "user_prompt": "合法选项：A, B, NEW, UNCERTAIN, DISCARD。图片顺序：CURRENT CONTEXT → CURRENT CROP → CANDIDATE A → CANDIDATE B。请独立判断，只返回 choice、confidence 两字段的 JSON。",
+    "options": {
+      "num_ctx": 32768,
+      "num_predict": 8192,
+      "temperature": 0
+    },
+    "think": false,
+    "stream": false,
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "NEW",
+            "UNCERTAIN",
+            "DISCARD"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "choice",
+        "confidence"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

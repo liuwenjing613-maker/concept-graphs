@@ -1,0 +1,122 @@
+{
+  "schema": "v5-visual-case-v1",
+  "case_id": "f000003_d016_create",
+  "scene": "Replica/room0",
+  "task": "observation",
+  "kind": "create",
+  "frame_idx": 3,
+  "aliases": [
+    "A",
+    "B",
+    "C"
+  ],
+  "allowed": [
+    "A",
+    "B",
+    "C",
+    "NEW",
+    "UNCERTAIN",
+    "DISCARD"
+  ],
+  "images": [
+    {
+      "label": "CURRENT CONTEXT",
+      "file": "current_context.jpg",
+      "sha256": "92286f32c8dfc97cd28b603a2770474b7d7f8fcf64ea2c0b551fe238bb9430b2",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 142392
+    },
+    {
+      "label": "CURRENT CROP",
+      "file": "current_crop.jpg",
+      "sha256": "fcdcdd04174ad30761ddc65673881a8a181dca1416d52d52bf8e216ac1476a7d",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 106195
+    },
+    {
+      "label": "CANDIDATE A",
+      "file": "candidate_A.jpg",
+      "sha256": "da9daa370d4d58db69cadae0f215e5951b2c4d2639bf4a1235cfe3a80284ea96",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 157004
+    },
+    {
+      "label": "CANDIDATE B",
+      "file": "candidate_B.jpg",
+      "sha256": "9cc7db9ac3cc818b81a52ebed3bfa144fe59d64e642d223be9a2c82116e3184a",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 161937
+    },
+    {
+      "label": "CANDIDATE C",
+      "file": "candidate_C.jpg",
+      "sha256": "de1e9e5e5b50028056cc60f3eeec6caed50682a01ba7ff4fb681100830416c1b",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 137598
+    }
+  ],
+  "reference": {
+    "choice": "NEW",
+    "eligible": true,
+    "status": "historical",
+    "source": "inherited_prior_reference"
+  },
+  "saved_v5_output": {
+    "readable_output": {
+      "choice": "NEW",
+      "confidence": 5
+    },
+    "strict": false,
+    "status": "format_failure"
+  },
+  "h_snapshot_uid": "d7342b67a22176d5c25f639ba5fbe7632358bf63524a1573a87cc15f39830389",
+  "source_frame_timeline": {
+    "s_frame": 3,
+    "d_frame": 3,
+    "h_frame": 3,
+    "c_frame": 3
+  },
+  "request": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "system_prompt_file": "../../prompts/create_dd0ea6977cce.txt",
+    "user_prompt": "合法选项：A, B, C, NEW, UNCERTAIN, DISCARD。图片顺序：CURRENT CONTEXT → CURRENT CROP → CANDIDATE A → CANDIDATE B → CANDIDATE C。请独立判断，只返回 choice、confidence 两字段的 JSON。",
+    "options": {
+      "num_ctx": 32768,
+      "num_predict": 8192,
+      "temperature": 0
+    },
+    "think": false,
+    "stream": false,
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "NEW",
+            "UNCERTAIN",
+            "DISCARD"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "choice",
+        "confidence"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

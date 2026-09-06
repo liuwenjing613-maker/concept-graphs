@@ -1,0 +1,108 @@
+{
+  "schema": "v5-visual-case-v1",
+  "case_id": "f000213_d021_association",
+  "scene": "Replica/room0",
+  "task": "observation",
+  "kind": "association",
+  "frame_idx": 213,
+  "aliases": [
+    "A",
+    "B"
+  ],
+  "allowed": [
+    "A",
+    "B",
+    "NEW",
+    "UNCERTAIN",
+    "DISCARD"
+  ],
+  "images": [
+    {
+      "label": "CURRENT CONTEXT",
+      "file": "current_context.jpg",
+      "sha256": "ad3b8af100db5e2b06286dcdd2195d6c28422fb623ac93263b70052546407f2d",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 197090
+    },
+    {
+      "label": "CURRENT CROP",
+      "file": "current_crop.jpg",
+      "sha256": "274a4a02ef26497c069a923485793b6cb7c758ef534e36028bce840431c70d82",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 66287
+    },
+    {
+      "label": "CANDIDATE A",
+      "file": "candidate_A.jpg",
+      "sha256": "b16ba6ca69f4b1e739647e9fb4988d44ce4f5e163e91e8ffdcc162e2f9ccbc6d",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 217928
+    },
+    {
+      "label": "CANDIDATE B",
+      "file": "candidate_B.jpg",
+      "sha256": "94df6e8203b1815dad012bae08eab2e5ed4c27bbe81322d3afb414f03e182007",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 237956
+    }
+  ],
+  "reference": {
+    "choice": "A",
+    "eligible": true,
+    "status": "confirmed",
+    "source": "latest_user_review"
+  },
+  "saved_v5_output": {
+    "readable_output": null,
+    "strict": false,
+    "status": "unreadable"
+  },
+  "h_snapshot_uid": "fe3db3a46d87d1709ccac74cbacb85bbd73cc625a0d13ce4c00d141261a34bcb",
+  "source_frame_timeline": {
+    "s_frame": 213,
+    "d_frame": 213,
+    "h_frame": 213,
+    "c_frame": 213
+  },
+  "request": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "system_prompt_file": "../../prompts/association_251bc9007212.txt",
+    "user_prompt": "合法选项：A, B, NEW, UNCERTAIN, DISCARD。图片顺序：CURRENT CONTEXT → CURRENT CROP → CANDIDATE A → CANDIDATE B。请独立判断，只返回 choice、confidence 两字段的 JSON。",
+    "options": {
+      "num_ctx": 32768,
+      "num_predict": 8192,
+      "temperature": 0
+    },
+    "think": false,
+    "stream": false,
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "NEW",
+            "UNCERTAIN",
+            "DISCARD"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "choice",
+        "confidence"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

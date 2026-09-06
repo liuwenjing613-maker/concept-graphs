@@ -1,0 +1,108 @@
+{
+  "schema": "v5-visual-case-v1",
+  "case_id": "f000360_d006_association",
+  "scene": "Replica/room0",
+  "task": "observation",
+  "kind": "association",
+  "frame_idx": 360,
+  "aliases": [
+    "A",
+    "B"
+  ],
+  "allowed": [
+    "A",
+    "B",
+    "NEW",
+    "UNCERTAIN",
+    "DISCARD"
+  ],
+  "images": [
+    {
+      "label": "CURRENT CONTEXT",
+      "file": "current_context.jpg",
+      "sha256": "7cc35d9ef4fe601546567e6b674eae6fe81e7644965e64a7e4b49a44f8eb8654",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 186356
+    },
+    {
+      "label": "CURRENT CROP",
+      "file": "current_crop.jpg",
+      "sha256": "54d7d7de27d320acf7eb0f6095a847b10b8ee361ddd59bd7042491f42077fbd9",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 82652
+    },
+    {
+      "label": "CANDIDATE A",
+      "file": "candidate_A.jpg",
+      "sha256": "96aa086081698c5587ccff9516ac74c8117473ad1c41887df43636707df92dcc",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 144619
+    },
+    {
+      "label": "CANDIDATE B",
+      "file": "candidate_B.jpg",
+      "sha256": "927d94ba8d05ef70b41e00410997b1d9d8243f95d89433fce399d188c3024cd7",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 200737
+    }
+  ],
+  "reference": {
+    "choice": "A",
+    "eligible": true,
+    "status": "historical",
+    "source": "inherited_prior_reference"
+  },
+  "saved_v5_output": {
+    "readable_output": null,
+    "strict": false,
+    "status": "unreadable"
+  },
+  "h_snapshot_uid": "fb6a787f317d2dcd658a18b55216b5336b508e94b9718affefcaf5d63ac809cd",
+  "source_frame_timeline": {
+    "s_frame": 360,
+    "d_frame": 360,
+    "h_frame": 360,
+    "c_frame": 360
+  },
+  "request": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "system_prompt_file": "../../prompts/association_251bc9007212.txt",
+    "user_prompt": "合法选项：A, B, NEW, UNCERTAIN, DISCARD。图片顺序：CURRENT CONTEXT → CURRENT CROP → CANDIDATE A → CANDIDATE B。请独立判断，只返回 choice、confidence 两字段的 JSON。",
+    "options": {
+      "num_ctx": 32768,
+      "num_predict": 8192,
+      "temperature": 0
+    },
+    "think": false,
+    "stream": false,
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "NEW",
+            "UNCERTAIN",
+            "DISCARD"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "choice",
+        "confidence"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

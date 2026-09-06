@@ -1,0 +1,4400 @@
+{
+  "schema": "v5-test-examples-v1",
+  "case_count": 337,
+  "image_count": 1443,
+  "image_bytes": 208979668,
+  "largest_image_bytes": 272612,
+  "source": "v5 observation_target_priority_full_20260906",
+  "source_data_sha256": "e452afeae4de938041dfc927499d10ab5ea04ff076c799e7b5d38da11b00661c",
+  "reference_version": "v5_human_reference_review2_20260906",
+  "reference_manifest_sha256": "4c3e16fc28dbcf68f6f13fa4403072c200871d356fbf09b0affa47a8a0162ae3",
+  "reference_status_counts": {
+    "historical": 202,
+    "confirmed": 130,
+    "unresolved": 5
+  },
+  "scope": "337 existing v5 observation cases only; no v6 projection/hatch images",
+  "cases": [
+    {
+      "id": "f000003_d016_create",
+      "path": "cases/f000003_d016_create",
+      "kind": "create",
+      "frame_idx": 3,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000004_d020_create",
+      "path": "cases/f000004_d020_create",
+      "kind": "create",
+      "frame_idx": 4,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000006_d018_create",
+      "path": "cases/f000006_d018_create",
+      "kind": "create",
+      "frame_idx": 6,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000007_d016_create",
+      "path": "cases/f000007_d016_create",
+      "kind": "create",
+      "frame_idx": 7,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000007_d020_create",
+      "path": "cases/f000007_d020_create",
+      "kind": "create",
+      "frame_idx": 7,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000010_d012_create",
+      "path": "cases/f000010_d012_create",
+      "kind": "create",
+      "frame_idx": 10,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000012_d001_create",
+      "path": "cases/f000012_d001_create",
+      "kind": "create",
+      "frame_idx": 12,
+      "images": 5,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000012_d015_association",
+      "path": "cases/f000012_d015_association",
+      "kind": "association",
+      "frame_idx": 12,
+      "images": 4,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000014_d015_create",
+      "path": "cases/f000014_d015_create",
+      "kind": "create",
+      "frame_idx": 14,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000015_d013_create",
+      "path": "cases/f000015_d013_create",
+      "kind": "create",
+      "frame_idx": 15,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000021_d015_create",
+      "path": "cases/f000021_d015_create",
+      "kind": "create",
+      "frame_idx": 21,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000023_d007_create",
+      "path": "cases/f000023_d007_create",
+      "kind": "create",
+      "frame_idx": 23,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000025_d010_create",
+      "path": "cases/f000025_d010_create",
+      "kind": "create",
+      "frame_idx": 25,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000025_d012_association",
+      "path": "cases/f000025_d012_association",
+      "kind": "association",
+      "frame_idx": 25,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000026_d010_create",
+      "path": "cases/f000026_d010_create",
+      "kind": "create",
+      "frame_idx": 26,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000026_d019_create",
+      "path": "cases/f000026_d019_create",
+      "kind": "create",
+      "frame_idx": 26,
+      "images": 5,
+      "reference": {
+        "choice": "C",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000029_d008_create",
+      "path": "cases/f000029_d008_create",
+      "kind": "create",
+      "frame_idx": 29,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000034_d011_association",
+      "path": "cases/f000034_d011_association",
+      "kind": "association",
+      "frame_idx": 34,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000036_d004_create",
+      "path": "cases/f000036_d004_create",
+      "kind": "create",
+      "frame_idx": 36,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000037_d001_create",
+      "path": "cases/f000037_d001_create",
+      "kind": "create",
+      "frame_idx": 37,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000037_d003_create",
+      "path": "cases/f000037_d003_create",
+      "kind": "create",
+      "frame_idx": 37,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000037_d014_create",
+      "path": "cases/f000037_d014_create",
+      "kind": "create",
+      "frame_idx": 37,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000038_d015_create",
+      "path": "cases/f000038_d015_create",
+      "kind": "create",
+      "frame_idx": 38,
+      "images": 5,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000054_d012_create",
+      "path": "cases/f000054_d012_create",
+      "kind": "create",
+      "frame_idx": 54,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000059_d011_create",
+      "path": "cases/f000059_d011_create",
+      "kind": "create",
+      "frame_idx": 59,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000060_d008_create",
+      "path": "cases/f000060_d008_create",
+      "kind": "create",
+      "frame_idx": 60,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000062_d021_association",
+      "path": "cases/f000062_d021_association",
+      "kind": "association",
+      "frame_idx": 62,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000065_d011_create",
+      "path": "cases/f000065_d011_create",
+      "kind": "create",
+      "frame_idx": 65,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000067_d001_association",
+      "path": "cases/f000067_d001_association",
+      "kind": "association",
+      "frame_idx": 67,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000084_d001_association",
+      "path": "cases/f000084_d001_association",
+      "kind": "association",
+      "frame_idx": 84,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000084_d005_association",
+      "path": "cases/f000084_d005_association",
+      "kind": "association",
+      "frame_idx": 84,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000101_d003_create",
+      "path": "cases/f000101_d003_create",
+      "kind": "create",
+      "frame_idx": 101,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000101_d008_association",
+      "path": "cases/f000101_d008_association",
+      "kind": "association",
+      "frame_idx": 101,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000103_d015_association",
+      "path": "cases/f000103_d015_association",
+      "kind": "association",
+      "frame_idx": 103,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000106_d009_association",
+      "path": "cases/f000106_d009_association",
+      "kind": "association",
+      "frame_idx": 106,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000107_d007_create",
+      "path": "cases/f000107_d007_create",
+      "kind": "create",
+      "frame_idx": 107,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000108_d006_association",
+      "path": "cases/f000108_d006_association",
+      "kind": "association",
+      "frame_idx": 108,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000108_d008_create",
+      "path": "cases/f000108_d008_create",
+      "kind": "create",
+      "frame_idx": 108,
+      "images": 5,
+      "reference": {
+        "choice": "C",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000109_d010_association",
+      "path": "cases/f000109_d010_association",
+      "kind": "association",
+      "frame_idx": 109,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000110_d003_create",
+      "path": "cases/f000110_d003_create",
+      "kind": "create",
+      "frame_idx": 110,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000110_d013_association",
+      "path": "cases/f000110_d013_association",
+      "kind": "association",
+      "frame_idx": 110,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000111_d001_create",
+      "path": "cases/f000111_d001_create",
+      "kind": "create",
+      "frame_idx": 111,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000112_d013_create",
+      "path": "cases/f000112_d013_create",
+      "kind": "create",
+      "frame_idx": 112,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000112_d014_create",
+      "path": "cases/f000112_d014_create",
+      "kind": "create",
+      "frame_idx": 112,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000113_d004_create",
+      "path": "cases/f000113_d004_create",
+      "kind": "create",
+      "frame_idx": 113,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000113_d009_association",
+      "path": "cases/f000113_d009_association",
+      "kind": "association",
+      "frame_idx": 113,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000115_d009_association",
+      "path": "cases/f000115_d009_association",
+      "kind": "association",
+      "frame_idx": 115,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000116_d009_association",
+      "path": "cases/f000116_d009_association",
+      "kind": "association",
+      "frame_idx": 116,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000120_d008_association",
+      "path": "cases/f000120_d008_association",
+      "kind": "association",
+      "frame_idx": 120,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000121_d009_create",
+      "path": "cases/f000121_d009_create",
+      "kind": "create",
+      "frame_idx": 121,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000122_d010_association",
+      "path": "cases/f000122_d010_association",
+      "kind": "association",
+      "frame_idx": 122,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000122_d011_create",
+      "path": "cases/f000122_d011_create",
+      "kind": "create",
+      "frame_idx": 122,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000122_d014_create",
+      "path": "cases/f000122_d014_create",
+      "kind": "create",
+      "frame_idx": 122,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000122_d018_create",
+      "path": "cases/f000122_d018_create",
+      "kind": "create",
+      "frame_idx": 122,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000123_d012_create",
+      "path": "cases/f000123_d012_create",
+      "kind": "create",
+      "frame_idx": 123,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000123_d016_create",
+      "path": "cases/f000123_d016_create",
+      "kind": "create",
+      "frame_idx": 123,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000124_d004_create",
+      "path": "cases/f000124_d004_create",
+      "kind": "create",
+      "frame_idx": 124,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000124_d008_create",
+      "path": "cases/f000124_d008_create",
+      "kind": "create",
+      "frame_idx": 124,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000124_d012_association",
+      "path": "cases/f000124_d012_association",
+      "kind": "association",
+      "frame_idx": 124,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000125_d006_create",
+      "path": "cases/f000125_d006_create",
+      "kind": "create",
+      "frame_idx": 125,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000125_d007_create",
+      "path": "cases/f000125_d007_create",
+      "kind": "create",
+      "frame_idx": 125,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000126_d013_create",
+      "path": "cases/f000126_d013_create",
+      "kind": "create",
+      "frame_idx": 126,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000129_d016_create",
+      "path": "cases/f000129_d016_create",
+      "kind": "create",
+      "frame_idx": 129,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000130_d016_create",
+      "path": "cases/f000130_d016_create",
+      "kind": "create",
+      "frame_idx": 130,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000131_d011_association",
+      "path": "cases/f000131_d011_association",
+      "kind": "association",
+      "frame_idx": 131,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000132_d011_association",
+      "path": "cases/f000132_d011_association",
+      "kind": "association",
+      "frame_idx": 132,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000133_d012_create",
+      "path": "cases/f000133_d012_create",
+      "kind": "create",
+      "frame_idx": 133,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000134_d012_association",
+      "path": "cases/f000134_d012_association",
+      "kind": "association",
+      "frame_idx": 134,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000134_d014_create",
+      "path": "cases/f000134_d014_create",
+      "kind": "create",
+      "frame_idx": 134,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000134_d019_association",
+      "path": "cases/f000134_d019_association",
+      "kind": "association",
+      "frame_idx": 134,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000135_d014_association",
+      "path": "cases/f000135_d014_association",
+      "kind": "association",
+      "frame_idx": 135,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000137_d011_association",
+      "path": "cases/f000137_d011_association",
+      "kind": "association",
+      "frame_idx": 137,
+      "images": 4,
+      "reference": {
+        "choice": null,
+        "eligible": false,
+        "status": "unresolved",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000137_d013_create",
+      "path": "cases/f000137_d013_create",
+      "kind": "create",
+      "frame_idx": 137,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000137_d015_create",
+      "path": "cases/f000137_d015_create",
+      "kind": "create",
+      "frame_idx": 137,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000138_d013_create",
+      "path": "cases/f000138_d013_create",
+      "kind": "create",
+      "frame_idx": 138,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000138_d018_create",
+      "path": "cases/f000138_d018_create",
+      "kind": "create",
+      "frame_idx": 138,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000139_d009_create",
+      "path": "cases/f000139_d009_create",
+      "kind": "create",
+      "frame_idx": 139,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000139_d014_association",
+      "path": "cases/f000139_d014_association",
+      "kind": "association",
+      "frame_idx": 139,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000139_d015_association",
+      "path": "cases/f000139_d015_association",
+      "kind": "association",
+      "frame_idx": 139,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000140_d005_create",
+      "path": "cases/f000140_d005_create",
+      "kind": "create",
+      "frame_idx": 140,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000140_d006_create",
+      "path": "cases/f000140_d006_create",
+      "kind": "create",
+      "frame_idx": 140,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000141_d004_create",
+      "path": "cases/f000141_d004_create",
+      "kind": "create",
+      "frame_idx": 141,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000141_d011_association",
+      "path": "cases/f000141_d011_association",
+      "kind": "association",
+      "frame_idx": 141,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000142_d014_association",
+      "path": "cases/f000142_d014_association",
+      "kind": "association",
+      "frame_idx": 142,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000143_d017_association",
+      "path": "cases/f000143_d017_association",
+      "kind": "association",
+      "frame_idx": 143,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000145_d010_create",
+      "path": "cases/f000145_d010_create",
+      "kind": "create",
+      "frame_idx": 145,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000145_d016_create",
+      "path": "cases/f000145_d016_create",
+      "kind": "create",
+      "frame_idx": 145,
+      "images": 5,
+      "reference": {
+        "choice": "C",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000146_d003_association",
+      "path": "cases/f000146_d003_association",
+      "kind": "association",
+      "frame_idx": 146,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000146_d012_create",
+      "path": "cases/f000146_d012_create",
+      "kind": "create",
+      "frame_idx": 146,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000146_d018_create",
+      "path": "cases/f000146_d018_create",
+      "kind": "create",
+      "frame_idx": 146,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000146_d019_association",
+      "path": "cases/f000146_d019_association",
+      "kind": "association",
+      "frame_idx": 146,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000146_d020_create",
+      "path": "cases/f000146_d020_create",
+      "kind": "create",
+      "frame_idx": 146,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000147_d001_create",
+      "path": "cases/f000147_d001_create",
+      "kind": "create",
+      "frame_idx": 147,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000147_d004_association",
+      "path": "cases/f000147_d004_association",
+      "kind": "association",
+      "frame_idx": 147,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000147_d019_association",
+      "path": "cases/f000147_d019_association",
+      "kind": "association",
+      "frame_idx": 147,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000148_d001_association",
+      "path": "cases/f000148_d001_association",
+      "kind": "association",
+      "frame_idx": 148,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000149_d008_association",
+      "path": "cases/f000149_d008_association",
+      "kind": "association",
+      "frame_idx": 149,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000149_d011_association",
+      "path": "cases/f000149_d011_association",
+      "kind": "association",
+      "frame_idx": 149,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000149_d020_create",
+      "path": "cases/f000149_d020_create",
+      "kind": "create",
+      "frame_idx": 149,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000150_d003_association",
+      "path": "cases/f000150_d003_association",
+      "kind": "association",
+      "frame_idx": 150,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000150_d015_create",
+      "path": "cases/f000150_d015_create",
+      "kind": "create",
+      "frame_idx": 150,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000150_d016_create",
+      "path": "cases/f000150_d016_create",
+      "kind": "create",
+      "frame_idx": 150,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000150_d018_create",
+      "path": "cases/f000150_d018_create",
+      "kind": "create",
+      "frame_idx": 150,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000151_d018_association",
+      "path": "cases/f000151_d018_association",
+      "kind": "association",
+      "frame_idx": 151,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000152_d016_association",
+      "path": "cases/f000152_d016_association",
+      "kind": "association",
+      "frame_idx": 152,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000152_d021_association",
+      "path": "cases/f000152_d021_association",
+      "kind": "association",
+      "frame_idx": 152,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000153_d018_association",
+      "path": "cases/f000153_d018_association",
+      "kind": "association",
+      "frame_idx": 153,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000154_d016_association",
+      "path": "cases/f000154_d016_association",
+      "kind": "association",
+      "frame_idx": 154,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000154_d018_association",
+      "path": "cases/f000154_d018_association",
+      "kind": "association",
+      "frame_idx": 154,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000155_d017_create",
+      "path": "cases/f000155_d017_create",
+      "kind": "create",
+      "frame_idx": 155,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000155_d019_create",
+      "path": "cases/f000155_d019_create",
+      "kind": "create",
+      "frame_idx": 155,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000156_d016_association",
+      "path": "cases/f000156_d016_association",
+      "kind": "association",
+      "frame_idx": 156,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000156_d021_association",
+      "path": "cases/f000156_d021_association",
+      "kind": "association",
+      "frame_idx": 156,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000157_d016_create",
+      "path": "cases/f000157_d016_create",
+      "kind": "create",
+      "frame_idx": 157,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000157_d018_association",
+      "path": "cases/f000157_d018_association",
+      "kind": "association",
+      "frame_idx": 157,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000158_d016_create",
+      "path": "cases/f000158_d016_create",
+      "kind": "create",
+      "frame_idx": 158,
+      "images": 5,
+      "reference": {
+        "choice": null,
+        "eligible": false,
+        "status": "unresolved",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000158_d017_association",
+      "path": "cases/f000158_d017_association",
+      "kind": "association",
+      "frame_idx": 158,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000159_d018_association",
+      "path": "cases/f000159_d018_association",
+      "kind": "association",
+      "frame_idx": 159,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000160_d019_create",
+      "path": "cases/f000160_d019_create",
+      "kind": "create",
+      "frame_idx": 160,
+      "images": 5,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000160_d020_create",
+      "path": "cases/f000160_d020_create",
+      "kind": "create",
+      "frame_idx": 160,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000173_d021_association",
+      "path": "cases/f000173_d021_association",
+      "kind": "association",
+      "frame_idx": 173,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000176_d012_association",
+      "path": "cases/f000176_d012_association",
+      "kind": "association",
+      "frame_idx": 176,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000181_d011_association",
+      "path": "cases/f000181_d011_association",
+      "kind": "association",
+      "frame_idx": 181,
+      "images": 4,
+      "reference": {
+        "choice": null,
+        "eligible": false,
+        "status": "unresolved",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000183_d013_create",
+      "path": "cases/f000183_d013_create",
+      "kind": "create",
+      "frame_idx": 183,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000184_d014_create",
+      "path": "cases/f000184_d014_create",
+      "kind": "create",
+      "frame_idx": 184,
+      "images": 5,
+      "reference": {
+        "choice": "C",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000188_d018_association",
+      "path": "cases/f000188_d018_association",
+      "kind": "association",
+      "frame_idx": 188,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000189_d019_association",
+      "path": "cases/f000189_d019_association",
+      "kind": "association",
+      "frame_idx": 189,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000190_d009_create",
+      "path": "cases/f000190_d009_create",
+      "kind": "create",
+      "frame_idx": 190,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000197_d018_association",
+      "path": "cases/f000197_d018_association",
+      "kind": "association",
+      "frame_idx": 197,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000198_d013_create",
+      "path": "cases/f000198_d013_create",
+      "kind": "create",
+      "frame_idx": 198,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000199_d015_create",
+      "path": "cases/f000199_d015_create",
+      "kind": "create",
+      "frame_idx": 199,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000199_d020_association",
+      "path": "cases/f000199_d020_association",
+      "kind": "association",
+      "frame_idx": 199,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000200_d014_association",
+      "path": "cases/f000200_d014_association",
+      "kind": "association",
+      "frame_idx": 200,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000208_d019_association",
+      "path": "cases/f000208_d019_association",
+      "kind": "association",
+      "frame_idx": 208,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000208_d020_create",
+      "path": "cases/f000208_d020_create",
+      "kind": "create",
+      "frame_idx": 208,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000211_d016_create",
+      "path": "cases/f000211_d016_create",
+      "kind": "create",
+      "frame_idx": 211,
+      "images": 5,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000213_d020_association",
+      "path": "cases/f000213_d020_association",
+      "kind": "association",
+      "frame_idx": 213,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000213_d021_association",
+      "path": "cases/f000213_d021_association",
+      "kind": "association",
+      "frame_idx": 213,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000214_d015_association",
+      "path": "cases/f000214_d015_association",
+      "kind": "association",
+      "frame_idx": 214,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000215_d016_association",
+      "path": "cases/f000215_d016_association",
+      "kind": "association",
+      "frame_idx": 215,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000216_d015_association",
+      "path": "cases/f000216_d015_association",
+      "kind": "association",
+      "frame_idx": 216,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000216_d017_association",
+      "path": "cases/f000216_d017_association",
+      "kind": "association",
+      "frame_idx": 216,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000216_d024_create",
+      "path": "cases/f000216_d024_create",
+      "kind": "create",
+      "frame_idx": 216,
+      "images": 5,
+      "reference": {
+        "choice": null,
+        "eligible": false,
+        "status": "unresolved",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000217_d018_create",
+      "path": "cases/f000217_d018_create",
+      "kind": "create",
+      "frame_idx": 217,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000217_d020_association",
+      "path": "cases/f000217_d020_association",
+      "kind": "association",
+      "frame_idx": 217,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000218_d017_association",
+      "path": "cases/f000218_d017_association",
+      "kind": "association",
+      "frame_idx": 218,
+      "images": 4,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000220_d016_association",
+      "path": "cases/f000220_d016_association",
+      "kind": "association",
+      "frame_idx": 220,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000221_d016_create",
+      "path": "cases/f000221_d016_create",
+      "kind": "create",
+      "frame_idx": 221,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000225_d017_association",
+      "path": "cases/f000225_d017_association",
+      "kind": "association",
+      "frame_idx": 225,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000227_d013_association",
+      "path": "cases/f000227_d013_association",
+      "kind": "association",
+      "frame_idx": 227,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000237_d016_association",
+      "path": "cases/f000237_d016_association",
+      "kind": "association",
+      "frame_idx": 237,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000245_d010_association",
+      "path": "cases/f000245_d010_association",
+      "kind": "association",
+      "frame_idx": 245,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000248_d015_create",
+      "path": "cases/f000248_d015_create",
+      "kind": "create",
+      "frame_idx": 248,
+      "images": 5,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000250_d010_create",
+      "path": "cases/f000250_d010_create",
+      "kind": "create",
+      "frame_idx": 250,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000250_d011_create",
+      "path": "cases/f000250_d011_create",
+      "kind": "create",
+      "frame_idx": 250,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000250_d017_association",
+      "path": "cases/f000250_d017_association",
+      "kind": "association",
+      "frame_idx": 250,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000251_d008_association",
+      "path": "cases/f000251_d008_association",
+      "kind": "association",
+      "frame_idx": 251,
+      "images": 4,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000251_d011_association",
+      "path": "cases/f000251_d011_association",
+      "kind": "association",
+      "frame_idx": 251,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000266_d012_create",
+      "path": "cases/f000266_d012_create",
+      "kind": "create",
+      "frame_idx": 266,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000271_d013_association",
+      "path": "cases/f000271_d013_association",
+      "kind": "association",
+      "frame_idx": 271,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000271_d016_association",
+      "path": "cases/f000271_d016_association",
+      "kind": "association",
+      "frame_idx": 271,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000276_d012_create",
+      "path": "cases/f000276_d012_create",
+      "kind": "create",
+      "frame_idx": 276,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000277_d016_association",
+      "path": "cases/f000277_d016_association",
+      "kind": "association",
+      "frame_idx": 277,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000287_d021_create",
+      "path": "cases/f000287_d021_create",
+      "kind": "create",
+      "frame_idx": 287,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000290_d000_association",
+      "path": "cases/f000290_d000_association",
+      "kind": "association",
+      "frame_idx": 290,
+      "images": 4,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000293_d014_association",
+      "path": "cases/f000293_d014_association",
+      "kind": "association",
+      "frame_idx": 293,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000294_d012_association",
+      "path": "cases/f000294_d012_association",
+      "kind": "association",
+      "frame_idx": 294,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000295_d011_association",
+      "path": "cases/f000295_d011_association",
+      "kind": "association",
+      "frame_idx": 295,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000299_d011_association",
+      "path": "cases/f000299_d011_association",
+      "kind": "association",
+      "frame_idx": 299,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000300_d013_association",
+      "path": "cases/f000300_d013_association",
+      "kind": "association",
+      "frame_idx": 300,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000303_d010_association",
+      "path": "cases/f000303_d010_association",
+      "kind": "association",
+      "frame_idx": 303,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000304_d013_association",
+      "path": "cases/f000304_d013_association",
+      "kind": "association",
+      "frame_idx": 304,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000306_d019_association",
+      "path": "cases/f000306_d019_association",
+      "kind": "association",
+      "frame_idx": 306,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000307_d016_association",
+      "path": "cases/f000307_d016_association",
+      "kind": "association",
+      "frame_idx": 307,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000308_d019_association",
+      "path": "cases/f000308_d019_association",
+      "kind": "association",
+      "frame_idx": 308,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000309_d018_association",
+      "path": "cases/f000309_d018_association",
+      "kind": "association",
+      "frame_idx": 309,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000310_d021_association",
+      "path": "cases/f000310_d021_association",
+      "kind": "association",
+      "frame_idx": 310,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000311_d021_association",
+      "path": "cases/f000311_d021_association",
+      "kind": "association",
+      "frame_idx": 311,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000312_d017_association",
+      "path": "cases/f000312_d017_association",
+      "kind": "association",
+      "frame_idx": 312,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000313_d018_association",
+      "path": "cases/f000313_d018_association",
+      "kind": "association",
+      "frame_idx": 313,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000314_d018_association",
+      "path": "cases/f000314_d018_association",
+      "kind": "association",
+      "frame_idx": 314,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000315_d015_association",
+      "path": "cases/f000315_d015_association",
+      "kind": "association",
+      "frame_idx": 315,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000316_d016_association",
+      "path": "cases/f000316_d016_association",
+      "kind": "association",
+      "frame_idx": 316,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000317_d014_association",
+      "path": "cases/f000317_d014_association",
+      "kind": "association",
+      "frame_idx": 317,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000317_d019_association",
+      "path": "cases/f000317_d019_association",
+      "kind": "association",
+      "frame_idx": 317,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000318_d016_association",
+      "path": "cases/f000318_d016_association",
+      "kind": "association",
+      "frame_idx": 318,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000319_d017_association",
+      "path": "cases/f000319_d017_association",
+      "kind": "association",
+      "frame_idx": 319,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000320_d018_association",
+      "path": "cases/f000320_d018_association",
+      "kind": "association",
+      "frame_idx": 320,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000320_d021_association",
+      "path": "cases/f000320_d021_association",
+      "kind": "association",
+      "frame_idx": 320,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000321_d006_association",
+      "path": "cases/f000321_d006_association",
+      "kind": "association",
+      "frame_idx": 321,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000321_d018_association",
+      "path": "cases/f000321_d018_association",
+      "kind": "association",
+      "frame_idx": 321,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000321_d022_association",
+      "path": "cases/f000321_d022_association",
+      "kind": "association",
+      "frame_idx": 321,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000322_d018_association",
+      "path": "cases/f000322_d018_association",
+      "kind": "association",
+      "frame_idx": 322,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000322_d022_association",
+      "path": "cases/f000322_d022_association",
+      "kind": "association",
+      "frame_idx": 322,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000323_d021_association",
+      "path": "cases/f000323_d021_association",
+      "kind": "association",
+      "frame_idx": 323,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000323_d022_association",
+      "path": "cases/f000323_d022_association",
+      "kind": "association",
+      "frame_idx": 323,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000324_d018_association",
+      "path": "cases/f000324_d018_association",
+      "kind": "association",
+      "frame_idx": 324,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000325_d018_association",
+      "path": "cases/f000325_d018_association",
+      "kind": "association",
+      "frame_idx": 325,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000326_d021_association",
+      "path": "cases/f000326_d021_association",
+      "kind": "association",
+      "frame_idx": 326,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000326_d026_association",
+      "path": "cases/f000326_d026_association",
+      "kind": "association",
+      "frame_idx": 326,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000327_d019_association",
+      "path": "cases/f000327_d019_association",
+      "kind": "association",
+      "frame_idx": 327,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000328_d020_association",
+      "path": "cases/f000328_d020_association",
+      "kind": "association",
+      "frame_idx": 328,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000328_d023_association",
+      "path": "cases/f000328_d023_association",
+      "kind": "association",
+      "frame_idx": 328,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000329_d018_association",
+      "path": "cases/f000329_d018_association",
+      "kind": "association",
+      "frame_idx": 329,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000329_d020_association",
+      "path": "cases/f000329_d020_association",
+      "kind": "association",
+      "frame_idx": 329,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000329_d023_association",
+      "path": "cases/f000329_d023_association",
+      "kind": "association",
+      "frame_idx": 329,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000330_d020_create",
+      "path": "cases/f000330_d020_create",
+      "kind": "create",
+      "frame_idx": 330,
+      "images": 5,
+      "reference": {
+        "choice": null,
+        "eligible": false,
+        "status": "unresolved",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000330_d022_association",
+      "path": "cases/f000330_d022_association",
+      "kind": "association",
+      "frame_idx": 330,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000330_d024_association",
+      "path": "cases/f000330_d024_association",
+      "kind": "association",
+      "frame_idx": 330,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000331_d014_association",
+      "path": "cases/f000331_d014_association",
+      "kind": "association",
+      "frame_idx": 331,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000332_d023_association",
+      "path": "cases/f000332_d023_association",
+      "kind": "association",
+      "frame_idx": 332,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000333_d008_association",
+      "path": "cases/f000333_d008_association",
+      "kind": "association",
+      "frame_idx": 333,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000333_d015_association",
+      "path": "cases/f000333_d015_association",
+      "kind": "association",
+      "frame_idx": 333,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000333_d021_association",
+      "path": "cases/f000333_d021_association",
+      "kind": "association",
+      "frame_idx": 333,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000333_d023_association",
+      "path": "cases/f000333_d023_association",
+      "kind": "association",
+      "frame_idx": 333,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000333_d027_association",
+      "path": "cases/f000333_d027_association",
+      "kind": "association",
+      "frame_idx": 333,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000333_d031_association",
+      "path": "cases/f000333_d031_association",
+      "kind": "association",
+      "frame_idx": 333,
+      "images": 4,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000334_d017_association",
+      "path": "cases/f000334_d017_association",
+      "kind": "association",
+      "frame_idx": 334,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000334_d024_association",
+      "path": "cases/f000334_d024_association",
+      "kind": "association",
+      "frame_idx": 334,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000334_d030_association",
+      "path": "cases/f000334_d030_association",
+      "kind": "association",
+      "frame_idx": 334,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000335_d018_association",
+      "path": "cases/f000335_d018_association",
+      "kind": "association",
+      "frame_idx": 335,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000335_d020_association",
+      "path": "cases/f000335_d020_association",
+      "kind": "association",
+      "frame_idx": 335,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000336_d019_association",
+      "path": "cases/f000336_d019_association",
+      "kind": "association",
+      "frame_idx": 336,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000336_d022_association",
+      "path": "cases/f000336_d022_association",
+      "kind": "association",
+      "frame_idx": 336,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000337_d019_association",
+      "path": "cases/f000337_d019_association",
+      "kind": "association",
+      "frame_idx": 337,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000337_d020_association",
+      "path": "cases/f000337_d020_association",
+      "kind": "association",
+      "frame_idx": 337,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000338_d021_create",
+      "path": "cases/f000338_d021_create",
+      "kind": "create",
+      "frame_idx": 338,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000338_d022_association",
+      "path": "cases/f000338_d022_association",
+      "kind": "association",
+      "frame_idx": 338,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000338_d023_association",
+      "path": "cases/f000338_d023_association",
+      "kind": "association",
+      "frame_idx": 338,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000339_d013_association",
+      "path": "cases/f000339_d013_association",
+      "kind": "association",
+      "frame_idx": 339,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000339_d025_association",
+      "path": "cases/f000339_d025_association",
+      "kind": "association",
+      "frame_idx": 339,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000340_d018_association",
+      "path": "cases/f000340_d018_association",
+      "kind": "association",
+      "frame_idx": 340,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000340_d019_association",
+      "path": "cases/f000340_d019_association",
+      "kind": "association",
+      "frame_idx": 340,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000340_d020_association",
+      "path": "cases/f000340_d020_association",
+      "kind": "association",
+      "frame_idx": 340,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000340_d022_association",
+      "path": "cases/f000340_d022_association",
+      "kind": "association",
+      "frame_idx": 340,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000341_d012_association",
+      "path": "cases/f000341_d012_association",
+      "kind": "association",
+      "frame_idx": 341,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000341_d020_association",
+      "path": "cases/f000341_d020_association",
+      "kind": "association",
+      "frame_idx": 341,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000341_d021_association",
+      "path": "cases/f000341_d021_association",
+      "kind": "association",
+      "frame_idx": 341,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000341_d023_association",
+      "path": "cases/f000341_d023_association",
+      "kind": "association",
+      "frame_idx": 341,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000342_d016_association",
+      "path": "cases/f000342_d016_association",
+      "kind": "association",
+      "frame_idx": 342,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000342_d019_association",
+      "path": "cases/f000342_d019_association",
+      "kind": "association",
+      "frame_idx": 342,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000342_d024_association",
+      "path": "cases/f000342_d024_association",
+      "kind": "association",
+      "frame_idx": 342,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000343_d017_association",
+      "path": "cases/f000343_d017_association",
+      "kind": "association",
+      "frame_idx": 343,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000343_d021_association",
+      "path": "cases/f000343_d021_association",
+      "kind": "association",
+      "frame_idx": 343,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000343_d025_association",
+      "path": "cases/f000343_d025_association",
+      "kind": "association",
+      "frame_idx": 343,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000344_d019_association",
+      "path": "cases/f000344_d019_association",
+      "kind": "association",
+      "frame_idx": 344,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000344_d021_association",
+      "path": "cases/f000344_d021_association",
+      "kind": "association",
+      "frame_idx": 344,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000344_d023_association",
+      "path": "cases/f000344_d023_association",
+      "kind": "association",
+      "frame_idx": 344,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000345_d017_association",
+      "path": "cases/f000345_d017_association",
+      "kind": "association",
+      "frame_idx": 345,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000345_d022_association",
+      "path": "cases/f000345_d022_association",
+      "kind": "association",
+      "frame_idx": 345,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000345_d023_association",
+      "path": "cases/f000345_d023_association",
+      "kind": "association",
+      "frame_idx": 345,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000345_d025_association",
+      "path": "cases/f000345_d025_association",
+      "kind": "association",
+      "frame_idx": 345,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000346_d013_association",
+      "path": "cases/f000346_d013_association",
+      "kind": "association",
+      "frame_idx": 346,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000346_d015_association",
+      "path": "cases/f000346_d015_association",
+      "kind": "association",
+      "frame_idx": 346,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000346_d023_association",
+      "path": "cases/f000346_d023_association",
+      "kind": "association",
+      "frame_idx": 346,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000347_d006_association",
+      "path": "cases/f000347_d006_association",
+      "kind": "association",
+      "frame_idx": 347,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000347_d015_association",
+      "path": "cases/f000347_d015_association",
+      "kind": "association",
+      "frame_idx": 347,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000347_d021_association",
+      "path": "cases/f000347_d021_association",
+      "kind": "association",
+      "frame_idx": 347,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000348_d015_association",
+      "path": "cases/f000348_d015_association",
+      "kind": "association",
+      "frame_idx": 348,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000349_d013_association",
+      "path": "cases/f000349_d013_association",
+      "kind": "association",
+      "frame_idx": 349,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000349_d020_association",
+      "path": "cases/f000349_d020_association",
+      "kind": "association",
+      "frame_idx": 349,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000351_d016_association",
+      "path": "cases/f000351_d016_association",
+      "kind": "association",
+      "frame_idx": 351,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000351_d019_association",
+      "path": "cases/f000351_d019_association",
+      "kind": "association",
+      "frame_idx": 351,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000351_d020_association",
+      "path": "cases/f000351_d020_association",
+      "kind": "association",
+      "frame_idx": 351,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000352_d016_association",
+      "path": "cases/f000352_d016_association",
+      "kind": "association",
+      "frame_idx": 352,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000353_d009_association",
+      "path": "cases/f000353_d009_association",
+      "kind": "association",
+      "frame_idx": 353,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000353_d017_association",
+      "path": "cases/f000353_d017_association",
+      "kind": "association",
+      "frame_idx": 353,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000354_d008_association",
+      "path": "cases/f000354_d008_association",
+      "kind": "association",
+      "frame_idx": 354,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000355_d009_association",
+      "path": "cases/f000355_d009_association",
+      "kind": "association",
+      "frame_idx": 355,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000356_d006_association",
+      "path": "cases/f000356_d006_association",
+      "kind": "association",
+      "frame_idx": 356,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000357_d006_association",
+      "path": "cases/f000357_d006_association",
+      "kind": "association",
+      "frame_idx": 357,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000357_d008_create",
+      "path": "cases/f000357_d008_create",
+      "kind": "create",
+      "frame_idx": 357,
+      "images": 5,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000358_d006_association",
+      "path": "cases/f000358_d006_association",
+      "kind": "association",
+      "frame_idx": 358,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000358_d015_association",
+      "path": "cases/f000358_d015_association",
+      "kind": "association",
+      "frame_idx": 358,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "target_priority_review2"
+      }
+    },
+    {
+      "id": "f000359_d005_association",
+      "path": "cases/f000359_d005_association",
+      "kind": "association",
+      "frame_idx": 359,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000359_d009_association",
+      "path": "cases/f000359_d009_association",
+      "kind": "association",
+      "frame_idx": 359,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000359_d014_association",
+      "path": "cases/f000359_d014_association",
+      "kind": "association",
+      "frame_idx": 359,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000360_d005_association",
+      "path": "cases/f000360_d005_association",
+      "kind": "association",
+      "frame_idx": 360,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000360_d006_association",
+      "path": "cases/f000360_d006_association",
+      "kind": "association",
+      "frame_idx": 360,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000360_d012_create",
+      "path": "cases/f000360_d012_create",
+      "kind": "create",
+      "frame_idx": 360,
+      "images": 5,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000360_d017_create",
+      "path": "cases/f000360_d017_create",
+      "kind": "create",
+      "frame_idx": 360,
+      "images": 5,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000360_d018_association",
+      "path": "cases/f000360_d018_association",
+      "kind": "association",
+      "frame_idx": 360,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000361_d005_association",
+      "path": "cases/f000361_d005_association",
+      "kind": "association",
+      "frame_idx": 361,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000361_d010_association",
+      "path": "cases/f000361_d010_association",
+      "kind": "association",
+      "frame_idx": 361,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000361_d012_association",
+      "path": "cases/f000361_d012_association",
+      "kind": "association",
+      "frame_idx": 361,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000362_d006_association",
+      "path": "cases/f000362_d006_association",
+      "kind": "association",
+      "frame_idx": 362,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000362_d011_association",
+      "path": "cases/f000362_d011_association",
+      "kind": "association",
+      "frame_idx": 362,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000363_d006_association",
+      "path": "cases/f000363_d006_association",
+      "kind": "association",
+      "frame_idx": 363,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000363_d007_association",
+      "path": "cases/f000363_d007_association",
+      "kind": "association",
+      "frame_idx": 363,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000363_d015_association",
+      "path": "cases/f000363_d015_association",
+      "kind": "association",
+      "frame_idx": 363,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000364_d007_association",
+      "path": "cases/f000364_d007_association",
+      "kind": "association",
+      "frame_idx": 364,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000364_d012_association",
+      "path": "cases/f000364_d012_association",
+      "kind": "association",
+      "frame_idx": 364,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000364_d013_association",
+      "path": "cases/f000364_d013_association",
+      "kind": "association",
+      "frame_idx": 364,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000364_d014_association",
+      "path": "cases/f000364_d014_association",
+      "kind": "association",
+      "frame_idx": 364,
+      "images": 4,
+      "reference": {
+        "choice": "NEW",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000364_d015_association",
+      "path": "cases/f000364_d015_association",
+      "kind": "association",
+      "frame_idx": 364,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000365_d005_association",
+      "path": "cases/f000365_d005_association",
+      "kind": "association",
+      "frame_idx": 365,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000365_d009_create",
+      "path": "cases/f000365_d009_create",
+      "kind": "create",
+      "frame_idx": 365,
+      "images": 5,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000365_d013_association",
+      "path": "cases/f000365_d013_association",
+      "kind": "association",
+      "frame_idx": 365,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000365_d014_association",
+      "path": "cases/f000365_d014_association",
+      "kind": "association",
+      "frame_idx": 365,
+      "images": 4,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000366_d005_association",
+      "path": "cases/f000366_d005_association",
+      "kind": "association",
+      "frame_idx": 366,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000366_d008_association",
+      "path": "cases/f000366_d008_association",
+      "kind": "association",
+      "frame_idx": 366,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000366_d011_association",
+      "path": "cases/f000366_d011_association",
+      "kind": "association",
+      "frame_idx": 366,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000367_d007_association",
+      "path": "cases/f000367_d007_association",
+      "kind": "association",
+      "frame_idx": 367,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000367_d008_create",
+      "path": "cases/f000367_d008_create",
+      "kind": "create",
+      "frame_idx": 367,
+      "images": 5,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000367_d013_association",
+      "path": "cases/f000367_d013_association",
+      "kind": "association",
+      "frame_idx": 367,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000367_d015_association",
+      "path": "cases/f000367_d015_association",
+      "kind": "association",
+      "frame_idx": 367,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000368_d005_association",
+      "path": "cases/f000368_d005_association",
+      "kind": "association",
+      "frame_idx": 368,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000368_d011_association",
+      "path": "cases/f000368_d011_association",
+      "kind": "association",
+      "frame_idx": 368,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000368_d012_association",
+      "path": "cases/f000368_d012_association",
+      "kind": "association",
+      "frame_idx": 368,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000368_d013_create",
+      "path": "cases/f000368_d013_create",
+      "kind": "create",
+      "frame_idx": 368,
+      "images": 5,
+      "reference": {
+        "choice": "DISCARD",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000369_d005_association",
+      "path": "cases/f000369_d005_association",
+      "kind": "association",
+      "frame_idx": 369,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000369_d012_association",
+      "path": "cases/f000369_d012_association",
+      "kind": "association",
+      "frame_idx": 369,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000370_d006_association",
+      "path": "cases/f000370_d006_association",
+      "kind": "association",
+      "frame_idx": 370,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000370_d011_association",
+      "path": "cases/f000370_d011_association",
+      "kind": "association",
+      "frame_idx": 370,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000370_d012_association",
+      "path": "cases/f000370_d012_association",
+      "kind": "association",
+      "frame_idx": 370,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000371_d005_association",
+      "path": "cases/f000371_d005_association",
+      "kind": "association",
+      "frame_idx": 371,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000371_d011_association",
+      "path": "cases/f000371_d011_association",
+      "kind": "association",
+      "frame_idx": 371,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000372_d007_association",
+      "path": "cases/f000372_d007_association",
+      "kind": "association",
+      "frame_idx": 372,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000372_d009_association",
+      "path": "cases/f000372_d009_association",
+      "kind": "association",
+      "frame_idx": 372,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000373_d006_association",
+      "path": "cases/f000373_d006_association",
+      "kind": "association",
+      "frame_idx": 373,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000373_d009_association",
+      "path": "cases/f000373_d009_association",
+      "kind": "association",
+      "frame_idx": 373,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000373_d012_association",
+      "path": "cases/f000373_d012_association",
+      "kind": "association",
+      "frame_idx": 373,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000374_d008_association",
+      "path": "cases/f000374_d008_association",
+      "kind": "association",
+      "frame_idx": 374,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000374_d009_association",
+      "path": "cases/f000374_d009_association",
+      "kind": "association",
+      "frame_idx": 374,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000375_d005_association",
+      "path": "cases/f000375_d005_association",
+      "kind": "association",
+      "frame_idx": 375,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000375_d009_association",
+      "path": "cases/f000375_d009_association",
+      "kind": "association",
+      "frame_idx": 375,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000375_d013_association",
+      "path": "cases/f000375_d013_association",
+      "kind": "association",
+      "frame_idx": 375,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000376_d005_association",
+      "path": "cases/f000376_d005_association",
+      "kind": "association",
+      "frame_idx": 376,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000376_d010_association",
+      "path": "cases/f000376_d010_association",
+      "kind": "association",
+      "frame_idx": 376,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000376_d011_association",
+      "path": "cases/f000376_d011_association",
+      "kind": "association",
+      "frame_idx": 376,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000376_d014_association",
+      "path": "cases/f000376_d014_association",
+      "kind": "association",
+      "frame_idx": 376,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000377_d005_association",
+      "path": "cases/f000377_d005_association",
+      "kind": "association",
+      "frame_idx": 377,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000377_d010_association",
+      "path": "cases/f000377_d010_association",
+      "kind": "association",
+      "frame_idx": 377,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000377_d013_association",
+      "path": "cases/f000377_d013_association",
+      "kind": "association",
+      "frame_idx": 377,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000378_d006_association",
+      "path": "cases/f000378_d006_association",
+      "kind": "association",
+      "frame_idx": 378,
+      "images": 4,
+      "reference": {
+        "choice": "A",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    },
+    {
+      "id": "f000378_d010_association",
+      "path": "cases/f000378_d010_association",
+      "kind": "association",
+      "frame_idx": 378,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "confirmed",
+        "source": "latest_user_review"
+      }
+    },
+    {
+      "id": "f000379_d009_association",
+      "path": "cases/f000379_d009_association",
+      "kind": "association",
+      "frame_idx": 379,
+      "images": 4,
+      "reference": {
+        "choice": "B",
+        "eligible": true,
+        "status": "historical",
+        "source": "inherited_prior_reference"
+      }
+    }
+  ]
+}
