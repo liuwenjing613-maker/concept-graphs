@@ -27,7 +27,7 @@ import openai
 from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 
 
-SCHEMA_VERSION = "blocking-association-gate-v1.3"
+SCHEMA_VERSION = "blocking-association-gate-v7-vlmsplit"
 VALID_MODES = {"off", "audit", "oracle", "vlm", "human"}
 VALID_SCOPES = {"create_only", "both"}
 ALIASES = ("A", "B", "C")
@@ -747,7 +747,7 @@ class BlockingAssociationGate:
         self.candidate_iou_threshold = float(gate_cfg.get("candidate_iou_threshold", 0.85))
         self.sim_threshold = float(cfg.get("sim_threshold"))
         self.review_all_new = bool(gate_cfg.get("review_all_new", True))
-        self.human_merge_review_enabled = self.mode == "human" and bool(gate_cfg.get("human_merge_review", True))
+        self.human_merge_review_enabled = self.mode in {"human", "vlm"} and bool(gate_cfg.get("human_merge_review", True))
         self._instance_merge_gate = None
         self.mask_change_enabled = bool(gate_cfg.get("mask_change_enabled", True))
         self.support_window = int(gate_cfg.get("support_window", 5))
@@ -762,14 +762,14 @@ class BlockingAssociationGate:
             raise ValueError("mask_change requires spatial_sim_type=overlap; disable it for other metrics")
         self._support_history: Dict[str, deque] = {}
         self._last_support_frame: Optional[int] = None
-        self.model = str(gate_cfg.get("model", "gpt-5.6-terra"))
+        self.model = str(gate_cfg.get("model", "qwen3.6:35b-a3b-mtp-q4_K_M"))
         reasoning_effort = gate_cfg.get("reasoning_effort", "high")
         self.reasoning_effort = None if reasoning_effort is None or str(reasoning_effort).lower() in {"", "none", "null"} else str(reasoning_effort)
-        self.base_url = str(gate_cfg.get("base_url", "https://api.codelink.chat/v1")).rstrip("/")
+        self.base_url = str(gate_cfg.get("base_url", "http://127.0.0.1:11464")).rstrip("/")
         self.timeout_seconds = float(gate_cfg.get("timeout_seconds", 300))
         self.max_retries = int(gate_cfg.get("max_retries", 1))
         self.api_key_env = str(gate_cfg.get("api_key_env", "GATE_API_KEY"))
-        self.api_key_required = bool(gate_cfg.get("api_key_required", True))
+        self.api_key_required = bool(gate_cfg.get("api_key_required", False))
         self.max_events = int(gate_cfg.get("max_events", 0))
         self.oracle_min_purity = float(gate_cfg.get("oracle_min_purity", 0.80))
         self.oracle_gt_path = gate_cfg.get("oracle_gt_path")
@@ -788,6 +788,11 @@ class BlockingAssociationGate:
         self.events: List[dict] = []
         self.annotation_cases: List[dict] = []
         self._human_input = input
+        self.vlm_runtime = None
+        if self.mode == "vlm":
+            from conceptgraph.slam.v7_runtime import V7Runtime
+            self.v7_containment_distance = float(cfg.get("downsample_voxel_size", 0.025))
+            self.vlm_runtime = V7Runtime(self)
         self.gt = self._load_oracle_gt(self.oracle_gt_path) if self.mode == "oracle" else {}
         if self.mode == "vlm" and self.api_key_required and not os.environ.get(self.api_key_env):
             raise RuntimeError(f"{self.api_key_env} must be set for association_gate.mode=vlm")
@@ -819,10 +824,12 @@ class BlockingAssociationGate:
             "api_key_required": self.api_key_required,
             "oracle_gt_path": str(self.oracle_gt_path) if self.oracle_gt_path else None,
             "max_events": self.max_events,
-            "formal_vlm_actions": list(ALIASES) + ["NEW", "UNCERTAIN"],
+            "formal_vlm_actions": list(ALIASES) + ["NEW", "UNCERTAIN", "DISCARD"],
+            "vlm_versions": self.vlm_runtime.versions if self.vlm_runtime else None,
+            "merge_voting": "MERGE consecutive 2; KEEP_SEPARATE cumulative 2 locks until selected historical views update",
             "formal_human_actions": list(ALIASES) + ["NEW", "UNCERTAIN", "DISCARD"],
             "human_interaction": "blocking terminal choice only; evidence saved before prompt",
-            "discard_route_implemented_but_prompt_disabled": True,
+            "discard_route_implemented_but_prompt_disabled": self.mode != "vlm",
             "candidate_history_views": 3,
             "candidate_point_cloud_scale": "shared_across_all_candidates_per_event",
         }
@@ -935,6 +942,9 @@ class BlockingAssociationGate:
         projection_ranges: Sequence[Tuple[float, float, float]],
         pair_labels: Optional[Tuple[str, str]] = None,
     ) -> dict:
+        if self.vlm_runtime:
+            return self.vlm_runtime.save_candidate(event_dir, alias, obj, current_points, candidate_points,
+                                                   projection_ranges, pair_labels=pair_labels)
         paths, masks = list(obj.get("color_path", [])), list(obj.get("mask", []))
         boxes, obs_uids = list(obj.get("xyxy", [])), list(obj.get("obs_uids", []))
         image_indices = list(obj.get("image_idx", []))
@@ -999,6 +1009,7 @@ class BlockingAssociationGate:
 
     @staticmethod
     def _prompts(kind: str, aliases: Sequence[str]) -> Tuple[str, str]:
+        # Legacy human/audit/oracle prompts. Native VLM uses the four versioned v7 stages.
         options = ", ".join(list(aliases) + ["NEW", "UNCERTAIN"])
         system = ASSOCIATION_SYSTEM_PROMPT if kind == "association" else CREATE_SYSTEM_PROMPT
         return system, (
@@ -1013,6 +1024,11 @@ class BlockingAssociationGate:
         )
 
     def _request_payload(self, system_prompt: str, user_prompt: str, images: Sequence[Tuple[str, Path]], aliases: Sequence[str]) -> dict:
+        if self.vlm_runtime:
+            allowed = list(aliases) + ["NEW", "UNCERTAIN", "DISCARD"]
+            directory = images[0][1].parent
+            self.vlm_runtime.pending(directory.name, directory, "observation", images, allowed)
+            return self.vlm_runtime.payload(system_prompt, user_prompt, images, allowed)
         allowed = list(aliases) + ["NEW", "UNCERTAIN"]
         content: List[dict] = [{"type": "text", "text": user_prompt}]
         for label, path in images:
@@ -1066,6 +1082,9 @@ class BlockingAssociationGate:
 
     @staticmethod
     def _redact_payload(payload: dict, images: Sequence[Tuple[str, Path]]) -> dict:
+        if "format" in payload and "images" in payload["messages"][1]:
+            from conceptgraph.slam.vlm_runtime import VLMRuntime
+            return VLMRuntime.redact(payload, images)
         redacted = json.loads(json.dumps(payload))
         image_iter = iter(images)
         for part in redacted["messages"][1]["content"]:
@@ -1211,6 +1230,8 @@ renderNav();load(0);
         (self.annotation_dir / "index.html").write_text(document, encoding="utf-8")
 
     def _call_vlm(self, payload: dict, failure_log_path: Optional[Path] = None) -> Tuple[dict, dict, float]:
+        if self.vlm_runtime:
+            return self.vlm_runtime.call(payload, failure_log_path)
         """Call the OpenAI-compatible endpoint through the official SDK.
 
         ``trust_env=False`` is deliberate: this server has a SOCKS proxy setting
@@ -1392,6 +1413,8 @@ UNCERTAIN = retain the mapper's original decision.</p>
         detection: Mapping[str, Any],
         candidates: Sequence[Tuple[str, int, Mapping[str, Any]]],
     ) -> Tuple[List[dict], List[Tuple[str, Path]]]:
+        if self.vlm_runtime:
+            return self.vlm_runtime.event_evidence(event_dir, image_rgb, detection, candidates)
         masks, boxes = list(detection.get("mask", [])), list(detection.get("xyxy", []))
         if not masks:
             raise ValueError("current detection has no mask")
@@ -1493,6 +1516,9 @@ UNCERTAIN = retain the mapper's original decision.</p>
                 }
         for detected_idx, detection in enumerate(detection_list):
             baseline_match = baseline_match_indices[detected_idx]
+            if self.mode == "vlm" and frame_idx == 0 and baseline_match is None:
+                self.stats["frame_zero_new_bypass"] += 1
+                continue
             raw_trigger = compute_trigger(
                 scores[detected_idx], baseline_match, self.sim_threshold,
                 self.margin_threshold, self.threshold_distance, self.threshold_scope,
@@ -1578,10 +1604,14 @@ UNCERTAIN = retain the mapper's original decision.</p>
             event_dir.mkdir(parents=True, exist_ok=False)
             h_time = _utc_now()
             evidence_manifest, request_images = self._event_evidence(event_dir, image_rgb, detection, candidates)
-            system_prompt, user_prompt = self._prompts(trigger["kind"], list(aliases_to_indices))
+            prompt_builder = self.vlm_runtime.prompts_for if self.vlm_runtime else self._prompts
+            system_prompt, user_prompt = prompt_builder(trigger["kind"], list(aliases_to_indices))
             (event_dir / "system_prompt.txt").write_text(system_prompt + "\n", encoding="utf-8")
             (event_dir / "user_prompt.txt").write_text(user_prompt + "\n", encoding="utf-8")
             snapshot_payload = {
+                "evidence": evidence_manifest,
+                "geometry_sha256": _sha256_file(event_dir / "live_points.npz") if self.vlm_runtime else None,
+                "prompt_version": self.vlm_runtime.versions if self.vlm_runtime else None,
                 "frame_idx": frame_idx,
                 "objects": [
                     {"alias": alias, "index": obj_idx, "uid": str(obj.get("id")), "num_detections": int(obj.get("num_detections", 0))}
@@ -1589,6 +1619,8 @@ UNCERTAIN = retain the mapper's original decision.</p>
                 ],
             }
             snapshot_uid = hashlib.sha256(json.dumps(snapshot_payload, sort_keys=True).encode("utf-8")).hexdigest()
+            if self.vlm_runtime:
+                self.vlm_runtime.bind_projection_snapshot(event_dir, snapshot_uid, frame_idx)
             human_case_id = self._write_human_annotation_case(
                 event_id=event_id,
                 snapshot_uid=snapshot_uid,
@@ -1611,21 +1643,10 @@ UNCERTAIN = retain the mapper's original decision.</p>
             adjudication_started = time.perf_counter()
             try:
                 if self.mode == "vlm":
-                    payload = self._request_payload(system_prompt, user_prompt, request_images, list(aliases_to_indices))
-                    _json_dump(event_dir / "request_media_manifest.json", [
-                        {"label": label, **_image_media_descriptor(path)} for label, path in request_images
-                    ])
-                    _json_dump(event_dir / "actual_request_redacted.json", self._redact_payload(payload, request_images))
-                    _json_dump(event_dir / "request_transport.json", {
-                        "client": "openai-python",
-                        "transport": "httpx.Client(trust_env=False)",
-                        "endpoint": f"{self.base_url}/chat/completions",
-                        "request_body_utf8_bytes": len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")),
-                        "retry_policy": {"same_key_serial_attempts": self.max_retries + 1, "multi_key_failover": False},
-                    })
-                    raw_response, output, latency_seconds = self._call_vlm(payload, failure_log_path=event_dir / "vlm_error.json")
+                    raw_response, output, latency_seconds = self.vlm_runtime.adjudicate(
+                        event_dir, candidates, snapshot_uid, frame_idx, source_frame_id)
                     _json_dump(event_dir / "vlm_raw_response.json", raw_response)
-                    decision_source = "vlm"
+                    decision_source = "v7_staged_vlm"
                 elif self.mode == "human":
                     _json_dump(event_dir / "actual_request_redacted.json", {
                         "not_sent": True,
@@ -1677,36 +1698,33 @@ UNCERTAIN = retain the mapper's original decision.</p>
                         "images": [{"label": label, "path": path.name, "sha256": _sha256_file(path)} for label, path in request_images],
                     })
                 allowed = set(aliases_to_indices) | {"NEW", "UNCERTAIN"}
-                if self.mode == "human":
+                if self.mode in {"human", "vlm"}:
                     allowed.add("DISCARD")
-                if str(output.get("choice", "")).upper() not in allowed:
-                    raise ValueError(f"invalid choice: {output.get('choice')}")
                 if self.mode == "vlm":
-                    assessments = list(output.get("candidate_assessments") or [])
-                    assessment_codes = [str(item.get("code", "")).upper() for item in assessments]
-                    if len(assessment_codes) != len(aliases_to_indices) or set(assessment_codes) != set(aliases_to_indices):
-                        raise ValueError(f"candidate assessments do not cover aliases exactly once: {assessment_codes}")
-                    invalid_relations = [
-                        item.get("relation") for item in assessments
-                        if str(item.get("relation", "")).upper() not in {"SAME", "DIFFERENT", "UNCERTAIN"}
-                    ]
-                    if invalid_relations:
-                        raise ValueError(f"invalid candidate assessment relations: {invalid_relations}")
-                confidence = float(output.get("confidence", 0.0))
-                if not 0.0 <= confidence <= 1.0:
-                    raise ValueError(f"invalid confidence: {confidence}")
+                    from conceptgraph.slam.vlm_runtime import validate
+                    validate(output, allowed)
+                else:
+                    if str(output.get("choice", "")).upper() not in allowed:
+                        raise ValueError("invalid choice")
+                    confidence = float(output.get("confidence", 0.0))
+                    if not 0.0 <= confidence <= 1.0:
+                        raise ValueError("invalid confidence")
             except HumanInputUnavailableError:
                 self._write_summary(status="waiting_for_human_input")
                 raise
             except Exception as exc:
                 error = f"{type(exc).__name__}: {exc}"
                 latency_seconds = time.perf_counter() - adjudication_started
-                output = {
-                    "candidate_assessments": neutral_assessments,
-                    "choice": "UNCERTAIN",
-                    "confidence": 0.0,
-                    "reason": "invalid response or API failure; baseline fallback",
-                }
+                if self.vlm_runtime:
+                    from conceptgraph.slam.v7_runtime import EvidenceInvariantError
+                    if isinstance(exc, EvidenceInvariantError):
+                        raise
+                    choice = self.vlm_runtime.fallback_choice(event_id, event_dir, "observation",
+                        request_images, "UNHANDLED_STAGE_FAILURE: " + type(exc).__name__,
+                        list(aliases_to_indices), snapshot_uid)
+                    output = {"choice": choice, "confidence": 0}
+                else:
+                    output = {"choice": "UNCERTAIN", "confidence": 0.0}
                 decision_source = f"{decision_source}_failure"
                 self.stats["failures"] += 1
             output_file = "human_output.json" if self.mode == "human" else "vlm_output.json"
@@ -1798,16 +1816,22 @@ UNCERTAIN = retain the mapper's original decision.</p>
         return final_matches
 
     def object_merge_reviewer(self, *, frame_idx: int, source_frame_id: str, stage: str):
-        """Return an approval callback only for the human merge experiment."""
+        """Approve original merge proposals before mutation (human or native VLM)."""
         if not self.human_merge_review_enabled:
             return None
         if self._instance_merge_gate is None:
-            from conceptgraph.slam.human_instance_merge import HumanInstanceMergeGate
-            self._instance_merge_gate = HumanInstanceMergeGate(self)
-        return lambda source, target, overlap, visual, text: self._instance_merge_gate.review(
+            if self.mode == "vlm":
+                from conceptgraph.slam.v7_merge import V7MergeGate
+                self._instance_merge_gate = V7MergeGate(self)
+            else:
+                from conceptgraph.slam.human_instance_merge import HumanInstanceMergeGate
+                self._instance_merge_gate = HumanInstanceMergeGate(self)
+        callback = lambda source, target, overlap, visual, text: self._instance_merge_gate.review(
             source, target, frame_idx=frame_idx, source_frame_id=source_frame_id,
             stage=stage, overlap=overlap, visual=visual, text=text,
         )
+        callback.on_merged = getattr(self._instance_merge_gate, "on_merged", None)
+        return callback
 
     def _log_rerun(self, event_dir: Path, event: dict) -> None:
         if self.rerun is None:
@@ -1839,6 +1863,9 @@ UNCERTAIN = retain the mapper's original decision.</p>
         })
 
     def _write_index(self) -> None:
+        if self.vlm_runtime:
+            self.vlm_runtime.publish()
+            return
         cards = []
         for event in reversed(self.events):
             event_id = event["event_id"]
@@ -1867,6 +1894,8 @@ UNCERTAIN = retain the mapper's original decision.</p>
         (self.output_dir / "index.html").write_text(document, encoding="utf-8")
 
     def close(self, *, status: str = "completed") -> None:
+        if self.vlm_runtime:
+            self.vlm_runtime.status = status
         if self._instance_merge_gate is not None:
             self._instance_merge_gate.close(status=status)
         self._write_summary(status=status)

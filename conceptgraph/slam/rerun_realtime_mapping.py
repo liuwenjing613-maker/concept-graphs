@@ -426,6 +426,12 @@ def main(cfg : DictConfig):
 
         # Don't apply any transformation otherwise
         adjusted_pose = unt_pose
+        if association_gate.vlm_runtime:
+            association_gate.vlm_runtime.register_projection_frame(
+                frame_idx, color_path, depth_path, adjusted_pose,
+                intrinsics.cpu().numpy(), depth_array.shape,
+                dataset.png_depth_scale,
+            )
         
         prev_adjusted_pose = orr_log_camera(intrinsics, adjusted_pose, prev_adjusted_pose, cfg.image_width, cfg.image_height, frame_idx)
         
@@ -626,6 +632,11 @@ def main(cfg : DictConfig):
             frame_idx, detection_list, objects,
             spatial_sim, visual_sim, agg_sim, match_indices,
         )
+
+        # Apply fully approved multi-SAME groups on the still-frozen objects, before observation fusion.
+        if association_gate.vlm_runtime and hasattr(association_gate.vlm_runtime, "flush_groups"):
+            objects, match_indices = association_gate.vlm_runtime.flush_groups(
+                objects, match_indices, cfg, evidence, frame_idx, map_edges)
 
         # Now merge the detected objects into the existing objects based on the match indices
         objects = merge_obj_matches(

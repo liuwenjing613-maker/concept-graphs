@@ -35,7 +35,7 @@ revision:
 # trigger applies only when ali-dev's original decision is NEW.
 association_gate:
   mode: off  # off | audit | oracle | vlm | human
-  human_merge_review: true  # human only; approve/reject every otherwise accepted periodic/final object merge
+  human_merge_review: true  # human and VLM; approve/reject every otherwise accepted periodic/final object merge
   margin_threshold: 0.20
   threshold_distance: 0.30
   threshold_scope: create_only  # create_only | both
@@ -49,13 +49,13 @@ association_gate:
   create_top_k: 3
   candidate_iou_filter_enabled: true
   candidate_iou_threshold: 0.85  # full room0 scan: 1,218 same-GT pairs removed, 0 different-GT pairs
-  model: gpt-5.6-terra
+  model: qwen3.6:35b-a3b-mtp-q4_K_M
   reasoning_effort: high
-  base_url: https://api.codelink.chat/v1
+  base_url: http://127.0.0.1:11464
   timeout_seconds: 300
   max_retries: 1
   api_key_env: GATE_API_KEY
-  api_key_required: true
+  api_key_required: false
   oracle_gt_path: null
   oracle_min_purity: 0.80
   max_events: 0  # 0 means unlimited; positive values are smoke-test only

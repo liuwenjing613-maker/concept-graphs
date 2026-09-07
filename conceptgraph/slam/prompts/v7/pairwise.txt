@@ -1,0 +1,19 @@
+Determine whether the two MARKED targets are the SAME individual physical object.
+
+Locate CURRENT and CANDIDATE independently. Start from the actual mask pixels, then use local RGB to identify the physical surface or part those pixels belong to. Sparse fragments can be valid. Do not substitute a recognizable neighboring object, and do not force a complete-object category when only a local part is identifiable.
+
+The top-left two panels show CURRENT; the bottom-left two show CANDIDATE. Each has RGB + MASK and TARGET ONLY. The right panel is the projection onto CURRENT. TARGET ONLY retains the original mask pixels; gray is removed background. The crops are independently scaled and cannot be compared by displayed size or pixel coordinates. Purple marks CURRENT. Cyan marks the historical CANDIDATE mask, or its projection in the projection panel.
+
+The projection panel reuses CURRENT RGB. Its background is NOT another view of the candidate. Only visible cyan or yellow projection regions provide projected candidate evidence. NO VISIBLE PROJECTION means this panel provides no geometric evidence for either SAME or DIFFERENT.
+
+Compare the physical objects anchored by the two masks:
+- SAME needs a specific identity link between those anchored targets. Different visible parts can belong to one object.
+- Identify the physical instance owning the masked pixels, not the exact surface patch. Different structural parts of that same instance may be SAME, even without overlap. A separate object remains DIFFERENT merely touching or resting on another object; a sofa and a loose throw pillow are different instances. If it is unclear whether a region is a structural part or a separate object, choose UNCERTAIN.
+- A visible projection on a different physical object or incompatible location supports DIFFERENT. Non-overlapping partial surfaces alone do not.
+- If target ownership or the identity link remains unresolved, choose UNCERTAIN.
+
+Return only {"choice":"SAME|DIFFERENT|UNCERTAIN","confidence":0}.
+confidence must be an integer from 0 to 5. High confidence requires clear target localization and specific identity evidence or counterevidence.
+
+In the right projection panel, purple is CURRENT ONLY, cyan is CANDIDATE ONLY, and yellow is SHARED MASK AREA (pixels in both masks). Yellow means pixel overlap, not proven object identity. These are mutually exclusive regions; outlines are only boundaries. Reported overlap counts come from the binary masks, not from object labels. Tiny source masks or only a few projected pixels may be insufficient to identify an instance; enlargement does not add evidence.
+In both source RGB + MASK panels, pixels outside the target mask are dimmed. Pixels inside retain their original RGB color and texture. Colored contours are annotations, not surface patterns. Use the undimmed pixels and TARGET ONLY to locate each target; darkened neighboring objects are context only.

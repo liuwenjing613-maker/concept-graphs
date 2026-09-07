@@ -177,3 +177,8 @@ cfslam/wandb
 cfslam/tmp.png
 cfslam/temp.json
 outputs
+
+# Isolated renderer dependency and smoke runtime output
+.runtime-deps/
+.hydra/
+rerun_realtime_mapping.log

@@ -1,4 +1,4 @@
 # Server paths for this host. Keep the original file in
 # base_paths.yaml.original for comparison.
-repo_root: /home/chenkejun/beauty/conceptgraphs/code/official/ali-my
+repo_root: /home/chenkejun/beauty/conceptgraphs/code/experiments/ali-my-v7-VLMsplit
 data_root: /home/chenkejun/beauty/conceptgraphs/data

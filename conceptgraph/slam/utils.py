@@ -844,6 +844,10 @@ def merge_overlap_objects(
                         device,
                         run_dbscan=True,
                     )
+                    # Notify only AFTER the actual object-object merge, never observation fusion.
+                    on_reviewed_merge = getattr(merge_review, "on_merged", None)
+                    if on_reviewed_merge is not None:
+                        on_reviewed_merge(source_object, objects[j])
                     if merge_event_callback is not None:
                         try:
                             merge_event_callback(

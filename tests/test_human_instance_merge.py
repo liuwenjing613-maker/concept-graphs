@@ -121,7 +121,7 @@ class MergeReviewTests(unittest.TestCase):
                     output_dir=self.root / f'{mode}-{enabled}',
                 )
                 cb = owner.object_merge_reviewer(frame_idx=4, source_frame_id='20', stage='final')
-                self.assertEqual(callable(cb), mode == 'human' and enabled)
+                self.assertEqual(callable(cb), mode in {'human', 'vlm'} and enabled)
 
     def test_changed_geometry_invalidates_no_cache(self):
         self.choose('N')

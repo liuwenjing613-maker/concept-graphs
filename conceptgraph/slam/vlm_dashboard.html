@@ -1,0 +1,41 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V5 VLM 实时建图监视</title><style>
+*{box-sizing:border-box}body{margin:0;font:16px/1.6 system-ui;background:#eef2f7;color:#172337}header{padding:16px 24px;background:#10213b;color:white;position:sticky;top:0;z-index:2}header a{color:#b8ddff}main{display:grid;grid-template-columns:280px 1fr;gap:22px;padding:20px}aside{height:calc(100vh - 130px);overflow:auto;position:sticky;top:110px}select,button{font:inherit;padding:8px;border:1px solid #b2c3d8;border-radius:5px;background:white;cursor:pointer}select{max-width:100%}nav button{display:block;width:100%;text-align:left;margin:6px 0;font-size:14px}nav button.active{border:2px solid #146dc4;background:#e1efff}.images{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:18px}figure{margin:12px 0;background:white;padding:12px;border:1px solid #d0dbea;border-radius:8px}img{width:100%;display:block}h2{font-size:21px;margin:4px 0 12px}.panel{padding:16px;background:white;border:1px solid #d0dbea;margin-bottom:16px;border-radius:8px}.choices{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.choices .selected{background:#146dc4;color:white}.muted{color:#506079}pre{white-space:pre-wrap;font:14px/1.6 monospace;overflow-wrap:anywhere}.error{color:#af2020}#message{min-height:1.6em}a{color:#125fae}#status{font-size:14px}button:disabled{opacity:.5;cursor:default}@media(max-width:800px){main{display:block}aside{position:static;height:200px}.images{grid-template-columns:1fr}header{position:static}}
+</style></head><body><header><strong id="title">VLM 实时建图监视</strong>　<label id="followLabel"><input type="checkbox" id="follow" checked> 跟随最新待判断案例</label>　<a id="other" target="_blank">打开 VLM 结果</a><div id="status">正在读取服务器结果…</div></header>
+<main><aside><label>事件筛选 <select id="filter"><option value="all">全部</option><option value="observation">观测</option><option value="merge">合并</option><option value="unreviewed">未复核</option><option value="failure">接口／格式失败</option></select></label><nav id="nav"></nav></aside><article>
+<h2 id="eventTitle">等待第一个触发事件</h2><div id="decision" class="panel"></div>
+<div id="reviewPanel" class="panel" hidden><div>复核独立保存，不控制正在运行的建图。可跳过；“暂不能定论”不纳入后续统计。</div><div id="choices" class="choices"></div><button id="save">保存本例</button> <button id="export">导出已保存复核</button><div id="message" class="muted"></div></div>
+<div id="links" class="panel"></div><div class="images" id="images"></div></article></main>
+<script>
+'use strict';
+const review=/\/review(?:\/|\/index\.html)$/.test(location.pathname);
+const base=new URL(review?'../':'./',location.href),storageKey='v5vlm-review-v1:'+base.pathname;
+const $=id=>document.getElementById(id);
+let rows=[],selected=null,draft=null,labels={},navSignature='',rendered=null;
+try{labels=JSON.parse(localStorage.getItem(storageKey)||'{}')}catch(_){$('message').textContent='无法读取浏览器缓存，请及时导出复核。'}
+$('title').textContent=review?'人工同步复核（可选）':'VLM 实时建图监视 · 无需人工操作';$('followLabel').hidden=review;$('follow').checked=!review;$('other').hidden=!review;
+$('other').href=new URL(review?'./':'review/',base).href;$('other').textContent=review?'打开 VLM 结果页':'打开同步复核';$('reviewPanel').hidden=!review;
+function find(){return rows.find(r=>r.event_id===selected)}
+function choicesFor(row){return [...row.allowed,'暂不能定论']}
+function renderChoices(){const row=find();$('choices').replaceChildren();if(!row)return;for(const c of choicesFor(row)){const b=document.createElement('button');b.textContent=c;b.className=c===draft?'selected':'';b.onclick=()=>{draft=c;renderChoices()};$('choices').append(b)}}
+function updateResult(){const r=find();if(!r)return;const out=r.model_output;let text='状态：'+r.status+'\n';
+if(!review||labels[r.event_id])text+='VLM 选择：'+(out?out.choice+'　置信度 '+out.confidence+'/5':'尚无有效输出')+'\n';else text+='复核保存后显示 VLM 选择。\n';
+if(r.vote_after)text+='合并连续 '+r.vote_after.merge_streak+'/3；不合并累计 '+r.vote_after.reject_total+'/3；锁定 '+(r.vote_after.locked?'是':'否')+'\n';
+text+='实际动作：'+(r.execution||'等待回答后继续建图');if(r.error)text+='\n接口／格式失败：'+r.error;
+$('decision').textContent=text;$('decision').style.whiteSpace='pre-wrap';$('decision').className='panel'+(r.error?' error':'');
+}
+function select(id,manual=true){const r=rows.find(x=>x.event_id===id);if(!r)return;if(manual&&!review)$('follow').checked=false;selected=id;history.replaceState(null,'','#'+encodeURIComponent(id));
+if(rendered!==id){rendered=id;draft=labels[id]?.choice||null;$('eventTitle').textContent=id+' · '+(r.task==='merge'?'实例合并':'当前观测');$('message').textContent=labels[id]?'已保存，可重新选择修改。':'';
+$('images').replaceChildren();for(const im of r.images){const f=document.createElement('figure'),cap=document.createElement('figcaption'),img=document.createElement('img'),a=document.createElement('a');cap.textContent=im.label;a.href=new URL(im.path,base).href;a.target='_blank';img.src=a.href;img.alt=im.label;img.loading='lazy';a.append(img);f.append(cap,a);$('images').append(f)}
+$('links').replaceChildren();for(const [name,file]of [['输入与图片校验','actual_request_redacted.json'],['提示词','system_prompt.txt'],['原始输出','vlm_raw_response.json'],['执行记录','decision.json']]){const a=document.createElement('a');a.textContent=name+'　';a.target='_blank';a.href=new URL(r.directory+'/'+file,base).href;$('links').append(a)}renderChoices()}
+updateResult();renderNav(true)}
+function renderNav(force=false){const mode=$('filter').value;const visible=rows.filter(r=>mode==='all'||(mode==='unreviewed'&&!labels[r.event_id])||(mode==='failure'&&r.error)||(mode==='merge'&&r.task==='merge')||(mode==='observation'&&r.task!=='merge'));
+const sig=JSON.stringify([mode,selected,visible.map(r=>[r.event_id,r.status,labels[r.event_id]?.choice])]);if(!force&&sig===navSignature)return;navSignature=sig;$('nav').replaceChildren();for(const r of visible){const b=document.createElement('button');b.textContent=(labels[r.event_id]?'✓ ':'')+r.event_id+(r.status==='waiting_for_vlm'?' · 推理中':'');b.className=r.event_id===selected?'active':'';b.onclick=()=>select(r.event_id);$('nav').append(b)}}
+function save(){const r=find();if(!r||!choicesFor(r).includes(draft)){$('message').textContent='请先选择一个选项。';return}labels[r.event_id]={event_id:r.event_id,choice:draft,exclude:draft==='暂不能定论',saved_at:new Date().toISOString()};try{localStorage.setItem(storageKey,JSON.stringify(labels));$('message').textContent='已保存；不会自动跳题。'}catch(_){$('message').textContent='缓存失败，当前结果仍在内存，请立即导出。'}renderNav();updateResult()}
+function exportReviews(){const value={schema_version:'v5-vlm-live-review-v1',run:base.pathname,saved_at:new Date().toISOString(),labels:Object.values(labels)};const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='v5_vlm_human_review.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)}
+async function poll(){try{const resp=await fetch(new URL('live_vlm.json',base),{cache:'no-store'});if(!resp.ok)throw Error('HTTP '+resp.status);const data=await resp.json();rows=data.rows;$('status').textContent=data.model+' · '+data.version+' · '+rows.filter(r=>r.status!=='waiting_for_vlm').length+'/'+rows.length+' 已结束 · '+(data.status==='completed'?'建图已结束':'建图中')+' · 每 2 秒更新';
+if(!selected&&rows.length){const hash=decodeURIComponent(location.hash.slice(1));if(rows.some(r=>r.event_id===hash))select(hash);else select(review?rows[0].event_id:rows[rows.length-1].event_id,false)}else if(!review&&$('follow').checked&&rows.length&&selected!==rows[rows.length-1].event_id){select(rows[rows.length-1].event_id,false)}else{updateResult();renderNav()}
+}catch(e){$('status').textContent='暂时无法读取更新，已显示证据不会丢失：'+e.message}finally{setTimeout(poll,2000)}}
+$('save').onclick=save;$('export').onclick=exportReviews;$('filter').onchange=()=>renderNav();window.addEventListener('hashchange',()=>select(decodeURIComponent(location.hash.slice(1))));
+poll();
+</script></body></html>

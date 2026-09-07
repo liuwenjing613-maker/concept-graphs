@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -20,12 +21,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", required=True, choices=("off", "audit", "oracle", "vlm", "human"))
     parser.add_argument("--exp-suffix", required=True)
+    parser.add_argument("--fallback", choices=("human", "auto"), default="auto")
+    parser.add_argument("--merge-base-url", default="http://127.0.0.1:11464")
     parser.add_argument("--scene", default="room0")
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--end", type=int, default=2000)
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--detections-exp-suffix", default="ali_dev_room0_stride5_det_frozen")
-    parser.add_argument("--gpu", default="4")
+    parser.add_argument("--gpu", default="1")
     parser.add_argument("--margin-threshold", type=float, default=0.20)
     parser.add_argument("--threshold-distance", type=float, default=0.30)
     parser.add_argument("--threshold-scope", choices=("create_only", "both"), default="create_only")
@@ -33,13 +36,16 @@ def main() -> int:
     parser.add_argument("--no-candidate-iou-filter", action="store_true")
     parser.add_argument("--no-review-all-new", action="store_true", help="Disable supplemental NEW review (ablation)")
     parser.add_argument("--no-mask-change", action="store_true", help="Disable 3D support-drop trigger (ablation)")
-    parser.add_argument("--no-human-merge-review", action="store_true", help="Disable manual approval of object merges (human ablation)")
+    parser.add_argument("--no-human-merge-review", "--no-merge-review", action="store_true", help="Ablation only: disable instance merge review (human/VLM)")
     parser.add_argument("--support-drop-threshold", type=float, default=0.20)
     parser.add_argument("--max-events", type=int, default=0)
-    parser.add_argument("--model", default="gpt-5.6-terra")
+    parser.add_argument("--model", default="qwen3.6:35b-a3b-mtp-q4_K_M")
     parser.add_argument("--reasoning-effort", default="high", choices=("none", "low", "medium", "high"))
-    parser.add_argument("--base-url", default="https://api.codelink.chat/v1")
-    parser.add_argument("--no-api-key-required", action="store_true")
+    parser.add_argument("--base-url", default="http://127.0.0.1:11464")
+    parser.add_argument("--no-api-key-required", action="store_true", default=True, help="Native local Ollama does not require an API key")
+    parser.add_argument("--web-root", default="/home/chenkejun/beauty/v5_prompt_lab_20260905/report")
+    parser.add_argument("--web-base-url", default="http://127.0.0.1:8895")
+    parser.add_argument("--no-web-link", action="store_true", help="Pages are still generated inside run output")
     parser.add_argument("--rerun-connect-addr")
     parser.add_argument("--no-save-pcd", action="store_true")
     parser.add_argument("--no-observation-pcd", action="store_true")
@@ -53,6 +59,8 @@ def main() -> int:
     parser.add_argument("--dataset-config")
     parser.add_argument("--oracle-gt-path", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl")
     args = parser.parse_args()
+    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.exp_suffix):
+        raise ValueError("exp-suffix must be one simple unique directory name")
 
     project_root = Path(args.project_root).resolve()
     worktree = Path(args.worktree).resolve()
@@ -68,6 +76,10 @@ def main() -> int:
     if args.mode == "human" and not sys.stdin.isatty():
         raise RuntimeError("human mode requires an interactive terminal (TTY)")
 
+    if args.mode == "vlm" and args.start != 0:
+        raise ValueError("v7 full online mapping must start at frame 0")
+    if args.mode == "vlm" and args.fallback == "human" and not sys.stdin.isatty():
+        raise RuntimeError("human fallback requires an interactive terminal")
     use_rerun = bool(args.rerun_connect_addr)
     command = [
         str(Path(args.python).resolve()),
@@ -130,23 +142,43 @@ def main() -> int:
         "schema_version": "blocking-association-gate-launch-v1",
         "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": args.mode,
+        "fallback": args.fallback,
+        "merge_base_url": args.merge_base_url,
         "fresh_online_map": True,
         "worktree": str(worktree),
         "experiment_root": str(exp_root),
         "cuda_visible_devices": args.gpu,
         "command": command,
         "credentials": "environment only; not recorded",
-        "interactive_stdin_required": args.mode == "human",
+        "interactive_stdin_required": args.mode in ("human", "vlm"),
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"[launch] mode={args.mode} fresh_output={exp_root}", flush=True)
     print(f"[launch] GPU={args.gpu} frames=[{args.start},{args.end}) stride={args.stride}", flush=True)
     if args.mode == "human":
         print("[launch] human mode: mapping will pause at every gate event for one terminal choice", flush=True)
+    if args.mode == "vlm" and not args.no_web_link:
+        web_root = Path(args.web_root).resolve()
+        if not web_root.is_dir():
+            raise FileNotFoundError("web root missing; provide --web-root or use --no-web-link")
+        alias = "v7VLM_" + args.exp_suffix
+        link = web_root / alias
+        if link.exists() or link.is_symlink():
+            raise FileExistsError(f"refusing to overwrite existing web link: {link}")
+        link.symlink_to(exp_root / "blocking_association_gate", target_is_directory=True)
+        manifest["web_pages"] = {
+            "result": args.web_base_url.rstrip("/") + "/" + alias + "/",
+            "review": args.web_base_url.rstrip("/") + "/" + alias + "/review/",
+        }
+        manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+        print("[web] result: " + manifest["web_pages"]["result"], flush=True)
+        print("[web] review: " + manifest["web_pages"]["review"], flush=True)
     environment = os.environ.copy()
     environment["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
+    environment["V7_FALLBACK"] = args.fallback
+    environment["V7_MERGE_URL"] = args.merge_base_url
     existing_pythonpath = environment.get("PYTHONPATH")
-    environment["PYTHONPATH"] = str(worktree) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
+    environment["PYTHONPATH"] = str(worktree / ".runtime-deps") + os.pathsep + str(worktree) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
     completed = subprocess.run(command, cwd=worktree, env=environment, check=False)
     manifest["return_code"] = completed.returncode
     manifest["completed_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")

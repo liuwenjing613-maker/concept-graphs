@@ -1,3 +1,5 @@
+[本分支：ali-my-v7-VLMsplit 在线建图与 human/auto 运行说明](README_V7.md)
+
 
 # ConceptGraphs: Open-Vocabulary 3D Scene Graphs for Perception and Planning
 

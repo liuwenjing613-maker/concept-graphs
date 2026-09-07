@@ -1,0 +1,39 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V7 在线建图</title><style>body{font:16px/1.6 system-ui;margin:20px;background:#111827;color:#e5edf7}a{color:#7dd3fc}header{position:sticky;top:0;background:#111827;padding:10px;z-index:3}button,select,input,textarea{font:inherit;padding:8px;margin:4px}main{display:grid;grid-template-columns:300px 1fr;gap:18px}nav{max-height:82vh;overflow:auto}nav button{display:block;width:95%;text-align:left}article img{max-width:100%;max-height:85vh}section{background:#1e293b;padding:16px;margin:12px 0;border-radius:8px}pre{white-space:pre-wrap;overflow-wrap:anywhere}textarea{width:90%}input{width:90%}.warn{border:2px solid #fbbf24}small{color:#94a3b8}@media(max-width:800px){main{display:block}nav{max-height:160px}}</style>
+<header><b>V7 在线建图 · 阶段输入 → VLM 输出 → 执行动作</b><div id="status"></div>
+<a id="resultLink">结果页</a> · <a id="reviewLink">人工复核页</a>
+<select id="filter"><option value="all">全部事件</option><option value="human">待人工处理</option><option value="observation">新建与关联</option><option value="merge">合并</option><option value="failure">接口／格式失败</option></select>
+<label><input style="width:auto" id="follow" type="checkbox">跟随最新事件</label></header>
+<main><nav id="nav"></nav><article><h2 id="title"></h2><section id="question" class="warn" hidden></section>
+<section><b>复核草稿（自动保存在当前浏览器）</b><div><select id="draft"><option value="">未选择</option><option>MERGE</option><option>KEEP_SEPARATE</option><option>A</option><option>B</option><option>C</option><option>NEW</option><option>DISCARD</option><option>暂不能定论</option></select></div><textarea id="note" placeholder="备注"></textarea></section>
+<div id="content"></div></article></main>
+<script>
+const review=location.pathname.includes('/review/'),base=review?'../':'./',key='v7-review:'+location.pathname.replace('/review/','/');
+const $=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let data,active=null,signature='',drafts={};try{drafts=JSON.parse(localStorage.getItem(key)||'{}')}catch{}
+$('follow').checked=!review;$('resultLink').href=base;$('reviewLink').href=base+'review/';
+function save(){if(active){drafts[active]={choice:$('draft').value,note:$('note').value};localStorage.setItem(key,JSON.stringify(drafts))}}
+$('draft').onchange=save;$('note').oninput=save;
+function choose(id){save();active=id;signature='';$('draft').value=drafts[id]?.choice||'';$('note').value=drafts[id]?.note||'';location.hash=id;render()}
+function image(i){return '<figure><figcaption>'+esc(i.label)+'</figcaption><a target="_blank" href="'+base+i.path+'"><img src="'+base+i.path+'"></a></figure>'}
+function render(){if(!data)return;const rows=data.rows||[];const f=$('filter').value;
+const shown=rows.filter(r=>f==='all'||f==='human'&&r.status==='waiting_for_human'||f===r.task||f==='failure'&&(r.error||(r.stage_results||[]).some(s=>s.error)));
+$('nav').innerHTML=shown.map(r=>'<button data-id="'+esc(r.event_id)+'">'+esc(r.event_id)+'<br><small>'+esc(r.status)+' · '+esc(r.execution)+'</small></button>').join('');
+$('nav').querySelectorAll('button').forEach(b=>b.onclick=()=>{$('follow').checked=false;choose(b.dataset.id)});
+if(!active&&shown.length)choose(shown[0].event_id);
+let r=rows.find(r=>r.event_id===active);if(!r)return;
+$('title').textContent=r.event_id+' · '+(r.execution||r.status);
+const sig=JSON.stringify(r);if(sig===signature)return;signature=sig;
+const q=r.human_question;$('question').hidden=!q;
+if(q){$('question').innerHTML='<b>'+esc(q.state==='waiting'?'建图暂停，等待人工选择':'人工选择已记录')+'</b><pre>'+esc(q.reason)+'</pre>'+q.allowed.map(a=>'<button data-answer="'+esc(q.token+' '+a)+'">'+esc(a)+'</button>').join('')+'<input id="answer" readonly placeholder="点击选项后复制到运行终端，并回车"><small>编号绑定本题及冻结快照；旧答案会被拒绝。</small>';
+$('question').querySelectorAll('button').forEach(b=>{b.disabled=q.state!=='waiting';b.onclick=async()=>{$('answer').value=b.dataset.answer;$('answer').select();try{await navigator.clipboard.writeText(b.dataset.answer)}catch{document.execCommand('copy')}}})}
+$('content').innerHTML='<section><pre>'+esc(JSON.stringify({status:r.status,action:r.execution,output:r.model_output,decision:r.staged_decision,votes:r.vote_after,containment:r.containment,snapshot:r.h_snapshot_uid},null,2))+'</pre></section>'+
+(r.stage_results||[]).map(s=>'<section><h3>'+esc(s.task)+'</h3><pre>'+esc(JSON.stringify({output:s.value,error:s.error,format:s.format_mode,seconds:s.seconds,raw:s.raw_output},null,2))+'</pre>'+s.images.map(image).join('')+'<a href="'+base+s.directory+'/request.json">实际请求</a> · <a href="'+base+s.directory+'/result.json">结果与耗时</a></section>').join('')+
+(!(r.stage_results||[]).length?(r.images||[]).map(image).join(''):'');
+}
+$('filter').onchange=render;
+async function update(){try{data=await(await fetch(base+'live_vlm.json?t='+Date.now())).json();$('status').textContent=data.status+' · '+data.rows.length+' 个事件 · '+data.model;
+const waiting=data.rows.filter(r=>r.status==='waiting_for_human');let latest=waiting.at(-1)||data.rows.at(-1);
+if($('follow').checked&&latest&&latest.event_id!==active)choose(latest.event_id);render()}catch(e){$('status').textContent='等待首个事件／连接恢复'}}
+if(location.hash)active=decodeURIComponent(location.hash.slice(1));update();setInterval(update,2000);
+</script></html>

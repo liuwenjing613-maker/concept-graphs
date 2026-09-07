@@ -372,7 +372,7 @@ def test_human_mode_blocks_for_one_option_and_routes_without_api(tmp_path: Path)
     assert gate.stats["choice_DISCARD"] == 2
 
 
-def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
+def test_discard_route_is_a_formal_vlm_action(tmp_path: Path):
     tmp_path.mkdir(parents=True, exist_ok=True)
     source = tmp_path / "source.jpg"
     image = np.full((64, 96, 3), 120, dtype=np.uint8)
@@ -391,19 +391,14 @@ def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
         },
         output_dir=tmp_path / "gate",
     )
-    gate._call_vlm = lambda payload, **kwargs: (
-        {"mock": True},
-        {
-            "candidate_assessments": [
-                {"code": "A", "relation": "SAME", "evidence": "matching history and 3D"},
-                {"code": "B", "relation": "DIFFERENT", "evidence": "separated in 3D"},
-            ],
-            "choice": "A",
-            "confidence": 0.98,
-            "reason": "A is supported by both evidence types",
-        },
-        0.01,
-    )
+    # Test the mapper boundary; real staged transport/evidence has its own v7 smoke.
+    def evidence(directory, rgb, current, candidates):
+        path=directory/'current.jpg';_write_rgb(path,rgb)
+        np.savez_compressed(directory/'live_points.npz',current=np.zeros((2,3)))
+        return [dict(path=path.name)], [('CURRENT',path)]
+    gate._event_evidence=evidence
+    gate.vlm_runtime.bind_projection_snapshot=lambda *args:None
+    gate.vlm_runtime.adjudicate=lambda *args: ({"mock_staged":True},{"choice":"DISCARD","confidence":0},0.01)
     routed = gate.route_frame(
         frame_idx=5,
         source_frame_id="5",
@@ -417,15 +412,10 @@ def test_discard_route_is_retained_but_not_a_formal_vlm_action(tmp_path: Path):
     gate.close()
     event_dir = next((tmp_path / "gate" / "events").iterdir())
     decision = json.loads((event_dir / "decision.json").read_text())
-    request = json.loads((event_dir / "actual_request_redacted.json").read_text())
-    response_schema = request["response_format"]["json_schema"]["schema"]
-    choices = response_schema["properties"]["choice"]["enum"]
-    assert routed == [0]
-    assert decision["route_reason"] == "model_candidate"
-    assert decision["final_match_index"] == 0
-    assert "DISCARD" not in choices
-    assert "observation_quality" not in response_schema["properties"]
-    assert "candidate_assessments" in response_schema["required"]
+    assert routed == [DISCARD_MATCH_INDEX]
+    assert decision["route_reason"] == "model_discard_observation"
+    assert decision["final_match_index"] == DISCARD_MATCH_INDEX
+    assert decision["decision_source"] == "v7_staged_vlm"
     assert route_choice("DISCARD", {"A": 0, "B": 1}, 0) == (
         DISCARD_MATCH_INDEX, "model_discard_observation",
     )
@@ -483,6 +473,6 @@ if __name__ == "__main__":
         test_audit_writes_evidence_but_keeps_baseline(root / "audit_case")
         test_off_is_identity(root / "off_case")
         test_human_mode_blocks_for_one_option_and_routes_without_api(root / "human_case")
-        test_discard_route_is_retained_but_not_a_formal_vlm_action(root / "discard_case")
+        test_discard_route_is_a_formal_vlm_action(root / "discard_case")
         test_oracle_uses_processed_frame_index(root / "oracle_case")
     print("12 association-gate tests passed")

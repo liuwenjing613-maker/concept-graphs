@@ -1,0 +1,29 @@
+{
+  "version": "ali-my-v7-VLMsplit",
+  "prompts": {
+    "observation_quality": {
+      "source": "/home/chenkejun/beauty/ali-my-v6projection/event_chain_v5_focused_full_20260907/quality_prompt.txt",
+      "file": "observation_quality.txt",
+      "sha256": "fdd42d2de438818d0ae61bb1dd443bfad0863946623204064c1cb59674ea0316"
+    },
+    "pairwise": {
+      "source": "/home/chenkejun/beauty/ali-my-v6projection/event_chain_v5_focused_full_20260907/pairwise_prompt.txt",
+      "file": "pairwise.txt",
+      "sha256": "11a55eb843ce466fad7a38c70e6fbc4703dfa38b98dcf36c4df9e91617651fe4"
+    },
+    "node_quality": {
+      "source": "/home/chenkejun/beauty/ali-my-v6projection/merge_full_events_v1_20260907/quality_prompt.txt",
+      "file": "node_quality.txt",
+      "sha256": "b53b565bf12d624d085e634de982ccd9c15d7387188953c3ca13f7f8bd248bd6"
+    },
+    "merge": {
+      "source": "/home/chenkejun/beauty/ali-my-v6projection/merge_rgb_zoom_maskcontent_v2_20260907/system_prompt.txt",
+      "file": "merge.txt",
+      "sha256": "9d446ac7cbdb7ce7dccfcc253a7ae462c42a0a24dddb146c119b26187cf25a1a"
+    }
+  },
+  "selected_merge_version": "RGB projection + zoom + mask background explanation; user-confirmed 22/26 version",
+  "evaluation_note": "Historical results identify the selected version; no new accuracy evaluation in this change.",
+  "request_templates": "Validated request schemas and generation options. Pairwise candidate letter is bound at runtime.",
+  "renderer_validation": "tests/smoke_v7_renderers.py: one observation and one selected merge, zero API calls, pixel-identical after pinning Pillow/OpenCV."
+}
