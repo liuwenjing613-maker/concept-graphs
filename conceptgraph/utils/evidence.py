@@ -965,6 +965,12 @@ class EvidenceRecorder:
         for detection, obs_uid in zip(detection_list, observation_uids):
             detection["obs_uids"] = [str(obs_uid)]
 
+    def association_similarity_snapshot(self, objects):
+        """Freeze matrix column identities before any pre-association map merge."""
+        uids = [_object_uid(obj) for obj in objects]
+        return {"object_uids": uids,
+                "object_version_uids": [self._current_object_versions.get(uid) for uid in uids]}
+
     @evidence_safe(list)
     def record_associations(
         self,
@@ -975,11 +981,18 @@ class EvidenceRecorder:
         visual_sim: Any,
         aggregate_sim: Any,
         match_indices: list,
+        *,
+        similarity_snapshot: Optional[dict] = None,
     ) -> list:
         frame_uid = self.frame_uid(frame_idx)
         observation_uids = [str(det["obs_uids"][0]) for det in detection_list]
-        object_uids = [_object_uid(obj) for obj in objects_before]
-        expected_shape = (len(detection_list), len(objects_before))
+        live_object_uids = [_object_uid(obj) for obj in objects_before]
+        snapshot = similarity_snapshot or self.association_similarity_snapshot(objects_before)
+        object_uids = list(snapshot["object_uids"])
+        candidate_versions = list(snapshot["object_version_uids"])
+        if len(candidate_versions) != len(object_uids):
+            raise ValueError("similarity snapshot identity/version length mismatch")
+        expected_shape = (len(detection_list), len(object_uids))
         spatial, spatial_validation = _validate_similarity_matrix(
             "spatial_sim", spatial_sim, expected_shape
         )
@@ -1047,7 +1060,7 @@ class EvidenceRecorder:
             target_uid = None if discarded else (
                 _object_uid(detection)
                 if match_index is None
-                else object_uids[int(match_index)]
+                else live_object_uids[int(match_index)]
             )
             targets.append(target_uid)
             event_uid = self._next_event_uid()
@@ -1077,6 +1090,8 @@ class EvidenceRecorder:
                     "frame_uid": frame_uid,
                     "obs_uid": observation_uids[det_index],
                     "object_uids_before": object_uids,
+                    "association_object_uids_before": live_object_uids,
+                    "similarity_frozen_before_pre_association_merge": similarity_snapshot is not None,
                     "spatial_sim_ref": {**similarity_ref, "key": "spatial_sim"},
                     "visual_sim_ref": {**similarity_ref, "key": "visual_sim"},
                     "aggregate_sim_ref": {**similarity_ref, "key": "aggregate_sim"},
@@ -1094,9 +1109,7 @@ class EvidenceRecorder:
                     "target_object_uid": target_uid,
                     "target_object_version_before": target_version_before,
                     "target_object_version_after": target_version_after,
-                    "candidate_object_version_uids": [
-                        self._current_object_versions.get(uid) for uid in object_uids
-                    ],
+                    "candidate_object_version_uids": candidate_versions,
                     "mapping_event_uid": mapping_event_uid,
                     "transaction_uid": f"{self.run_id}_assoc_f{int(frame_idx):06d}",
                     "branch_id": "baseline",

@@ -628,15 +628,18 @@ def main(cfg : DictConfig):
             # create or merge action.
             for index in gate_discarded_indices:
                 match_indices[index] = DISCARD_MATCH_INDEX
+        # Scores belong to the original H columns; targets/versions belong to the
+        # live map AFTER approved object merges and BEFORE observation fusion.
+        similarity_snapshot = None
+        if association_gate.vlm_runtime and association_gate.vlm_runtime.forced_groups:
+            similarity_snapshot = evidence.association_similarity_snapshot(objects)
+            objects, match_indices = association_gate.vlm_runtime.flush_groups(
+                objects, match_indices, cfg, evidence, frame_idx, map_edges)
         evidence.record_associations(
             frame_idx, detection_list, objects,
             spatial_sim, visual_sim, agg_sim, match_indices,
+            similarity_snapshot=similarity_snapshot,
         )
-
-        # Apply fully approved multi-SAME groups on the still-frozen objects, before observation fusion.
-        if association_gate.vlm_runtime and hasattr(association_gate.vlm_runtime, "flush_groups"):
-            objects, match_indices = association_gate.vlm_runtime.flush_groups(
-                objects, match_indices, cfg, evidence, frame_idx, map_edges)
 
         # Now merge the detected objects into the existing objects based on the match indices
         objects = merge_obj_matches(
