@@ -150,7 +150,7 @@ def main() -> int:
         "cuda_visible_devices": args.gpu,
         "command": command,
         "credentials": "environment only; not recorded",
-        "interactive_stdin_required": args.mode in ("human", "vlm"),
+        "interactive_stdin_required": args.mode == "human" or (args.mode == "vlm" and args.fallback == "human"),
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"[launch] mode={args.mode} fresh_output={exp_root}", flush=True)

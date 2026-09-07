@@ -101,9 +101,24 @@ class GateIntegration(unittest.TestCase):
     def test_quality_mixed_no_identity_call(self):
         self.quality='CONTAMINATED';self.review(1)
         self.assertEqual(self.calls,['node_quality','node_quality'])
-    def test_negative_containment_auto_still_human(self):
+    def test_negative_containment_human_mode_asks(self):
+        self.owner.vlm_runtime.fallback="human"
         self.b['pcd'].points=self.a['pcd'].points.copy();self.review(1)
         self.assertEqual(len(self.humans),1);self.assertEqual(self.gate.events[0]['containment_human_choice'],'KEEP_SEPARATE')
+    def test_negative_containment_auto_never_asks(self):
+        self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.review(1);self.review(2)
+        self.assertEqual(self.humans,[])
+        report=self.gate.events[0]['containment']
+        self.assertTrue(report['exceeds_threshold']);self.assertFalse(report['requires_human'])
+        self.assertEqual(report['resolution_policy'],'AUTO_KEEP_SEPARATE')
+        self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+    def test_input_failure_with_containment_auto_never_asks(self):
+        self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.owner.vlm_runtime.evidence.merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))
+        self.review(1);self.assertEqual(self.humans,[])
+        self.assertEqual(self.gate.events[0]['model_output']['choice'],'KEEP_SEPARATE')
+        self.assertFalse(self.gate.events[0]['containment']['requires_human'])
     def test_positive_does_not_containment_check(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.answer='SAME'
         self.assertIsNotNone(self.review(1));self.assertIsNone(self.review(2));self.assertFalse(self.humans)
@@ -135,10 +150,16 @@ class MutationAndFallback(unittest.TestCase):
         for task,expected in [('observation','DISCARD'),('merge','KEEP_SEPARATE')]:
             self.assertEqual(self.r.fallback_choice('e',self.root,task,[],'failure',['A'],'snap'),expected)
     def test_human_choice_rejects_wrong_snapshot_token(self):
+        self.r.fallback="human"
         answers=iter(['OLD MERGE','E-SNAPSHOT MERGE'])
         self.r.owner._human_input=lambda prompt:next(answers)
         self.assertEqual(self.r.human_choice('e',self.root,['MERGE','KEEP_SEPARATE'],[],'smoke','snapshot'),'MERGE')
         self.assertEqual(json.loads((self.root/'human_answer.json').read_text())['c_bound_h_snapshot_uid'],'snapshot')
+    def test_auto_guard_never_reads_stdin_or_creates_human_question(self):
+        self.r.owner._human_input=lambda prompt: (_ for _ in ()).throw(AssertionError('auto read stdin'))
+        for allowed,expected in [(['MERGE','KEEP_SEPARATE'],'KEEP_SEPARATE'),(['A','NEW','DISCARD'],'DISCARD')]:
+            self.assertEqual(self.r.human_choice('e',self.root,allowed,[],'conflict','H'),expected)
+        self.assertFalse((self.root/'human_question.json').exists())
     def test_human_fallback_uses_explicit_choice(self):
         self.r.fallback='human';self.r.owner._human_input=lambda prompt:'E-SNAPSHOT DISCARD'
         self.assertEqual(self.r.fallback_choice('e',self.root,'observation',[],'failure',['A'],'snapshot'),'DISCARD')

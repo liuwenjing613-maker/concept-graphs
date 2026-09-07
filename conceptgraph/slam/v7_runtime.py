@@ -86,7 +86,8 @@ class V7Runtime(VLMRuntime):
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
             merge_required_consecutive=2,reject_required_total=2,containment_distance_m=self.containment_distance,
-            containment_threshold=.9,containment_trigger='KEEP_SEPARATE only; either direction > threshold => human')
+            containment_threshold=.9,auto_requires_human=False,
+            containment_trigger='KEEP_SEPARATE only; >90%: human reviews, auto records conflict and keeps separate')
         save_json(self.root/'vlm_versions.json',self.versions)
         template=Path(__file__).with_name('v7_dashboard.html')
         for dest in [self.root/'index.html',self.root/'review/index.html']:dest.write_text(template.read_text())
@@ -151,6 +152,10 @@ class V7Runtime(VLMRuntime):
         print('[v7-stage]',event_id,task,'DONE',result['value'] or result['error'],flush=True)
         return result
     def human_choice(self,event_id,directory,allowed,images,reason,snapshot):
+        # Auto must never read stdin, including a containment-conflict call path.
+        if self.fallback=='auto':
+            task='merge' if 'KEEP_SEPARATE' in allowed else 'observation'
+            return self.fallback_choice(event_id,directory,task,images,reason,allowed,snapshot)
         token=(event_id+'-'+snapshot[:10]).upper()
         question=dict(event_id=event_id,token=token,allowed=allowed,reason=reason,h_snapshot_uid=snapshot,
             images=[dict(label=n,path=str(p.relative_to(self.root))) for n,p in images],state='waiting')

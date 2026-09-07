@@ -5,7 +5,7 @@ MODE="${1:-}"
 if [[ "$MODE" != human && "$MODE" != auto ]]; then
   echo "Usage: bash $0 human|auto [--scene room0 --end 2000 --stride 5 --gpu 1 --exp-suffix NAME]"
   echo "Both modes run staged VLM. human: unresolved cases need a choice. auto: discard observation / keep separate."
-  echo "A KEEP_SEPARATE decision with >90% cloud containment always requires human review."
+  echo "Containment >90%: human mode asks; auto mode logs the conflict and keeps separate without prompting."
   exit 2
 fi
 shift

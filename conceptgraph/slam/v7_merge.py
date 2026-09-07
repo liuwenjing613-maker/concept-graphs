@@ -26,9 +26,16 @@ class V7MergeGate:
         self.certificates={};self.last_event={};self._summary('ready')
     def _summary(self,status):
         save_json(self.root/'summary.json',dict(status=status,policy=self.votes.snapshot(),counts=dict(self.stats),
-            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; >90% in either direction forces human',
+            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; >90%: human reviews, auto records conflict and keeps separate',
             unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock'))
     def close(self,status='completed'):self._summary(status)
+    def containment_check(self,source,target):
+        report=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
+        report['exceeds_threshold']=report.pop('requires_human')
+        report['requires_human']=report['exceeds_threshold'] and self.runtime.fallback=='human'
+        report['resolution_policy']=('HUMAN_REVIEW' if report['requires_human'] else
+            'AUTO_KEEP_SEPARATE' if report['exceeds_threshold'] else 'KEEP_SEPARATE')
+        return report
     def review(self,source,target,*,frame_idx,source_frame_id,stage,overlap=0,visual=0,text=0,parent_event=None):
         if source is target or str(source['id'])==str(target['id']):raise ValueError('distinct objects required')
         key=self.votes.key(source['id'],target['id']);states=state_key([object_state(source),object_state(target)])
@@ -85,7 +92,7 @@ class V7MergeGate:
                 event['fallback_reason']=reason
             # Test only a negative decision. Never turn containment directly into a merge.
             if choice=='KEEP_SEPARATE':
-                containment=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
+                containment=self.containment_check(source,target)
                 event['containment']=containment;save_json(directory/'containment.json',containment)
                 if containment['requires_human']:
                     choice=self.runtime.human_choice(event_id,directory,['MERGE','KEEP_SEPARATE'],images,
@@ -105,8 +112,8 @@ class V7MergeGate:
             choice=self.runtime.fallback_choice(event_id,directory,'merge',images,'INPUT_FAILURE',[],snapshot)
             # Without valid geometric inputs a negative decision cannot pass the required check.
             if choice=='KEEP_SEPARATE':
-                containment=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
-                event['containment']=containment
+                containment=self.containment_check(source,target)
+                event['containment']=containment;save_json(directory/'containment.json',containment)
                 if containment['requires_human']:
                     choice=self.runtime.human_choice(event_id,directory,['MERGE','KEEP_SEPARATE'],images,
                         '不合并与点云包含率冲突：'+json.dumps(containment,ensure_ascii=False),snapshot)
