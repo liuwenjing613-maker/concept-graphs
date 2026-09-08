@@ -78,13 +78,15 @@ class GateIntegration(unittest.TestCase):
             invariant_error=EvidenceInvariantError,containment_distance=.025,publish=lambda:None)
         self.answer='DIFFERENT';self.quality='CLEAN';self.human_answer='KEEP_SEPARATE'
         self.a,self.b=obj('a'),obj('b',100)
-        def render(directory,a,b,frame):
-            for name in ['quality_A.jpg','quality_B.jpg','merge.png']:(directory/name).write_bytes(b'image')
+        def prepare(a,b,frame):
             uids={alias:o['obs_uids'][-1] for alias,o in zip('AB',(a,b))}
             runtime.evidence.observations={u:dict(processed_mask_ref=dict(sha256=u)) for u in uids.values()}
             return dict(h_snapshot_uid='h'+str(frame),histories={a:dict(selected=[dict(uid=uids[a])]) for a in 'AB'},
                 selected_identity_histories={a:[dict(uid=uids[a])] for a in 'AB'})
-        runtime.evidence=SimpleNamespace(merge=render,observations={},containment=LiveEvidence.containment)
+        def render(directory,a,b,frame,binding):
+            for name in ['quality_A.jpg','quality_B.jpg','merge.png']:(directory/name).write_bytes(b'image')
+            return binding
+        runtime.evidence=SimpleNamespace(prepare_merge=prepare,render_merge=render,observations={},containment=LiveEvidence.containment)
         def stage(event,directory,task,images,snapshot,labels=None):
             self.calls.append(task)
             return dict(value=dict(choice=self.quality) if task=='node_quality' else None if self.answer is None else dict(choice=self.answer,confidence=5,reason='x'))
@@ -115,7 +117,7 @@ class GateIntegration(unittest.TestCase):
         self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
     def test_input_failure_with_containment_auto_never_asks(self):
         self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.owner.vlm_runtime.evidence.merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))
+        self.owner.vlm_runtime.evidence.prepare_merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))
         self.review(1);self.assertEqual(self.humans,[])
         self.assertEqual(self.gate.events[0]['model_output']['choice'],'KEEP_SEPARATE')
         self.assertFalse(self.gate.events[0]['containment']['requires_human'])
@@ -131,6 +133,13 @@ class GateIntegration(unittest.TestCase):
         self.answer='SAME';self.review(4)
         row=self.gate.votes.state(self.gate.votes.key('a','b'))
         self.assertFalse(row['locked']);self.assertEqual(row['reject_total'],0);self.assertEqual(row['merge_streak'],1)
+    def test_locked_pair_checks_history_without_rendering_images(self):
+        self.review(1);self.review(2)
+        self.owner.vlm_runtime.evidence.render_merge=lambda *args: (_ for _ in ()).throw(AssertionError('locked render'))
+        self.review(3)
+        directory=self.gate.root/'events'/self.gate.events[-1]['event_id']
+        self.assertTrue((directory/'history_check.json').exists());self.assertFalse((directory/'merge.png').exists())
+        self.assertEqual(self.gate.events[-1]['status'],'locked')
     def test_reversed_pair_does_not_unlock_same_history(self):
         self.review(1);self.review(2);count=len(self.calls)
         self.gate.review(self.b,self.a,frame_idx=3,source_frame_id='3',stage='reverse')
@@ -223,5 +232,34 @@ class MutationAndFallback(unittest.TestCase):
         self.r.stage=lambda *args: (_ for _ in ()).throw(AssertionError('must not call VLM'))
         decision,output,_=self.r.adjudicate(self.root/'e',[],'H',2,'10')
         self.assertEqual(output['choice'],'DISCARD');self.assertTrue(decision['reason_code'].startswith('INPUT_FAILURE'))
+
+class IncrementalFeatureAllowlist(unittest.TestCase):
+    def test_sync_registers_only_new_logged_refs_and_read_never_scans_observations(self):
+        from conceptgraph.slam.vlm_runtime import sha
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);exp=root/'run';(exp/'evidence').mkdir(parents=True)
+            log=exp/'evidence/observations.jsonl';log.write_text('')
+            feature=root/'feature.npz';np.savez(feature,features=np.array([[1.,2.,3.]]))
+            ref=dict(path='../feature.npz',sha256=sha(feature),key='features',index=0)
+            reader=LiveEvidence(SimpleNamespace(root=exp/'gate'));reader.sync()
+            with self.assertRaises(EvidenceInvariantError):reader.array(ref)
+            log.write_text(json.dumps(dict(obs_uid='o1',image_feat_ref=ref))+'\n');reader.sync()
+            self.assertEqual(len(reader.allowed_feature_refs),1)
+            class NoFullScan(dict):
+                def values(self):raise AssertionError('must not rebuild allowlist on feature read')
+            reader.observations=NoFullScan(reader.observations)
+            np.testing.assert_array_equal(reader.array(ref),[1,2,3])
+            reader.sync();self.assertEqual(len(reader.allowed_feature_refs),1)
+            # A changed file is still hash checked on EVERY access.
+            np.savez(feature,features=np.array([[4.,5.,6.]]))
+            with self.assertRaises(EvidenceInvariantError):reader.array(ref)
+    def test_unregistered_external_ref_stays_forbidden(self):
+        from conceptgraph.slam.vlm_runtime import sha
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);exp=root/'run';(exp/'evidence').mkdir(parents=True)
+            (exp/'evidence/observations.jsonl').write_text('')
+            p=root/'unregistered.npz';np.savez(p,data=[1])
+            reader=LiveEvidence(SimpleNamespace(root=exp/'gate'));reader.sync()
+            with self.assertRaises(EvidenceInvariantError):reader.array(dict(path='../unregistered.npz',sha256=sha(p),key='data'))
 
 if __name__=='__main__':unittest.main()

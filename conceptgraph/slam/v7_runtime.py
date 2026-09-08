@@ -82,6 +82,7 @@ class V7Runtime(VLMRuntime):
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
         self.versions=dict(version='ali-my-v7-VLMsplit',model=owner.model,fallback=self.fallback,
+            execution_revision='20260908_incremental_allowlist_and_pre_render_lock_check',
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',

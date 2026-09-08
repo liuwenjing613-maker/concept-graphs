@@ -2,6 +2,8 @@
 
 本版本用于从第 0 帧开始的完整在线建图。已接入保留的四个 VLM 模块；此次只做 smoke，没有完整场景评测。
 
+2026-09-08 已修复重复白名单扫描与锁定事件完整渲染导致的性能问题，见 [性能修复与逐像素验证](docs/V7_PERFORMANCE_FIX_20260908.md)。
+
 ## 服务器运行
 
 代码目录：`/home/chenkejun/beauty/conceptgraphs/code/experiments/ali-my-v7-VLMsplit`。

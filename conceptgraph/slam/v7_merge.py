@@ -55,23 +55,33 @@ class V7MergeGate:
         save_json(directory/"decision.json",event)
         images=[];choice=None
         try:
-            binding=self.runtime.evidence.merge(directory,source,target,frame_idx)
-            snapshot=binding['h_snapshot_uid'];event['h_snapshot_uid']=snapshot
+            prepare_started=time.perf_counter()
+            binding=self.runtime.evidence.prepare_merge(source,target,frame_idx)
+            event['history_check_seconds']=time.perf_counter()-prepare_started
+            snapshot=hashlib.sha256(json.dumps(binding,sort_keys=True).encode()).hexdigest()
+            event['h_snapshot_uid']=snapshot
             fingerprint=hashlib.sha256(json.dumps({
                 str((source if a=='A' else target)['id']):sorted(set((r['uid'],self.runtime.evidence.observations[r['uid']]['processed_mask_ref']['sha256'])
                     for r in binding['histories'][a]['selected']+binding['selected_identity_histories'][a]))
                 for a in 'AB'},sort_keys=True).encode()).hexdigest()
             before_unlock=row.get('history_unlocks',0);self.votes.refresh_history(key,fingerprint)
-            images=[('QUALITY A',directory/'quality_A.jpg'),('QUALITY B',directory/'quality_B.jpg'),('MERGE',directory/'merge.png')]
-            self.runtime.pending(event_id,directory,'merge',images,['MERGE','KEEP_SEPARATE'])
-            self.runtime.rows[event_id].update(parent_event=parent_event,h_snapshot_uid=snapshot,stages=event['stages'])
             if row['locked']:
+                save_json(directory/'history_check.json',dict(h_snapshot_uid=snapshot,selection=binding,
+                    history_signature=fingerprint,vlm_images_rendered=False))
+                self.runtime.pending(event_id,directory,'merge',[],['KEEP_SEPARATE'])
                 event.update(status='locked',execution='LOCKED_KEEP_SEPARATE',vote_after=dict(row))
                 event['timeline'].update(c_frame=frame_idx,c_utc=_utc_now(),online_main_graph_latest_frame_at_c=frame_idx,ordering_valid=True)
                 event['c_bound_h_snapshot_uid']=snapshot
                 save_json(directory/'decision.json',event)
                 self.runtime.rows[event_id].update(event);self.runtime.publish();self.stats['locked_skips']+=1
                 return 'v7_locked_after_two_rejections'
+            render_started=time.perf_counter()
+            binding=self.runtime.evidence.render_merge(directory,source,target,frame_idx,binding)
+            event['render_seconds']=time.perf_counter()-render_started
+            snapshot=binding['h_snapshot_uid'];event['h_snapshot_uid']=snapshot
+            images=[('QUALITY A',directory/'quality_A.jpg'),('QUALITY B',directory/'quality_B.jpg'),('MERGE',directory/'merge.png')]
+            self.runtime.pending(event_id,directory,'merge',images,['MERGE','KEEP_SEPARATE'])
+            self.runtime.rows[event_id].update(parent_event=parent_event,h_snapshot_uid=snapshot,stages=event['stages'])
             qualities=[]
             for a in 'AB':
                 labels=['H'+str(i+1) for i in range(len(binding['histories'][a]['selected']))]

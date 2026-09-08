@@ -16,6 +16,8 @@ class LiveEvidence:
         self.exp=runtime.root.parent
         self.observations={}
         self.offset=0
+        self.allowed_feature_refs=set()
+        self._resolved_exp=self.exp.resolve()
 
     def sync(self):
         path=self.exp/'evidence/observations.jsonl'
@@ -24,16 +26,15 @@ class LiveEvidence:
             for line in iter(f.readline, ""):
                 row=json.loads(line)
                 self.observations[row['obs_uid']]=row
+                ref=row.get('image_feat_ref')
+                if ref:self.allowed_feature_refs.add((str((self.exp/ref['path']).resolve()),ref['sha256']))
             self.offset=f.tell()
 
     def ref(self,ref):
         p=(self.exp/ref['path']).resolve()
-        if not p.is_relative_to(self.exp.resolve()):
-            # Frozen per-frame detector features may live in the shared detection cache.
-            # Only refs explicitly recorded for observations in THIS online run may be read.
-            allowed={(str((self.exp/o['image_feat_ref']['path']).resolve()),o['image_feat_ref']['sha256'])
-                     for o in self.observations.values() if o.get('image_feat_ref')}
-            if (str(p),ref['sha256']) not in allowed:
+        if not p.is_relative_to(self._resolved_exp):
+            # Incremental allowlist contains only refs logged in this online run.
+            if (str(p),ref['sha256']) not in self.allowed_feature_refs:
                 raise EvidenceInvariantError('external evidence is not a registered detector feature')
         if sha(p)!=ref['sha256']:raise EvidenceInvariantError('evidence hash mismatch')
         return p
@@ -105,42 +106,52 @@ class LiveEvidence:
         save_json(directory/'staged_evidence.json',binding)
         return binding,images
 
-    def merge(self,directory,source,target,frame):
+    def prepare_merge(self,source,target,frame):
+        """Select the exact original histories without rendering unused VLM images."""
         self.sync();objects={'A':source,'B':target}
         states={a:object_state(o) for a,o in objects.items()}
         if states['A']['object_uid']==states['B']['object_uid']:raise EvidenceInvariantError('same object pair')
-        clouds={a:np.asarray(o['pcd'].points).copy() for a,o in objects.items()}
+        clouds={a:np.asarray(o['pcd'].points) for a,o in objects.items()}
         if any(not len(p) for p in clouds.values()):raise ValueError('empty merge cloud')
         histories={};anchors=[]
         for a,obj in objects.items():
             members=self.members(obj,frame)
             rows,chosen=render.history_scores(members,self.observations,self.array)
             histories[a]=dict(all=rows,selected=chosen)
-            render.node_card(a,chosen,directory/f'quality_{a}.jpg',self.visual)
             anchors+=render.anchor_scores(a,rows,clouds['B' if a=='A' else 'A'],self.observations,self.visual)
         anchor=max(anchors,key=lambda r:(r['score'],r['target_pixels'],r['uid']))
-        other='B' if anchor['alias']=='A' else 'A';v=self.visual(anchor['uid'])
+        other='B' if anchor['alias']=='A' else 'A'
+        binding=dict(objects=states,histories=histories,selected_anchor=anchor,
+            other_appearance_history=dict(histories[other]['selected'][0],alias=other),
+            source_timeline=dict(s_frame=frame,d_frame=frame,h_frame=frame),
+            source_h_snapshot_uid=state_key(list(states.values())),projection_source='entire_frozen_live_node',
+            projection_cloud_sha256=states[other]['pcd_sha256'])
+        frames={i:dict(pose=f['pose_c2w']) for i,f in self.runtime.projection_frames.items() if i<=frame}
+        binding['selected_identity_histories']={a:render.select(binding,a,frames) for a in 'AB'}
+        return binding
+
+    def render_merge(self,directory,source,target,frame,binding):
+        states={a:object_state(o) for a,o in zip('AB',(source,target))}
+        if states!=binding['objects']:raise EvidenceInvariantError('objects changed after history selection')
+        clouds={a:np.asarray(o['pcd'].points).copy() for a,o in zip('AB',(source,target))}
+        for a in 'AB':render.node_card(a,binding['histories'][a]['selected'],directory/f'quality_{a}.jpg',self.visual)
+        anchor=binding['selected_anchor'];other='B' if anchor['alias']=='A' else 'A';v=self.visual(anchor['uid'])
         projection=project_points(clouds[other],v['pose'],v['K'],v['depth'])
         cm=v['mask'];pm=np.zeros_like(cm);uv=projection['reliable_uv'];pm[uv[:,1],uv[:,0]]=True
         np.savez_compressed(directory/'live_pair.npz',**{'object_'+a:p for a,p in clouds.items()})
         np.savez_compressed(directory/'visible_projection.npz',**{k:v for k,v in projection.items() if isinstance(v,np.ndarray)})
         np.savez_compressed(directory/'display_support.npz',anchor_mask=cm,projected_mask=pm)
-        snapshot=state_key(list(states.values()))
-        binding=dict(objects=states,histories=histories,selected_anchor=anchor,
-            other_appearance_history=dict(histories[other]['selected'][0],alias=other),
-            source_timeline=dict(s_frame=frame,d_frame=frame,h_frame=frame),
-            source_h_snapshot_uid=snapshot,projection_source='entire_frozen_live_node',
-            projection_cloud_sha256=states[other]['pcd_sha256'])
-        frames={i:dict(pose=f['pose_c2w']) for i,f in self.runtime.projection_frames.items() if i<=frame}
-        selected={a:render.select(binding,a,frames) for a in 'AB'}
-        im,meta=render.merge_card(binding,selected,self.visual,cm,pm);im.save(directory/'merge.png')
-        binding.update(selected_identity_histories=selected,layout=meta,
+        im,meta=render.merge_card(binding,binding['selected_identity_histories'],self.visual,cm,pm);im.save(directory/'merge.png')
+        binding.update(layout=meta,
             images={name:sha(directory/name) for name in ['quality_A.jpg','quality_B.jpg','merge.png']},
             geometry_sha256=sha(directory/'live_pair.npz'),depth_tolerance_m=.03)
         snapshot=hashlib.sha256(json.dumps(binding,sort_keys=True).encode()).hexdigest()
         binding['h_snapshot_uid']=snapshot
         save_json(directory/'input_manifest.json',binding)
         return binding
+
+    def merge(self,directory,source,target,frame):
+        return self.render_merge(directory,source,target,frame,self.prepare_merge(source,target,frame))
 
     @staticmethod
     def containment(source,target,distance):
