@@ -48,10 +48,11 @@ class EndpointPool:
                 self.busy.remove(url)
                 self.condition.notify_all()
 
-    def request(self, payload, record_attempt):
+    def request(self, payload, record_attempt, *, timeout_budget=4):
         previous = None
         attempts = []
-        for number in range(1, self.max_timeout_retries + 2):
+        if not 1<=timeout_budget<=4:raise ValueError('invalid remaining timeout budget')
+        for number in range(1, timeout_budget + 1):
             with self.lease(previous) as url:
                 started = time.perf_counter()
                 response = None
@@ -79,8 +80,8 @@ class EndpointPool:
                     with self.condition:
                         self.timeouts[url] += 1
                     print(f'[v7-timeout] endpoint={url} attempt={number}/4; ' +
-                          ('retry on another available endpoint' if number < 4 else 'timeout budget exhausted'), flush=True)
+                          ('retry on another available endpoint' if number < timeout_budget else 'timeout budget exhausted'), flush=True)
                 else:
                     return response, attempts, error
             previous = url
-        return None, attempts, 'TIMEOUT_EXHAUSTED: initial request and three retries all timed out'
+        return None, attempts, 'TIMEOUT_EXHAUSTED: logical stage timeout budget exhausted'

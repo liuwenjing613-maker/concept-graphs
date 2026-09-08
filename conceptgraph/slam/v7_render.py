@@ -6,7 +6,7 @@ from PIL import Image,ImageDraw
 from conceptgraph.slam import staged_identity_cards as cards
 from conceptgraph.slam.staged_identity_cards import BG,TEXT,MUTED,PURPLE,CYAN,font,crop_box,union_box
 from conceptgraph.slam.history_projection import project_points
-COLORS={'A':PURPLE,'B':CYAN}
+COLORS={'A':PURPLE,'B':CYAN,'C':(255,207,62)}
 YELLOW=(255,207,62)
 
 
@@ -53,7 +53,7 @@ def node_card(alias,chosen,dest,visual):
   pw=528;ph=416;im=Image.new('RGB',(24+(pw+24)*n,1080),BG)
   placements=[(24+i*(pw+24),118,24+i*(pw+24),155,24+i*(pw+24),603,24+i*(pw+24),640) for i in range(n)]
  text(im,24,16,'OBJECT '+alias+' | HISTORY AUDIT',30)
- text(im,24,61,('Purple' if alias=='A' else 'Cyan')+': target | RGB: context | Gray: removed',22)
+ text(im,24,61,({'A':'Purple','B':'Cyan','C':'Yellow'}[alias])+': target | RGB: context | Gray: removed',22)
  panels=[]
  for i,(r,pos) in enumerate(zip(chosen,placements)):
   v=visual(r['uid']);lx,ly,ix,iy,tx,ty,jx,jy=pos

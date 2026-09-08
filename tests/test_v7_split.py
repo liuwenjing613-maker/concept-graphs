@@ -98,9 +98,10 @@ class GateIntegration(unittest.TestCase):
         runtime.human_choice=human;self.owner.vlm_runtime=runtime;self.gate=V7MergeGate(self.owner)
     def tearDown(self):self.tmp.cleanup()
     def review(self,frame):return self.gate.review(self.a,self.b,frame_idx=frame,source_frame_id=str(frame),stage='smoke')
-    def test_failed_vlm_auto_is_rejection(self):
+    def test_failed_vlm_auto_is_unresolved(self):
         self.answer=None;self.review(1);self.review(2)
-        self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+        row=self.gate.votes.state(self.gate.votes.key('a','b'))
+        self.assertFalse(row['locked']);self.assertEqual(row['reject_total'],0)
     def test_quality_mixed_no_identity_call(self):
         self.quality='CONTAMINATED';self.review(1)
         self.assertEqual(self.calls,['node_quality','node_quality'])
@@ -115,7 +116,8 @@ class GateIntegration(unittest.TestCase):
         report=self.gate.events[0]['containment']
         self.assertTrue(report['exceeds_threshold']);self.assertFalse(report['requires_human'])
         self.assertEqual(report['resolution_policy'],'AUTO_KEEP_SEPARATE')
-        self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+        self.assertFalse(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+        self.assertEqual(self.gate.votes.state(self.gate.votes.key('a','b'))['reject_total'],0)
     def test_input_failure_with_containment_auto_never_asks(self):
         self.b['pcd'].points=self.a['pcd'].points.copy()
         self.owner.vlm_runtime.evidence.prepare_merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))

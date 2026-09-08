@@ -17,6 +17,8 @@ class V7Votes(MergeVotes):
         if row['locked'] and row.get('history_signature')!=signature:
             row.update(merge_streak=0,reject_total=0,locked=False,awaiting_execution=False)
             row['history_unlocks']=row.get('history_unlocks',0)+1
+        if row.get('unresolved_signature')!=signature:
+            row.pop('unresolved_signature',None)
         row['history_signature']=signature
 
 class V7MergeGate:
@@ -65,7 +67,24 @@ class V7MergeGate:
                     for r in binding['histories'][a]['selected']+binding['selected_identity_histories'][a]))
                 for a in 'AB'},sort_keys=True).encode()).hexdigest()
             before_unlock=row.get('history_unlocks',0);self.votes.refresh_history(key,fingerprint)
+            if row.get('unresolved_signature')==fingerprint and self.runtime.fallback=='auto':
+                # This is a pending issue, not a negative identity vote or answer cache.
+                row.update(last_frame=frame_idx,last_event=event_id)
+                event.update(status='unresolved_hold',execution='UNRESOLVED_WAIT_NEW_HISTORY',
+                    evidence_decision='UNRESOLVED',vote_after=dict(row),
+                    model_output=dict(choice='KEEP_SEPARATE',confidence=0),
+                    c_bound_h_snapshot_uid=snapshot)
+                event['timeline'].update(c_frame=frame_idx,c_utc=_utc_now(),
+                    online_main_graph_latest_frame_at_c=frame_idx,ordering_valid=True)
+                save_json(directory/'history_check.json',dict(h_snapshot_uid=snapshot,selection=binding,
+                    history_signature=fingerprint,vlm_images_rendered=False))
+                save_json(directory/'decision.json',event)
+                self.runtime.pending(event_id,directory,'merge',[],['KEEP_SEPARATE'])
+                self.runtime.rows[event_id].update(event);self.runtime.publish()
+                self.stats['unresolved_holds']+=1
+                return 'v7_1_unresolved_wait_new_history'
             if row['locked']:
+
                 save_json(directory/'history_check.json',dict(h_snapshot_uid=snapshot,selection=binding,
                     history_signature=fingerprint,vlm_images_rendered=False))
                 self.runtime.pending(event_id,directory,'merge',[],['KEEP_SEPARATE'])
@@ -129,7 +148,21 @@ class V7MergeGate:
                     choice=self.runtime.human_choice(event_id,directory,['MERGE','KEEP_SEPARATE'],images,
                         '不合并与点云包含率冲突：'+json.dumps(containment,ensure_ascii=False),snapshot)
         if states!=state_key([object_state(source),object_state(target)]):raise self.runtime.invariant_error('objects changed during blocking review')
-        approved,after=self.votes.record(key,frame_idx,event_id,choice)
+        unresolved=self.runtime.fallback=='auto' and (
+            bool(event.get('fallback_reason')) or bool(event.get('input_error')) or
+            bool(event.get('containment',{}).get('exceeds_threshold')))
+        vote_choice=None if unresolved else choice
+        event['evidence_decision']=('UNRESOLVED' if unresolved else
+            'CONFIRMED_SAME' if choice=='MERGE' else 'CONFIRMED_DIFFERENT')
+        event['vote_choice']=vote_choice
+        approved,after=self.votes.record(key,frame_idx,event_id,vote_choice)
+        # Deterministic wait only for visual uncertainty. Technical failures can retry later.
+        if unresolved and 'fingerprint' in locals() and (
+            event.get('fallback_reason') in {'NODE_CONTAMINATED','IDENTITY_UNCERTAIN'} or
+            event.get('containment',{}).get('exceeds_threshold')) and not event.get('input_error'):
+            row['unresolved_signature']=fingerprint
+            after=dict(row)
+        if unresolved:self.stats['unresolved_reviews']+=1
         if approved:self.certificates[key]=states
         self.last_event[key]=event
         event.update(model_output=dict(choice=choice,confidence=0),vote_after=after,status='complete',

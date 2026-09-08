@@ -28,7 +28,7 @@ def main() -> int:
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--detections-exp-suffix", help="Explicit compatible full-resolution cache; default creates an isolated cache")
     parser.add_argument("--yolo-imgsz",type=int,default=1200)
-    parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463','http://127.0.0.1:11435'])
+    parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463'])
     parser.add_argument("--vlm-timeout",type=float,default=300)
     parser.add_argument("--gpu", default="1")
     parser.add_argument("--margin-threshold", type=float, default=0.20)

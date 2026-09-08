@@ -96,11 +96,11 @@ class Stages(unittest.TestCase):
         self.assertEqual(r['value']['choice'],'SAME');self.assertEqual(r['timeout_count'],3)
         self.assertTrue(all(p==payloads[0] for p in payloads));self.assertEqual(len(self.r.rows['e']['stage_results']),1)
         self.assertEqual(len(list((self.root/'A/attempts').glob('*/attempt.json'))),4)
-    def test_truncated_non_timeout_response_keeps_original_failure_policy(self):
+    def test_truncation_exhausts_one_completion_retry(self):
         with patch('httpx.Client') as client:
             client.return_value.__enter__.return_value.post.return_value=response(reason='length')
             r=self.r.stage('e',self.root/'A','pairwise',[('A',self.image)],'H')
-        self.assertIsNone(r['value']);self.assertEqual(len(r['attempts']),1)
+        self.assertIsNone(r['value']);self.assertEqual(len(r['attempts']),2)
     def test_exhaustion_routes_auto_and_human_after_four_attempts(self):
         with patch('httpx.Client') as client:
             client.return_value.__enter__.return_value.post.side_effect=httpx.ReadTimeout('slow')

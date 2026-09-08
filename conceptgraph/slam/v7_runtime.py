@@ -47,6 +47,9 @@ def parse_stage(content,task,labels=None):
             raise ValueError('invalid merge fields')
         if type(value['confidence']) is not int or not 0<=value['confidence']<=5 or not isinstance(value['reason'],str) or not 1<=len(value['reason'])<=240:
             raise ValueError('invalid merge values')
+    elif task=='joint_review':
+        from conceptgraph.slam.v7_1_review import validate_joint
+        validate_joint(value,labels)
     elif task=='node_quality':
         if set(value)!={'views','choice','reason'} or value['choice'] not in {'CLEAN','CONTAMINATED','INSUFFICIENT'}:
             raise ValueError('invalid node quality fields')
@@ -79,15 +82,17 @@ class V7Runtime(VLMRuntime):
         self.templates=json.loads((PROMPTS/'request_templates.json').read_text())
         self.stage_prompts={p.stem:p.read_text() for p in PROMPTS.glob('*.txt')}
         self.forced_groups=[];self.staged_bindings={}
+        self.joint_review_enabled=os.environ.get('V7_1_JOINT_REVIEW','0')=='1'
         self.endpoint_pool=EndpointPool(json.loads(os.environ.get('V7_VLM_URLS', json.dumps([owner.base_url]))), owner.timeout_seconds)
         self.owner=owner;self.root=owner.output_dir;self.rows={};self.projection_frames={}
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='v7_VLMsplit_image',model=owner.model,fallback=self.fallback,
-            execution_revision='20260908_image_parallel_timeout_retry',
+        self.versions=dict(version='v7_1',model=owner.model,fallback=self.fallback,
+            execution_revision='20260909_unknown_joint_length_recovery',
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
-            timeout_failure_after=4,
+            timeout_failure_after=4,length_recovery_retries=1,unresolved_counts_as_rejection=False,
+            unresolved_recheck='changed selected history',joint_review_enabled=self.joint_review_enabled,joint_review='experimental; disabled by default after granularity failure',
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
@@ -154,6 +159,9 @@ class V7Runtime(VLMRuntime):
             if alias not in {'A','B','C'}:raise ValueError('pairwise request needs frozen candidate alias')
             payload['messages'][1]['content']=re.sub(r'CANDIDATE [ABC]', 'CANDIDATE '+alias,
                 payload['messages'][1]['content'])
+        if task=='joint_review':
+            payload['messages'][1]['content']+='\nAllowed candidate aliases: '+', '.join(labels)
+            payload['messages'][1]['content']+='\nImages in order:\n'+'\n'.join(n for n,_ in images)
         payload['messages'][1]['images']=[base64.b64encode(p.read_bytes()).decode() for _,p in images]
         request=copy.deepcopy(payload)
         request['messages'][1]['images']=[dict(label=n,path=str(p.relative_to(self.root)),sha256=sha(p)) for n,p in images]
@@ -165,10 +173,12 @@ class V7Runtime(VLMRuntime):
 
     def _invoke_stage(self,item):
         directory,task,snapshot=item['directory'],item['task'],item['snapshot']
-        started=time.perf_counter()
+        started=time.perf_counter();attempts=[];payload=copy.deepcopy(item['payload'])
         result=dict(task=task,value=None,format_mode=None,error=None,h_snapshot_uid=snapshot,
                     directory=str(directory.relative_to(self.root)),images=item['request']['messages'][1]['images'])
         def record(attempt,response):
+            attempt=dict(attempt,number=len(attempts)+1,num_predict=payload['options']['num_predict'])
+            attempts.append(attempt)
             attempt_dir=directory/'attempts'/f"{attempt['number']:02d}"
             attempt_dir.mkdir(parents=True,exist_ok=False)
             save_json(attempt_dir/'attempt.json',dict(attempt,h_snapshot_uid=snapshot))
@@ -176,22 +186,32 @@ class V7Runtime(VLMRuntime):
                 try:save_json(attempt_dir/'response.json',response.json())
                 except (ValueError,TypeError):pass
         try:
-            response,attempts,error=self._pool().request(item['payload'],record)
-            result['attempts']=attempts
-            result['timeout_count']=sum(a['timed_out'] for a in attempts)
-            if error:raise RuntimeError(error)
-            result['http_status']=response.status_code
-            raw=response.json();save_json(directory/'response.json',raw)
-            result['raw_output']=raw.get('message',{}).get('content','')
-            result['timing']={k:raw.get(k) for k in ['total_duration','prompt_eval_count','eval_count','eval_duration']}
-            if raw.get('model')!=self.owner.model or not raw.get('done') or raw.get('done_reason')!='stop':
-                raise ValueError('wrong model or incomplete response')
-            value,mode,original=parse_stage(result['raw_output'],task,item['labels'])
-            result.update(value=value,format_mode=mode,parsed_before_compatibility=original)
+            for completion_attempt in range(2):
+                remaining=4-sum(a['timed_out'] for a in attempts)
+                if remaining<=0:raise RuntimeError('TIMEOUT_EXHAUSTED')
+                response,_,error=self._pool().request(payload,record,timeout_budget=remaining)
+                if error:raise RuntimeError(error)
+                result['http_status']=response.status_code
+                raw=response.json();save_json(directory/'response.json',raw)
+                result['raw_output']=raw.get('message',{}).get('content','')
+                result['timing']={k:raw.get(k) for k in ['total_duration','prompt_eval_count','eval_count','eval_duration']}
+                if raw.get('model')!=self.owner.model:raise ValueError('wrong model')
+                if raw.get('done_reason')=='length' and completion_attempt==0:
+                    payload['options']['num_predict']=max(2048,2*payload['options']['num_predict'])
+                    result['length_recovery']=True
+                    print('[v7_1-recovery]',task,'truncated; one larger-budget retry on same H',flush=True)
+                    continue
+                if not raw.get('done') or raw.get('done_reason')!='stop':
+                    raise ValueError('incomplete response: '+str(raw.get('done_reason')))
+                value,mode,original=parse_stage(result['raw_output'],task,item['labels'])
+                result.update(value=value,format_mode=mode,parsed_before_compatibility=original)
+                break
         except Exception as exc:
             result['error']=type(exc).__name__+': '+str(exc)
-        result.update(seconds=time.perf_counter()-started,c_bound_h_snapshot_uid=snapshot,completed_at=_utc_now())
+        result.update(attempts=attempts,timeout_count=sum(a['timed_out'] for a in attempts),
+            seconds=time.perf_counter()-started,c_bound_h_snapshot_uid=snapshot,completed_at=_utc_now())
         return result
+
     def human_choice(self,event_id,directory,allowed,images,reason,snapshot):
         # Auto must never read stdin, including a containment-conflict call path.
         if self.fallback=='auto':
@@ -262,7 +282,23 @@ class V7Runtime(VLMRuntime):
                     decision['merge_execution']='QUEUED_BEFORE_OBSERVATION_FUSION'
             else:
                 decision['reason_code']='MULTIPLE_SAME_AWAITING_PAIR_APPROVAL'
-                choice=self.fallback_choice(eid,event_dir,'observation',images,decision['reason_code'],[a for a,_,_ in candidates],snapshot)
+                rescued,review=None,dict(status='DISABLED_AFTER_FAILED_SMOKE')
+                if self.joint_review_enabled:
+                    from conceptgraph.slam.v7_1_review import joint_review
+                    protected=[]
+                    for a,b in combinations(same,2):
+                        pair_key=gate.votes.key(byalias[a][1]['id'],byalias[b][1]['id'])
+                        previous=gate.last_event.get(pair_key,{})
+                        if previous.get('frame_idx')==frame and (previous.get('identity_output') or {}).get('choice')=='SAME' and not previous.get('fallback_reason'):
+                            protected.append([a,b])
+                    rescued,review=joint_review(self,eid,event_dir,candidates,binding,snapshot,same,protected)
+                decision['joint_review']=review
+                if rescued is not None:
+                    choice=rescued;decision['reason_code']='JOINT_REVIEW_UNIQUE_OWNER'
+                    decision['kind']='ASSOCIATE';decision['target_alias']=rescued
+                    decision['merge_execution']='NOT_APPLIED_UNIQUE_OBSERVATION_OWNER'
+                else:
+                    choice=self.fallback_choice(eid,event_dir,'observation',images,decision['reason_code'],[a for a,_,_ in candidates],snapshot)
         else:
             choice=self.fallback_choice(eid,event_dir,'observation',images,decision['reason_code'],[a for a,_,_ in candidates],snapshot)
         if binding['objects']!=[object_state(o) for _,_,o in candidates]:raise EvidenceInvariantError('candidate changed during blocking event')

@@ -228,5 +228,108 @@
       "num_ctx": 32768,
       "num_predict": 1024
     }
+  },
+  "joint_review": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "stream": false,
+    "think": false,
+    "keep_alive": -1,
+    "messages": [
+      {
+        "role": "system",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "联合审核CURRENT与所有候选及节点历史，明确每个候选的身份关系和CURRENT是否有唯一归属。",
+        "images": []
+      }
+    ],
+    "format": {
+      "type": "object",
+      "properties": {
+        "current_status": {
+          "type": "string",
+          "enum": [
+            "USABLE",
+            "CORRUPTED",
+            "INSUFFICIENT"
+          ]
+        },
+        "choice": {
+          "type": "string",
+          "enum": [
+            "A",
+            "B",
+            "C",
+            "UNRESOLVED"
+          ]
+        },
+        "candidates": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "properties": {
+              "alias": {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              },
+              "relation": {
+                "type": "string",
+                "enum": [
+                  "SAME",
+                  "SAME_OBJECT_PART",
+                  "DIFFERENT",
+                  "UNCERTAIN"
+                ]
+              },
+              "node_quality": {
+                "type": "string",
+                "enum": [
+                  "CLEAN",
+                  "CONTAMINATED",
+                  "INSUFFICIENT"
+                ]
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              }
+            },
+            "required": [
+              "alias",
+              "relation",
+              "node_quality",
+              "evidence"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      },
+      "required": [
+        "current_status",
+        "choice",
+        "candidates",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "temperature": 0,
+      "num_ctx": 32768,
+      "num_predict": 2048
+    }
   }
 }
