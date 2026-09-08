@@ -100,3 +100,6 @@ rerun_connect_addr: null  # e.g. rerun+http://127.0.0.1:9876/proxy
   #   params:
   #     downsample_voxel_size: 0.025, 0.01, 0.001, 0.001
   #     obj_pcd_max_points: 5000, 10000, 100000, 100000
+
+# YOLO inference target; original RGB/depth/SAM coordinates remain 1200x680.
+yolo_imgsz: 1200

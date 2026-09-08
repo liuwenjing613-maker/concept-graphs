@@ -1,3 +1,5 @@
+> 本分支是 **v7_VLMsplit_image**，新的运行参数和检测缓存要求见 [README_V7_IMAGE.md](README_V7_IMAGE.md)。以下为继承的 v7 基础规则记录。
+
 # ali-my-v7-VLMsplit
 
 本版本用于从第 0 帧开始的完整在线建图。已接入保留的四个 VLM 模块；此次只做 smoke，没有完整场景评测。

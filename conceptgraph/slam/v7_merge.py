@@ -83,11 +83,12 @@ class V7MergeGate:
             self.runtime.pending(event_id,directory,'merge',images,['MERGE','KEEP_SEPARATE'])
             self.runtime.rows[event_id].update(parent_event=parent_event,h_snapshot_uid=snapshot,stages=event['stages'])
             qualities=[]
+            specs=[]
             for a in 'AB':
                 labels=['H'+str(i+1) for i in range(len(binding['histories'][a]['selected']))]
-                result=self.runtime.stage(event_id,directory/('quality_'+a),'node_quality',
-                    [('NODE '+a,directory/f'quality_{a}.jpg')],snapshot,labels=labels)
-                event['stages'].append(result);qualities.append(result['value'])
+                specs.append((directory/('quality_'+a),'node_quality',[('NODE '+a,directory/f'quality_{a}.jpg')],labels))
+            results=self.runtime.stage_many(event_id,specs,snapshot)
+            event['stages'].extend(results);qualities=[result['value'] for result in results]
             if any(q is None for q in qualities):reason='NODE_QUALITY_INTERFACE_FAILURE'
             elif any(q['choice']=='CONTAMINATED' for q in qualities):reason='NODE_CONTAMINATED'
             else:

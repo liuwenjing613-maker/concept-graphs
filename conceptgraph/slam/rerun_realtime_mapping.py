@@ -99,6 +99,7 @@ from conceptgraph.slam.mapping import (
 from conceptgraph.utils.model_utils import compute_clip_features_batched
 from conceptgraph.utils.general_utils import get_vis_out_path, cfg_to_dict, check_run_detections
 from conceptgraph.utils.evidence import EvidenceRecorder
+from conceptgraph.slam.v7_image_detection import DetectionCache, contract as detection_contract, validate_coordinates
 from conceptgraph.slam.association_gate import BlockingAssociationGate, DISCARD_MATCH_INDEX
 
 from conceptgraph.revision.corruption import (
@@ -181,6 +182,13 @@ def main(cfg : DictConfig):
 
     # if we need to do detections
     run_detections = check_run_detections(cfg.force_detection, det_exp_path)
+    weights_root = Path(os.environ.get('V7_MODEL_ROOT', '/home/chenkejun/beauty/conceptgraphs/models/runtime'))
+    image_cache = DetectionCache(det_exp_path,
+        detection_contract(cfg.yolo_imgsz,obj_classes.get_classes_arr(),weights_root,[cfg.image_height,cfg.image_width]),
+        dataset.color_paths,create=run_detections)
+    if run_detections and not cfg.save_detections:
+        raise ValueError('new full-resolution detections must be saved for reproducible comparisons')
+    detector_input_shape = {}
     det_exp_pkl_path = get_det_out_path(det_exp_path)
     det_exp_vis_path = get_vis_out_path(det_exp_path)
     
@@ -191,8 +199,8 @@ def main(cfg : DictConfig):
         det_exp_path.mkdir(parents=True, exist_ok=True)
 
         ## Initialize the detection models
-        detection_model = measure_time(YOLO)('yolov8l-world.pt')
-        sam_predictor = SAM('sam_l.pt') # SAM('mobile_sam.pt') # UltraLytics SAM
+        detection_model = measure_time(YOLO)(str(weights_root/'yolov8l-world.pt'))
+        sam_predictor = SAM(str(weights_root/'sam_l.pt')) # SAM('mobile_sam.pt') # UltraLytics SAM
         # sam_predictor = measure_time(get_sam_predictor)(cfg) # Normal SAM
         clip_model, _, clip_preprocess = open_clip.create_model_and_transforms(
             "ViT-H-14", "laion2b_s32b_b79k"
@@ -202,6 +210,9 @@ def main(cfg : DictConfig):
 
         # Set the classes for the detection model
         detection_model.set_classes(obj_classes.get_classes_arr())
+        def record_yolo_input(module, inputs):
+            detector_input_shape['hw'] = tuple(map(int,inputs[0].shape[-2:]))
+        detection_model.model.register_forward_pre_hook(record_yolo_input)
     else:
         print("\n".join(["NOT Running detections..."] * 10))
 
@@ -321,7 +332,7 @@ def main(cfg : DictConfig):
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
             # Do initial object detection
-            results = detection_model.predict(color_path, conf=0.1, verbose=False)
+            results = detection_model.predict(color_path, conf=0.1, imgsz=int(cfg.yolo_imgsz), rect=True, verbose=False)
             confidences = results[0].boxes.conf.cpu().numpy()
             detection_class_ids = results[0].boxes.cls.cpu().numpy().astype(int)
             detection_class_labels = [f"{obj_classes.get_classes_arr()[class_id]} {class_idx}" for class_idx, class_id in enumerate(detection_class_ids)]
@@ -386,6 +397,7 @@ def main(cfg : DictConfig):
                 "captions": captions,
             }
 
+            validate_coordinates(results,image_rgb.shape[:2],obj_classes.get_classes_arr())
             raw_gobs = results
 
             # save the detections if needed
@@ -403,6 +415,9 @@ def main(cfg : DictConfig):
                 cv2.imwrite(str(vis_save_path).replace(".jpg", "_depth.jpg"), annotated_depth_image)
                 cv2.imwrite(str(vis_save_path).replace(".jpg", "_depth_only.jpg"), depth_image_rgb)
                 save_detection_results(det_exp_pkl_path / vis_save_path.stem, results)
+                metadata=image_cache.record(color_path,detector_input_shape.get('hw'),image_rgb.shape[:2])
+                print('[v7-detector]',color_path.stem,'requested',cfg.yolo_imgsz,
+                      'tensor',metadata['actual_yolo_input_hw'],'mask',list(raw_gobs['mask'].shape),flush=True)
         else:
             # Support current and old saving formats
             if os.path.exists(det_exp_pkl_path / color_path.stem):
@@ -412,6 +427,11 @@ def main(cfg : DictConfig):
             else:
                 # if no detections, throw an error
                 raise FileNotFoundError(f"No detections found for frame {frame_idx}at paths \n{det_exp_pkl_path / color_path.stem} or \n{det_exp_pkl_path / f'{int(color_path.stem):06}'}.")
+
+        if not run_detections:
+            metadata=image_cache.check_source(color_path)
+            if metadata['original_hw']!=list(image_rgb.shape[:2]):raise ValueError('cached RGB dimensions changed')
+            validate_coordinates(raw_gobs,image_rgb.shape[:2],obj_classes.get_classes_arr())
 
         # Stable raw detection identities are attached before resize/filter.
         raw_observation_snapshots = evidence.prepare_observations(

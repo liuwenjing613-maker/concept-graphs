@@ -91,6 +91,7 @@ class GateIntegration(unittest.TestCase):
             self.calls.append(task)
             return dict(value=dict(choice=self.quality) if task=='node_quality' else None if self.answer is None else dict(choice=self.answer,confidence=5,reason='x'))
         runtime.stage=stage
+        runtime.stage_many=lambda eid,specs,snapshot:[stage(eid,d,t,i,snapshot,l) for d,t,i,l in specs]
         runtime.pending=lambda eid,directory,task,images,allowed:runtime.rows.setdefault(eid,dict(event_id=eid))
         runtime.fallback_choice=lambda *args:'KEEP_SEPARATE'
         def human(*args):self.humans.append(args);return self.human_answer
@@ -193,6 +194,7 @@ class MutationAndFallback(unittest.TestCase):
         self.r.staged_bindings={'e':dict(objects=[object_state(o) for _,_,o in candidates],images=[dict(label='quality',path='quality.jpg')])}
         self.r.pending=lambda *args:self.r.rows.setdefault('e',{})
         self.r.stage=lambda eid,d,task,*args:dict(value=dict(status='USABLE',reason='x') if task=='observation_quality' else dict(choice='SAME',confidence=5))
+        self.r.stage_many=lambda eid,specs,snapshot:[self.r.stage(eid,d,t,i,snapshot,l) for d,t,i,l in specs]
         calls=[];votes=V7Votes()
         def review(a,b,**kwargs):calls.append((a['id'],b['id']));return None
         self.r.merge_gate=lambda *args:SimpleNamespace(review=review,votes=votes)

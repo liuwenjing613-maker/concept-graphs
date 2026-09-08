@@ -3,6 +3,8 @@ import base64,copy,hashlib,html,json,os,re,time
 from pathlib import Path
 from itertools import combinations
 import httpx
+from concurrent.futures import ThreadPoolExecutor
+from conceptgraph.slam.v7_endpoint_pool import EndpointPool
 import numpy as np
 from conceptgraph.slam.v7_errors import EvidenceInvariantError
 from conceptgraph.slam.vlm_runtime import VLMRuntime,save_json,sha
@@ -77,12 +79,15 @@ class V7Runtime(VLMRuntime):
         self.templates=json.loads((PROMPTS/'request_templates.json').read_text())
         self.stage_prompts={p.stem:p.read_text() for p in PROMPTS.glob('*.txt')}
         self.forced_groups=[];self.staged_bindings={}
+        self.endpoint_pool=EndpointPool(json.loads(os.environ.get('V7_VLM_URLS', json.dumps([owner.base_url]))), owner.timeout_seconds)
         self.owner=owner;self.root=owner.output_dir;self.rows={};self.projection_frames={}
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='ali-my-v7-VLMsplit',model=owner.model,fallback=self.fallback,
-            execution_revision='20260908_incremental_allowlist_and_pre_render_lock_check',
+        self.versions=dict(version='v7_VLMsplit_image',model=owner.model,fallback=self.fallback,
+            execution_revision='20260908_image_parallel_timeout_retry',
+            endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
+            timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
@@ -114,7 +119,33 @@ class V7Runtime(VLMRuntime):
         binding=self.staged_bindings[event_dir.name]
         binding.update(h_snapshot_uid=snapshot_uid,h_frame=frame_idx,online_main_graph_latest_frame_at_h=frame_idx)
         save_json(event_dir/'staged_evidence.json',binding)
+    def _pool(self):
+        if not hasattr(self,'endpoint_pool'):
+            self.endpoint_pool=EndpointPool([self.owner.base_url],self.owner.timeout_seconds)
+        return self.endpoint_pool
+
     def stage(self,event_id,directory,task,images,snapshot,labels=None):
+        return self.stage_many(event_id,[(directory,task,images,labels)],snapshot)[0]
+
+    def stage_many(self,event_id,specs,snapshot):
+        # Prepare and publish on the mapping thread. Workers only touch their own files.
+        if not specs:return []
+        prepared=[self._prepare_stage(event_id,*spec[:3],snapshot,spec[3]) for spec in specs]
+        row=self.rows[event_id]
+        row.update(status='waiting_for_vlm',current_stage=','.join(spec[1] for spec in specs))
+        self.publish()
+        with ThreadPoolExecutor(max_workers=min(3,len(self._pool().urls),len(specs))) as executor:
+            futures=[executor.submit(self._invoke_stage,item) for item in prepared]
+            # Commit once all calls/retries finish, in candidate order, never completion order.
+            results=[future.result() for future in futures]
+        for result in results:
+            save_json(self.root/result['directory']/'result.json',result)
+            row.setdefault('stage_results',[]).append(result)
+            print('[v7-stage]',event_id,result['task'],'DONE',result['value'] or result['error'],flush=True)
+        row['status']='stage_complete';self.publish()
+        return results
+
+    def _prepare_stage(self,event_id,directory,task,images,snapshot,labels=None):
         directory.mkdir(parents=True,exist_ok=False)
         payload=copy.deepcopy(self.templates[task]);payload['model']=self.owner.model
         payload['messages'][0]['content']=self.stage_prompts[task]
@@ -129,28 +160,37 @@ class V7Runtime(VLMRuntime):
         save_json(directory/'request.json',request)
         save_json(directory/'input_manifest.json',dict(h_snapshot_uid=snapshot,task=task,labels=labels,
             images=request['messages'][1]['images'],prompt_sha256=hashlib.sha256(self.stage_prompts[task].encode()).hexdigest()))
-        row=self.rows[event_id];row.update(status='waiting_for_vlm',current_stage=task)
-        self.publish();print('[v7-stage]',event_id,task,'START',flush=True)
-        started=time.perf_counter();result=dict(task=task,value=None,format_mode=None,error=None,
-            h_snapshot_uid=snapshot,directory=str(directory.relative_to(self.root)),images=request['messages'][1]['images'])
+        print('[v7-stage]',event_id,task,'START',directory.name,flush=True)
+        return dict(directory=directory,task=task,snapshot=snapshot,labels=labels,payload=payload,request=request)
+
+    def _invoke_stage(self,item):
+        directory,task,snapshot=item['directory'],item['task'],item['snapshot']
+        started=time.perf_counter()
+        result=dict(task=task,value=None,format_mode=None,error=None,h_snapshot_uid=snapshot,
+                    directory=str(directory.relative_to(self.root)),images=item['request']['messages'][1]['images'])
+        def record(attempt,response):
+            attempt_dir=directory/'attempts'/f"{attempt['number']:02d}"
+            attempt_dir.mkdir(parents=True,exist_ok=False)
+            save_json(attempt_dir/'attempt.json',dict(attempt,h_snapshot_uid=snapshot))
+            if response is not None:
+                try:save_json(attempt_dir/'response.json',response.json())
+                except (ValueError,TypeError):pass
         try:
-            endpoint=(os.environ.get('V7_MERGE_URL',self.owner.base_url) if task in {'node_quality','merge'} else self.owner.base_url).rstrip('/')+'/api/chat'
-            with httpx.Client(timeout=self.owner.timeout_seconds,trust_env=False) as client:
-                response=client.post(endpoint,json=payload)
-            result['http_status']=response.status_code;response.raise_for_status()
+            response,attempts,error=self._pool().request(item['payload'],record)
+            result['attempts']=attempts
+            result['timeout_count']=sum(a['timed_out'] for a in attempts)
+            if error:raise RuntimeError(error)
+            result['http_status']=response.status_code
             raw=response.json();save_json(directory/'response.json',raw)
             result['raw_output']=raw.get('message',{}).get('content','')
             result['timing']={k:raw.get(k) for k in ['total_duration','prompt_eval_count','eval_count','eval_duration']}
             if raw.get('model')!=self.owner.model or not raw.get('done') or raw.get('done_reason')!='stop':
                 raise ValueError('wrong model or incomplete response')
-            value,mode,original=parse_stage(result['raw_output'],task,labels)
+            value,mode,original=parse_stage(result['raw_output'],task,item['labels'])
             result.update(value=value,format_mode=mode,parsed_before_compatibility=original)
         except Exception as exc:
             result['error']=type(exc).__name__+': '+str(exc)
         result.update(seconds=time.perf_counter()-started,c_bound_h_snapshot_uid=snapshot,completed_at=_utc_now())
-        save_json(directory/'result.json',result);row.setdefault('stage_results',[]).append(result)
-        row['status']='stage_complete';self.publish()
-        print('[v7-stage]',event_id,task,'DONE',result['value'] or result['error'],flush=True)
         return result
     def human_choice(self,event_id,directory,allowed,images,reason,snapshot):
         # Auto must never read stdin, including a containment-conflict call path.
@@ -191,9 +231,9 @@ class V7Runtime(VLMRuntime):
             self.stage(eid,event_dir/'quality','observation_quality',[images[0]],snapshot))
         pairs=[]
         if quality['value'] and quality['value']['status']=='USABLE':
-            for alias,_,_ in candidates:
-                stage=self.stage(eid,event_dir/('candidate_'+alias),'pairwise',[(alias,event_dir/f'candidate_{alias}.jpg')],snapshot)
-                pairs.append(dict(alias=alias,value=stage['value']))
+            specs=[(event_dir/('candidate_'+a),'pairwise',[(a,event_dir/f'candidate_{a}.jpg')],None) for a,_,_ in candidates]
+            stages=self.stage_many(eid,specs,snapshot)
+            pairs=[dict(alias=a,value=stage['value']) for (a,_,_),stage in zip(candidates,stages)]
         decision=decide_event(quality['value'],pairs,[a for a,_,_ in candidates],pool_complete=True)
         if binding.get('input_error'):decision['reason_code']='INPUT_FAILURE: '+binding['input_error']
         if decision['kind']=='ASSOCIATE':choice=decision['target_alias']

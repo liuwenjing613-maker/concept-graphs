@@ -22,12 +22,14 @@ def main() -> int:
     parser.add_argument("--mode", required=True, choices=("off", "audit", "oracle", "vlm", "human"))
     parser.add_argument("--exp-suffix", required=True)
     parser.add_argument("--fallback", choices=("human", "auto"), default="auto")
-    parser.add_argument("--merge-base-url", default="http://127.0.0.1:11464")
     parser.add_argument("--scene", default="room0")
     parser.add_argument("--start", type=int, default=0)
     parser.add_argument("--end", type=int, default=2000)
     parser.add_argument("--stride", type=int, default=5)
-    parser.add_argument("--detections-exp-suffix", default="ali_dev_room0_stride5_det_frozen")
+    parser.add_argument("--detections-exp-suffix", help="Explicit compatible full-resolution cache; default creates an isolated cache")
+    parser.add_argument("--yolo-imgsz",type=int,default=1200)
+    parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463','http://127.0.0.1:11435'])
+    parser.add_argument("--vlm-timeout",type=float,default=300)
     parser.add_argument("--gpu", default="1")
     parser.add_argument("--margin-threshold", type=float, default=0.20)
     parser.add_argument("--threshold-distance", type=float, default=0.30)
@@ -41,7 +43,6 @@ def main() -> int:
     parser.add_argument("--max-events", type=int, default=0)
     parser.add_argument("--model", default="qwen3.6:35b-a3b-mtp-q4_K_M")
     parser.add_argument("--reasoning-effort", default="high", choices=("none", "low", "medium", "high"))
-    parser.add_argument("--base-url", default="http://127.0.0.1:11464")
     parser.add_argument("--no-api-key-required", action="store_true", default=True, help="Native local Ollama does not require an API key")
     parser.add_argument("--web-root", default="/home/chenkejun/beauty/v5_prompt_lab_20260905/report")
     parser.add_argument("--web-base-url", default="http://127.0.0.1:8895")
@@ -59,6 +60,12 @@ def main() -> int:
     parser.add_argument("--dataset-config")
     parser.add_argument("--oracle-gt-path", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl")
     args = parser.parse_args()
+    sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+    from conceptgraph.slam.v7_endpoint_pool import validate_urls
+    args.vlm_urls=validate_urls(args.vlm_urls)
+    if args.yolo_imgsz<=0 or args.vlm_timeout<=0:raise ValueError('sizes and timeout must be positive')
+    args.detections_exp_suffix=args.detections_exp_suffix or args.exp_suffix+'_detections'
+    if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',args.detections_exp_suffix):raise ValueError('invalid detection cache name')
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.exp_suffix):
         raise ValueError("exp-suffix must be one simple unique directory name")
 
@@ -84,6 +91,7 @@ def main() -> int:
     command = [
         str(Path(args.python).resolve()),
         "conceptgraph/slam/rerun_realtime_mapping.py",
+        f"repo_root={worktree}",
         f"dataset_root={dataset_root}",
         f"dataset_config={dataset_config}",
         f"scene_id={args.scene}",
@@ -97,7 +105,8 @@ def main() -> int:
         "save_rerun=false",
         f"rerun_connect_addr={args.rerun_connect_addr or 'null'}",
         "force_detection=false",
-        "save_detections=false",
+        "save_detections=true",
+        f"yolo_imgsz={args.yolo_imgsz}",
         f"detections_exp_suffix={args.detections_exp_suffix}",
         f"exp_suffix={args.exp_suffix}",
         "save_video=false",
@@ -125,7 +134,8 @@ def main() -> int:
         f"association_gate.candidate_iou_threshold={args.candidate_iou_threshold}",
         f"association_gate.model={args.model}",
         f"association_gate.reasoning_effort={args.reasoning_effort if args.reasoning_effort != 'none' else 'null'}",
-        f"association_gate.base_url={args.base_url}",
+        f"association_gate.base_url={args.vlm_urls[0]}",
+        f"association_gate.timeout_seconds={args.vlm_timeout}",
         f"association_gate.api_key_required={_bool(not args.no_api_key_required)}",
         f"association_gate.oracle_gt_path={args.oracle_gt_path if args.mode == 'oracle' else 'null'}",
         f"association_gate.max_events={args.max_events}",
@@ -143,7 +153,11 @@ def main() -> int:
         "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": args.mode,
         "fallback": args.fallback,
-        "merge_base_url": args.merge_base_url,
+        "vlm_urls": args.vlm_urls,
+        "vlm_timeout_seconds": args.vlm_timeout,
+        "timeout_retries": 3,
+        "yolo_imgsz": args.yolo_imgsz,
+        "detection_cache": args.detections_exp_suffix,
         "fresh_online_map": True,
         "worktree": str(worktree),
         "experiment_root": str(exp_root),
@@ -176,7 +190,8 @@ def main() -> int:
     environment = os.environ.copy()
     environment["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     environment["V7_FALLBACK"] = args.fallback
-    environment["V7_MERGE_URL"] = args.merge_base_url
+    environment["V7_VLM_URLS"] = json.dumps(args.vlm_urls)
+    environment["V7_MODEL_ROOT"] = str(project_root / "models/runtime")
     existing_pythonpath = environment.get("PYTHONPATH")
     environment["PYTHONPATH"] = str(worktree / ".runtime-deps") + os.pathsep + str(worktree) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")
     completed = subprocess.run(command, cwd=worktree, env=environment, check=False)
