@@ -19,7 +19,7 @@ bash /home/chenkejun/beauty/conceptgraphs/code/experiments/ali-my-v7-VLMsplit/ru
 
 `human` 和 `auto` 都先运行相同的 VLM；只决定未决事件的处理方式。auto 全程不读取人工输入，包含率冲突也只记录并保持不合并；human 应在交互终端运行。页面点击选项会生成答案，将其复制到当前运行终端并回车，只有当前题及冻结快照的编号有效。人工复核页保留当前题和浏览器草稿，不自动跳题。
 
-默认数据目录为 `/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica`，使用 room0 已有逐帧检测缓存。`--end 2000 --stride 5` 是原始帧 0–1999、间隔 5，共 400 个处理帧。每次自动生成新的 `v7_MODE_时间_进程号` 输出目录；也可传入未使用过的 `--exp-suffix NAME`。已有目录会被拒绝，不能载入旧图继续跑。保留原框架第 0 帧初始化及事件触发规则；初始化旁路计入 `frame_zero_new_bypass`。
+默认数据目录为 `/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica`，使用 room0 已有逐帧检测缓存。`--end 2000 --stride 5` 是原始帧 0–1999、间隔 5，共 400 个处理帧。每次自动生成新的 `v7_MODE_时间_进程号` 输出目录；也可传入未使用过的 `--exp-suffix NAME`。已有目录默认拒绝覆盖；只有本版本生成的同一运行 checkpoint 可以通过 `--resume latest` 续跑。保留原框架第 0 帧初始化及事件触发规则；初始化旁路计入 `frame_zero_new_bypass`。
 
 输出：`数据目录/room0/exps/运行名/`。终端打印地图、结果页及人工复核页的完整路径；页面服务沿用端口 8895，地址为 `http://127.0.0.1:8895/v7VLM_运行名/` 和其 `review/` 子目录。外部访问需沿用现有端口转发。
 
@@ -54,3 +54,28 @@ cd /home/chenkejun/beauty/conceptgraphs/code/experiments/ali-my-v7-VLMsplit
 export PYTHONPATH="$PWD/.runtime-deps:$PWD"
 /home/chenkejun/beauty/conceptgraphs/envs/cg-ali/bin/python -m unittest discover -s tests -p test_v7_split.py
 ```
+
+
+## 分阶段人工复核与 latest checkpoint（2026-09-08）
+
+- 当前观测质量不通过或接口失败：human 仅选择 `USABLE`（可用，继续候选身份 VLM）或 `UNUSABLE`（不可用，丢弃）。
+- 历史节点质量不通过或接口失败：human 分别判断 A/B 的 `CLEAN`、`CONTAMINATED`、`INSUFFICIENT`；全部通过才进入合并身份 VLM。污染或证据不足时不合并，若同时命中 >90% 包含率冲突，仍单独请求冲突复核。
+- 身份与几何冲突复核保留原来的候选／新建／丢弃和合并／不合并选项。网页显示对应问题和证据，选择后复制答案到运行终端回车。草稿不会作为正式答案提交。
+
+新建运行（默认逐帧保存 checkpoint）：
+```bash
+bash run_v7.sh human --gpu 0 --exp-suffix v7_human
+```
+中断后续跑（同一输出名称，其他场景、stride、end、门控参数必须与首次一致）：
+```bash
+bash run_v7.sh human --gpu 0 --exp-suffix v7_human --resume latest
+```
+将 human 替换为 auto 可用于 auto 运行。`--gpu` 可换物理卡；模型、模式、输入范围与运行代码必须保持一致。不要同时启动同一输出目录的两个进程。
+
+断点位于 `<实验输出目录>/checkpoints/latest.json`，原子指向最近写完的状态文件，保留最近两份状态。恢复地图、精确点云和包围盒、对象/证据版本、合并票数与锁定、支持历史、运行统计和 Python/NumPy/Torch 随机状态。继续使用原 run_id。
+
+断点粒度为完整帧：若在某帧等待人工或执行 VLM 时中断，恢复时重新处理该帧；本帧尚未提交的人工选择可能需要重答，VLM 请求可能重做。未完成帧的产物移到 `checkpoints/interrupted/`，日志回退到断点长度，避免重复融合或重复计票。不是恢复 Python 调用栈，也不会跳到未来帧。
+
+当前支持冻结检测缓存、make_edges=false、revision=false、vis_render=false（run_v7.sh 默认流程）；在线重新检测的另一工作树不在此次支持范围。旧版本未写 checkpoint 的运行不能恢复。已完成运行拒绝再次续跑。
+
+验证：41 项小型回归通过；2 帧真实在线 CPU smoke 在第二帧合并期间主动中断，恢复后从 frame 1 继续，最终 return_code=0。小图 checkpoint 写入约 0.12–0.19 秒；未验证全场景写盘开销。最初新进程遇到服务器 CUDA 初始化失败；重连后 CUDA 恢复可用，补做 1 帧 GPU 建图及 CUDA tensor checkpoint 加载成功。中断恢复的完整验证使用 CPU。记录：`/home/chenkejun/beauty/v7_checkpoint_smoke_20260908/`。

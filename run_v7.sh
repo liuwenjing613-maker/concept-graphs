@@ -3,7 +3,7 @@ set -euo pipefail
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-}"
 if [[ "$MODE" != human && "$MODE" != auto ]]; then
-  echo "Usage: bash $0 human|auto [--scene room0 --end 2000 --stride 5 --gpu 1 --exp-suffix NAME]"
+  echo "Usage: bash $0 human|auto [--scene room0 --end 2000 --stride 5 --gpu 1 --exp-suffix NAME --resume latest]"
   echo "Both modes run staged VLM. human: unresolved cases need a choice. auto: discard observation / keep separate."
   echo "Containment >90%: human mode asks; auto mode logs the conflict and keeps separate without prompting."
   exit 2

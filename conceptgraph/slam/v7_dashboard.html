@@ -25,7 +25,12 @@ let r=rows.find(r=>r.event_id===active);if(!r)return;
 $('title').textContent=r.event_id+' · '+(r.execution||r.status);
 const sig=JSON.stringify(r);if(sig===signature)return;signature=sig;
 const q=r.human_question;$('question').hidden=!q;
-if(q){$('question').innerHTML='<b>'+esc(q.state==='waiting'?'建图暂停，等待人工选择':'人工选择已记录')+'</b><pre>'+esc(q.reason)+'</pre>'+q.allowed.map(a=>'<button data-answer="'+esc(q.token+' '+a)+'">'+esc(a)+'</button>').join('')+'<input id="answer" readonly placeholder="点击选项后复制到运行终端，并回车"><small>编号绑定本题及冻结快照；旧答案会被拒绝。</small>';
+const labels={USABLE:'可用',UNUSABLE:'不可用（丢弃）',CLEAN:'单一实例',CONTAMINATED:'混入多个实例',INSUFFICIENT:'证据不足',MERGE:'合并',KEEP_SEPARATE:'不合并',NEW:'新建',DISCARD:'丢弃'};
+const options=q?.allowed||r.allowed||[];const saved=$('draft').value;
+$('draft').innerHTML='<option value="">未选择</option>'+options.map(a=>'<option value="'+esc(a)+'">'+esc(labels[a]||a)+'</option>').join('');
+if(saved&&!options.includes(saved))$('draft').insertAdjacentHTML('beforeend','<option value="'+esc(saved)+'">此前草稿：'+esc(saved)+'</option>');
+$('draft').value=saved;
+if(q){$('question').innerHTML='<b>'+esc(q.state==='waiting'?'建图暂停，等待人工选择':'人工选择已记录')+'</b><pre>'+esc(q.reason)+'</pre>'+q.allowed.map(a=>'<button data-answer="'+esc(q.token+' '+a)+'">'+esc(labels[a]||a)+'</button>').join('')+(q.images||[]).map(image).join('')+'<input id="answer" readonly placeholder="点击选项后复制到运行终端，并回车"><small>编号绑定本题及冻结快照；旧答案会被拒绝。</small>';
 $('question').querySelectorAll('button').forEach(b=>{b.disabled=q.state!=='waiting';b.onclick=async()=>{$('answer').value=b.dataset.answer;$('answer').select();try{await navigator.clipboard.writeText(b.dataset.answer)}catch{document.execCommand('copy')}}})}
 $('content').innerHTML='<section><pre>'+esc(JSON.stringify({status:r.status,action:r.execution,output:r.model_output,decision:r.staged_decision,votes:r.vote_after,containment:r.containment,snapshot:r.h_snapshot_uid},null,2))+'</pre></section>'+
 (r.stage_results||[]).map(s=>'<section><h3>'+esc(s.task)+'</h3><pre>'+esc(JSON.stringify({output:s.value,error:s.error,format:s.format_mode,seconds:s.seconds,raw:s.raw_output},null,2))+'</pre>'+s.images.map(image).join('')+'<a href="'+base+s.directory+'/request.json">实际请求</a> · <a href="'+base+s.directory+'/result.json">结果与耗时</a></section>').join('')+

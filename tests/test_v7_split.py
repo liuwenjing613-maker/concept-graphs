@@ -93,13 +93,22 @@ class GateIntegration(unittest.TestCase):
         runtime.stage=stage
         runtime.pending=lambda eid,directory,task,images,allowed:runtime.rows.setdefault(eid,dict(event_id=eid))
         runtime.fallback_choice=lambda *args:'KEEP_SEPARATE'
-        def human(*args):self.humans.append(args);return self.human_answer
+        def human(*args,**kwargs):self.humans.append(args);return self.human_answer
         runtime.human_choice=human;self.owner.vlm_runtime=runtime;self.gate=V7MergeGate(self.owner)
     def tearDown(self):self.tmp.cleanup()
     def review(self,frame):return self.gate.review(self.a,self.b,frame_idx=frame,source_frame_id=str(frame),stage='smoke')
     def test_failed_vlm_auto_is_rejection(self):
         self.answer=None;self.review(1);self.review(2)
         self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+    def test_human_node_quality_clean_continues_identity(self):
+        self.owner.vlm_runtime.fallback='human';self.quality='CONTAMINATED';self.human_answer='CLEAN'
+        self.review(1)
+        self.assertEqual(self.calls,['node_quality','node_quality','merge'])
+        self.assertTrue(all(args[2]==['CLEAN','CONTAMINATED','INSUFFICIENT'] for args in self.humans))
+    def test_human_node_quality_contaminated_keeps_separate(self):
+        self.owner.vlm_runtime.fallback='human';self.quality='CONTAMINATED';self.human_answer='CONTAMINATED'
+        self.review(1)
+        self.assertNotIn('merge',self.calls)
     def test_quality_mixed_no_identity_call(self):
         self.quality='CONTAMINATED';self.review(1)
         self.assertEqual(self.calls,['node_quality','node_quality'])
@@ -160,7 +169,7 @@ class MutationAndFallback(unittest.TestCase):
             self.assertEqual(self.r.fallback_choice('e',self.root,task,[],'failure',['A'],'snap'),expected)
     def test_human_choice_rejects_wrong_snapshot_token(self):
         self.r.fallback="human"
-        answers=iter(['OLD MERGE','E-SNAPSHOT MERGE'])
+        answers=iter(['OLD MERGE','E-SNAPSHOT-MERGE_IDENTITY MERGE'])
         self.r.owner._human_input=lambda prompt:next(answers)
         self.assertEqual(self.r.human_choice('e',self.root,['MERGE','KEEP_SEPARATE'],[],'smoke','snapshot'),'MERGE')
         self.assertEqual(json.loads((self.root/'human_answer.json').read_text())['c_bound_h_snapshot_uid'],'snapshot')
@@ -170,7 +179,7 @@ class MutationAndFallback(unittest.TestCase):
             self.assertEqual(self.r.human_choice('e',self.root,allowed,[],'conflict','H'),expected)
         self.assertFalse((self.root/'human_question.json').exists())
     def test_human_fallback_uses_explicit_choice(self):
-        self.r.fallback='human';self.r.owner._human_input=lambda prompt:'E-SNAPSHOT DISCARD'
+        self.r.fallback='human';self.r.owner._human_input=lambda prompt:'E-SNAPSHOT-OBSERVATION_IDENTITY DISCARD'
         self.assertEqual(self.r.fallback_choice('e',self.root,'observation',[],'failure',['A'],'snapshot'),'DISCARD')
     def test_pairwise_request_binds_actual_candidate_alias(self):
         from conceptgraph.slam.v7_runtime import PROMPTS

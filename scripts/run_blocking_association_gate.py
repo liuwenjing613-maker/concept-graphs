@@ -58,6 +58,8 @@ def main() -> int:
     )
     parser.add_argument("--dataset-config")
     parser.add_argument("--oracle-gt-path", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl")
+    parser.add_argument("--device", choices=["cuda","cpu"], default="cuda", help="Mapping compute device; cpu is useful for small smoke checks")
+    parser.add_argument("--resume", choices=["latest"], help="Resume the same named run from its latest complete frame")
     args = parser.parse_args()
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", args.exp_suffix):
         raise ValueError("exp-suffix must be one simple unique directory name")
@@ -67,8 +69,17 @@ def main() -> int:
     dataset_root = Path(args.dataset_root).resolve()
     dataset_config = Path(args.dataset_config).resolve() if args.dataset_config else worktree / "conceptgraph" / "dataset" / "dataconfigs" / "replica" / "replica.yaml"
     exp_root = dataset_root / args.scene / "exps" / args.exp_suffix
-    if exp_root.exists():
+    if exp_root.exists() and not args.resume:
         raise FileExistsError(f"refusing to reuse any existing map directory: {exp_root}")
+    if args.resume:
+        if args.mode != 'vlm' or not (exp_root/'checkpoints/latest.json').is_file():
+            raise ValueError('No resumable v7 checkpoint for this output name')
+        for proc in Path('/proc').iterdir():
+            if not proc.name.isdigit():continue
+            try: argv=(proc/'cmdline').read_bytes().decode().split('\0')
+            except (OSError,UnicodeError):continue
+            if any(x.endswith('rerun_realtime_mapping.py') for x in argv) and 'exp_suffix='+args.exp_suffix in argv:
+                raise RuntimeError('This output is still running; stop it before resuming')
     if args.mode == "vlm" and not args.no_api_key_required and not os.environ.get("GATE_API_KEY"):
         raise RuntimeError("GATE_API_KEY must be present only in the process environment for vlm mode")
     if args.mode == "oracle" and not Path(args.oracle_gt_path).is_file():
@@ -109,7 +120,7 @@ def main() -> int:
         "evidence_mode=strict",
         f"evidence_save_observation_pcd={_bool(not args.no_observation_pcd)}",
         "save_parity_trace=true",
-        "device=cuda",
+        f"device={args.device}",
         "revision.enabled=false",
         f"association_gate.mode={args.mode}",
         f"association_gate.margin_threshold={args.margin_threshold}",
@@ -133,18 +144,25 @@ def main() -> int:
         "hydra.verbose=false",
         "hydra.job_logging.root.level=INFO",
     ]
+    if args.mode == 'vlm':
+        command.extend(['+v7_checkpoint=true', '+v7_resume='+_bool(bool(args.resume))])
     launch_dir = project_root / "results" / "blocking_association_gate_v1" / "launches"
     launch_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = launch_dir / f"{args.exp_suffix}.json"
-    if manifest_path.exists():
+    if manifest_path.exists() and not args.resume:
         raise FileExistsError(f"refusing to overwrite launch manifest: {manifest_path}")
+    previous_manifest = json.loads(manifest_path.read_text()) if args.resume else None
+    if previous_manifest:
+        manifest_path.with_name(args.exp_suffix+'.before_resume_'+datetime.now().strftime('%Y%m%d_%H%M%S')+'.json').write_text(json.dumps(previous_manifest,indent=2))
     manifest = {
         "schema_version": "blocking-association-gate-launch-v1",
         "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": args.mode,
         "fallback": args.fallback,
         "merge_base_url": args.merge_base_url,
-        "fresh_online_map": True,
+        "fresh_online_map": not bool(args.resume),
+        "resume": args.resume,
+        "original_created_at": previous_manifest.get("original_created_at",previous_manifest["created_at"]) if previous_manifest else None,
         "worktree": str(worktree),
         "experiment_root": str(exp_root),
         "cuda_visible_devices": args.gpu,
@@ -163,9 +181,10 @@ def main() -> int:
             raise FileNotFoundError("web root missing; provide --web-root or use --no-web-link")
         alias = "v7VLM_" + args.exp_suffix
         link = web_root / alias
-        if link.exists() or link.is_symlink():
+        if (link.exists() or link.is_symlink()) and not (args.resume and link.is_symlink() and link.resolve()==(exp_root / "blocking_association_gate").resolve()):
             raise FileExistsError(f"refusing to overwrite existing web link: {link}")
-        link.symlink_to(exp_root / "blocking_association_gate", target_is_directory=True)
+        if not link.is_symlink():
+            link.symlink_to(exp_root / "blocking_association_gate", target_is_directory=True)
         manifest["web_pages"] = {
             "result": args.web_base_url.rstrip("/") + "/" + alias + "/",
             "review": args.web_base_url.rstrip("/") + "/" + alias + "/review/",

@@ -82,7 +82,7 @@ class V7Runtime(VLMRuntime):
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
         self.versions=dict(version='ali-my-v7-VLMsplit',model=owner.model,fallback=self.fallback,
-            execution_revision='20260908_incremental_allowlist_and_pre_render_lock_check',
+            execution_revision='20260908_typed_human_review_checkpoint_v1',
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
@@ -152,13 +152,15 @@ class V7Runtime(VLMRuntime):
         row['status']='stage_complete';self.publish()
         print('[v7-stage]',event_id,task,'DONE',result['value'] or result['error'],flush=True)
         return result
-    def human_choice(self,event_id,directory,allowed,images,reason,snapshot):
+    def human_choice(self,event_id,directory,allowed,images,reason,snapshot,question_type=None):
         # Auto must never read stdin, including a containment-conflict call path.
         if self.fallback=='auto':
             task='merge' if 'KEEP_SEPARATE' in allowed else 'observation'
             return self.fallback_choice(event_id,directory,task,images,reason,allowed,snapshot)
-        token=(event_id+'-'+snapshot[:10]).upper()
-        question=dict(event_id=event_id,token=token,allowed=allowed,reason=reason,h_snapshot_uid=snapshot,
+        question_type=question_type or ('merge_identity' if 'KEEP_SEPARATE' in allowed else 'observation_identity')
+        directory.mkdir(parents=True,exist_ok=True)
+        token=(event_id+'-'+snapshot[:10]+'-'+question_type).upper()
+        question=dict(event_id=event_id,token=token,allowed=allowed,reason=reason,h_snapshot_uid=snapshot,question_type=question_type,
             images=[dict(label=n,path=str(p.relative_to(self.root))) for n,p in images],state='waiting')
         save_json(directory/'human_question.json',question)
         self.rows.setdefault(event_id,dict(event_id=event_id,images=[])).update(status='waiting_for_human',human_question=question)
@@ -174,6 +176,8 @@ class V7Runtime(VLMRuntime):
             print('[v7-human] 编号或选项无效；请从当前题复制答案。',flush=True)
         question.update(state='answered',choice=choice,answered_at=_utc_now(),c_bound_h_snapshot_uid=snapshot)
         save_json(directory/'human_answer.json',question);self.rows[event_id]['human_question']=question
+        self.rows[event_id]['status']='stage_complete'
+        self.rows[event_id].setdefault('human_history',[]).append(copy.deepcopy(question))
         self.publish();return choice
     def fallback_choice(self,event_id,directory,task,images,reason,aliases,snapshot):
         if self.fallback=='human':
@@ -189,14 +193,22 @@ class V7Runtime(VLMRuntime):
         self.rows[eid].update(h_snapshot_uid=snapshot,trigger_kind=eid.rsplit('_',1)[-1])
         quality=(dict(value=None,error=binding['input_error']) if binding.get('input_error') else
             self.stage(eid,event_dir/'quality','observation_quality',[images[0]],snapshot))
+        if self.fallback=='human' and not binding.get('input_error') and (not quality['value'] or quality['value']['status']!='USABLE'):
+            selected=self.human_choice(eid,event_dir/'quality',['USABLE','UNUSABLE'],[images[0]],
+                '当前观测质量需要复核：可用后继续候选身份 VLM；不可用则丢弃。',snapshot,question_type='observation_quality')
+            quality=dict(value={'status':selected,'reason':'人工观测质量复核'},error=None)
+            self.rows[eid]['human_quality']=quality['value']
         pairs=[]
         if quality['value'] and quality['value']['status']=='USABLE':
             for alias,_,_ in candidates:
                 stage=self.stage(eid,event_dir/('candidate_'+alias),'pairwise',[(alias,event_dir/f'candidate_{alias}.jpg')],snapshot)
                 pairs.append(dict(alias=alias,value=stage['value']))
         decision=decide_event(quality['value'],pairs,[a for a,_,_ in candidates],pool_complete=True)
+        if self.fallback=='human' and quality.get('value',{} ) and quality['value'].get('status')=='UNUSABLE':
+            decision=dict(kind='DISCARD',reason_code='HUMAN_QUALITY_UNUSABLE')
         if binding.get('input_error'):decision['reason_code']='INPUT_FAILURE: '+binding['input_error']
-        if decision['kind']=='ASSOCIATE':choice=decision['target_alias']
+        if decision['kind']=='DISCARD':choice='DISCARD'
+        elif decision['kind']=='ASSOCIATE':choice=decision['target_alias']
         elif decision['kind']=='NEW':choice='NEW'
         elif decision['kind']=='MERGE_REVIEW':
             byalias={a:(idx,obj) for a,idx,obj in candidates};same=decision['same_aliases']

@@ -87,9 +87,19 @@ class V7MergeGate:
                 labels=['H'+str(i+1) for i in range(len(binding['histories'][a]['selected']))]
                 result=self.runtime.stage(event_id,directory/('quality_'+a),'node_quality',
                     [('NODE '+a,directory/f'quality_{a}.jpg')],snapshot,labels=labels)
-                event['stages'].append(result);qualities.append(result['value'])
+                event['stages'].append(result)
+                value=result['value']
+                if self.runtime.fallback=='human' and (value is None or value['choice']!='CLEAN'):
+                    selected=self.runtime.human_choice(event_id,directory/('quality_'+a),
+                        ['CLEAN','CONTAMINATED','INSUFFICIENT'],[('NODE '+a,directory/f'quality_{a}.jpg')],
+                        '节点 '+a+' 的历史质量复核：单一实例／混入多个实例／证据不足；质量通过后继续合并身份 VLM。',
+                        snapshot,question_type='node_quality_'+a)
+                    value=dict(choice=selected,reason='人工节点质量复核')
+                    event.setdefault('human_node_quality',{})[a]=value
+                qualities.append(value)
             if any(q is None for q in qualities):reason='NODE_QUALITY_INTERFACE_FAILURE'
             elif any(q['choice']=='CONTAMINATED' for q in qualities):reason='NODE_CONTAMINATED'
+            elif any(q['choice']=='INSUFFICIENT' for q in qualities):reason='NODE_INSUFFICIENT'
             else:
                 result=self.runtime.stage(event_id,directory/'identity','merge',[('MERGE',directory/'merge.png')],snapshot)
                 event['stages'].append(result)
@@ -97,6 +107,9 @@ class V7MergeGate:
                 choice={'SAME':'MERGE','DIFFERENT':'KEEP_SEPARATE','UNCERTAIN':None}.get(value['choice']) if value else None
                 event['identity_output']=value
                 reason='IDENTITY_UNCERTAIN' if value else 'IDENTITY_INTERFACE_FAILURE'
+            if choice is None and self.runtime.fallback=='human' and reason in {'NODE_CONTAMINATED','NODE_INSUFFICIENT'}:
+                choice='KEEP_SEPARATE'
+                event['fallback_reason']=reason
             if choice is None:
                 choice=self.runtime.fallback_choice(event_id,directory,'merge',images,reason,[],snapshot)
                 event['fallback_reason']=reason

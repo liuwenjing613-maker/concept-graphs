@@ -210,32 +210,47 @@ def main(cfg : DictConfig):
     # consolidated captions even when make_edges was false.
     openai_client = get_openai_client() if cfg.make_edges else None
 
-    save_hydra_config(cfg, exp_out_path)
-    save_hydra_config(detections_exp_cfg, exp_out_path, is_detection_config=True)
+    checkpoints = None
+    resume_state = None
+    if cfg.get("v7_checkpoint", False):
+        from conceptgraph.slam.v7_checkpoint import Checkpoints
+        if cfg.make_edges or (cfg.get("revision") or {}).get("enabled") or cfg.vis_render or run_detections:
+            raise ValueError("v7 checkpoint requires frozen detections, make_edges=false, revision=false, vis_render=false")
+        checkpoints = Checkpoints(exp_out_path, cfg)
+        if cfg.get("v7_resume", False):
+            resume_state = checkpoints.load()
+            checkpoints.rollback()
+    elif cfg.get("v7_resume", False):
+        raise ValueError("resume requires checkpoint enabled")
+    if resume_state is None:
+        save_hydra_config(cfg, exp_out_path)
+        save_hydra_config(detections_exp_cfg, exp_out_path, is_detection_config=True)
 
-    evidence = EvidenceRecorder(
-        exp_out_path=exp_out_path,
-        cfg=cfg,
-        detection_cfg=detections_exp_cfg,
-        enabled=bool(getattr(cfg, "save_evidence", True)),
-        model_versions={
-            "detector": "yolov8l-world.pt",
-            "segmenter": "sam_l.pt",
-            "clip": "ViT-H-14/laion2b_s32b_b79k",
-            "vlm": gpt_model,
-        },
-        prompt_versions={
-            "FRAME_EDGE": "ali-dev-system_prompt_only_top-v1",
-            "FRAME_CAPTION": "ali-dev-system_prompt_captions-v1",
-            "OBJECT_CAPTION_CONSOLIDATION": "ali-dev-system_prompt_consolidate_captions-v1",
-        },
-    )
-    openai_client = evidence.wrap_openai_client(openai_client)
-    association_gate = BlockingAssociationGate(
-        cfg=cfg,
-        output_dir=exp_out_path / "blocking_association_gate",
-        rerun=orr,
-    )
+        evidence = EvidenceRecorder(
+            exp_out_path=exp_out_path,
+            cfg=cfg,
+            detection_cfg=detections_exp_cfg,
+            enabled=bool(getattr(cfg, "save_evidence", True)),
+            model_versions={
+                "detector": "yolov8l-world.pt",
+                "segmenter": "sam_l.pt",
+                "clip": "ViT-H-14/laion2b_s32b_b79k",
+                "vlm": gpt_model,
+            },
+            prompt_versions={
+                "FRAME_EDGE": "ali-dev-system_prompt_only_top-v1",
+                "FRAME_CAPTION": "ali-dev-system_prompt_captions-v1",
+                "OBJECT_CAPTION_CONSOLIDATION": "ali-dev-system_prompt_consolidate_captions-v1",
+            },
+        )
+        openai_client = evidence.wrap_openai_client(openai_client)
+        association_gate = BlockingAssociationGate(
+            cfg=cfg,
+            output_dir=exp_out_path / "blocking_association_gate",
+            rerun=orr,
+        )
+    else:
+        objects, map_edges, evidence, association_gate, resumed_local, resume_frame = checkpoints.restore(orr, tracker)
     parity_trace = []
     revision_cfg = cfg.get("revision") or {}
     corruption_controller = None
@@ -262,7 +277,19 @@ def main(cfg : DictConfig):
 
     exit_early_flag = False
     counter = 0
-    for frame_idx in trange(len(dataset)):
+    start_frame = 0
+    if resume_state is not None:
+        start_frame = resume_frame
+        parity_trace = resumed_local['parity_trace']
+        counter = resumed_local['counter']
+        prev_adjusted_pose = resumed_local['prev_adjusted_pose']
+        exit_early_flag = resumed_local['exit_early_flag']
+        print(f"[checkpoint] resumed same run at frame {start_frame}", flush=True)
+    frame_idx = start_frame - 1
+    for frame_idx in trange(start_frame, len(dataset), initial=start_frame, total=len(dataset)):
+        if checkpoints:
+            checkpoints.save(frame_idx, objects, map_edges, evidence, association_gate, tracker,
+                dict(parity_trace=parity_trace, counter=counter, prev_adjusted_pose=prev_adjusted_pose, exit_early_flag=exit_early_flag))
         tracker.curr_frame_idx = frame_idx
         counter+=1
         orr.set_time_sequence("frame", frame_idx)
@@ -904,6 +931,10 @@ def main(cfg : DictConfig):
                 "exit_early_flag": exit_early_flag,
                 "is_final_frame": is_final_frame,
                 })
+    # Capture the last completed frame before final output/close, including empty-frame paths.
+    if checkpoints:
+        checkpoints.save(len(dataset), objects, map_edges, evidence, association_gate, tracker,
+            dict(parity_trace=parity_trace, counter=counter, prev_adjusted_pose=prev_adjusted_pose, exit_early_flag=exit_early_flag))
     # LOOP OVER -----------------------------------------------------
 
     if cfg.get("save_parity_trace", False):
@@ -984,6 +1015,8 @@ def main(cfg : DictConfig):
         objects=objects,
         map_edges=map_edges,
     )
+    if checkpoints:
+        checkpoints.completed()
     owandb.finish()
 
 if __name__ == "__main__":
