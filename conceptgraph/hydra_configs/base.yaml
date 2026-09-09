@@ -3,3 +3,10 @@ defaults:
 
 use_wandb: !!bool False
 use_rerun: !!bool False
+
+# CLIP object-view fusion. Set clip_masked_weight=0.0 for the original
+# bbox-only behavior.
+clip_bbox_padding: 20
+clip_masked_weight: 0.5
+clip_masked_background_factor: 0.1
+clip_masked_blur_radius: 3.0
