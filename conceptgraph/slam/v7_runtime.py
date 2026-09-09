@@ -84,16 +84,16 @@ class V7Runtime(VLMRuntime):
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='v7_merge',model=owner.model,fallback=self.fallback,
-            execution_revision='20260909_containment_direct_merge',
+        self.versions=dict(version='v7_merge_70',model=owner.model,fallback=self.fallback,
+            execution_revision='20260909_containment_90_60',
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
             timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
             merge_required_consecutive=2,reject_required_total=2,containment_distance_m=self.containment_distance,
-            containment_threshold=.9,auto_requires_human=False,
-            containment_trigger='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes')
+            containment_threshold=.9,containment_secondary_threshold=.6,auto_requires_human=False,
+            containment_trigger='KEEP_SEPARATE only; max(full-cloud directions)>90% AND min(directions)>60% directly approves merge, bypassing VLM votes')
         save_json(self.root/'vlm_versions.json',self.versions)
         template=Path(__file__).with_name('v7_dashboard.html')
         for dest in [self.root/'index.html',self.root/'review/index.html']:dest.write_text(template.read_text())

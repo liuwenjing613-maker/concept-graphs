@@ -141,12 +141,27 @@ class GateIntegration(unittest.TestCase):
         self.assertIsNotNone(self.review(1))
         self.assertEqual(self.gate.events[-1]['containment']['a_in_b'],.9)
     def test_one_direction_and_same_frame_certificate(self):
-        self.b['pcd'].points=np.r_[self.a['pcd'].points,np.ones((20,3))*100]
+        self.b['pcd'].points=np.r_[self.a['pcd'].points,np.ones((4,3))*100]
         self.assertIsNone(self.review(1));count=len(self.calls)
         self.assertIsNone(self.review(1));self.assertEqual(len(self.calls),count)
         self.assertLess(self.gate.events[-1]['containment']['b_in_a'],.9)
         self.gate.on_merged(self.a,self.b)
         self.assertEqual(self.gate.events[-1]['execution'],'MERGED')
+    def test_asymmetric_fragment_no_longer_overrides(self):
+        self.b['pcd'].points=np.r_[self.a['pcd'].points,np.ones((20,3))*100]
+        self.assertIsNotNone(self.review(1))
+        event=self.gate.events[-1]
+        self.assertTrue(event['containment']['exceeds_primary_threshold'])
+        self.assertFalse(event['containment']['exceeds_threshold'])
+        self.assertEqual(event['model_output']['choice'],'KEEP_SEPARATE')
+    def test_exact_secondary_60_is_rejected(self):
+        self.b['pcd'].points=self.a['pcd'].points[:5].copy()
+        self.a['pcd'].points=self.a['pcd'].points[:3].copy()
+        self.assertIsNotNone(self.review(1))
+        self.assertEqual(self.gate.events[-1]['containment']['b_in_a'],.6)
+    def test_threshold_orientation_and_boundaries(self):
+        for a,b,expected in [(.91,.61,True),(.61,.91,True),(.9,.7,False),(.9,1.,True),(1.,.6,False),(.95,.59,False),(.95,.7,True)]:
+            self.assertEqual(self.gate.qualifies_containment(a,b),expected)
     def test_positive_does_not_containment_check(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.answer='SAME'
         self.assertIsNotNone(self.review(1));self.assertIsNone(self.review(2));self.assertFalse(self.humans)

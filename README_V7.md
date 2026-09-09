@@ -1,3 +1,5 @@
+> 当前目录为 v7_merge_70，实际阈值90%/60%，当前规则和命令见 [README_V7_MERGE_70.md](README_V7_MERGE_70.md)。下文为继承版本说明。
+
 > 本目录为 v7_merge，当前行为与运行入口见 [README_V7_MERGE.md](README_V7_MERGE.md)。下文为继承版本说明，90% 包含率策略以新说明为准。
 
 > 本分支是 **v7_VLMsplit_image**，新的运行参数和检测缓存要求见 [README_V7_IMAGE.md](README_V7_IMAGE.md)。以下为继承的 v7 基础规则记录。
