@@ -1,3 +1,5 @@
+> 当前目录为 v7_merge_2，最新入口和策略见 [README_V7_MERGE_2.md](README_V7_MERGE_2.md)。
+
 > 本目录为 v7_merge，当前行为与运行入口见 [README_V7_MERGE.md](README_V7_MERGE.md)。下文为继承版本说明，90% 包含率策略以新说明为准。
 
 # v7_VLMsplit_image

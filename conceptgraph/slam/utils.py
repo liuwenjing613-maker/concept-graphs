@@ -784,6 +784,45 @@ def merge_overlap_objects(
         range(len(objects))
     )  # Initialize index updates with the same indices
 
+    def apply_merge(i,j,ratio,visual_sim,text_sim):
+        # Merge object i into object j
+        source_object = objects[i]
+        objects[j] = merge_obj2_into_obj1(
+            objects[j],
+            source_object,
+            downsample_voxel_size,
+            dbscan_remove_noise,
+            dbscan_eps,
+            dbscan_min_points,
+            spatial_sim_type,
+            device,
+            run_dbscan=True,
+        )
+        # Notify only AFTER the actual object-object merge, never observation fusion.
+        on_reviewed_merge = getattr(merge_review, "on_merged", None)
+        if on_reviewed_merge is not None:
+            on_reviewed_merge(source_object, objects[j])
+        if merge_event_callback is not None:
+            try:
+                merge_event_callback(
+                    source_object,
+                    objects[j],
+                    ratio,
+                    visual_sim,
+                    text_sim,
+                )
+            except Exception as exc:
+                logging.warning(
+                    "Merge evidence callback failed without changing mapping: %s",
+                    exc,
+                )
+        kept_objects[i] = False  # Mark object i as 'merged'
+        merge_operations.append(
+            (i, j)
+        )  # Record this merge for edge updates
+        index_updates[i] = None  # Update index as merged
+
+    native_pairs=set()
     for candidate_rank, (i, j, ratio) in enumerate(zip(x, y, overlap_ratio), start=1):
         if ratio > merge_overlap_thresh:
             visual_sim = F.cosine_similarity(
@@ -812,6 +851,8 @@ def merge_overlap_objects(
                     reject_reasons.append(str(guard_reason))
             # Review only proposals the original rules/guard would execute.
             # Objects are live: earlier accepted merges in this pass may change them.
+            if not reject_reasons:
+                native_pairs.add(tuple(sorted((str(objects[i]["id"]),str(objects[j]["id"])))))
             if not reject_reasons and merge_review is not None:
                 review_reason = merge_review(objects[i], objects[j], ratio, visual_sim, text_sim)
                 if review_reason:
@@ -831,42 +872,7 @@ def merge_overlap_objects(
                 )
             if not reject_reasons:
                 if kept_objects[i] and kept_objects[j]:
-                    # Merge object i into object j
-                    source_object = objects[i]
-                    objects[j] = merge_obj2_into_obj1(
-                        objects[j],
-                        source_object,
-                        downsample_voxel_size,
-                        dbscan_remove_noise,
-                        dbscan_eps,
-                        dbscan_min_points,
-                        spatial_sim_type,
-                        device,
-                        run_dbscan=True,
-                    )
-                    # Notify only AFTER the actual object-object merge, never observation fusion.
-                    on_reviewed_merge = getattr(merge_review, "on_merged", None)
-                    if on_reviewed_merge is not None:
-                        on_reviewed_merge(source_object, objects[j])
-                    if merge_event_callback is not None:
-                        try:
-                            merge_event_callback(
-                                source_object,
-                                objects[j],
-                                ratio,
-                                visual_sim,
-                                text_sim,
-                            )
-                        except Exception as exc:
-                            logging.warning(
-                                "Merge evidence callback failed without changing mapping: %s",
-                                exc,
-                            )
-                    kept_objects[i] = False  # Mark object i as 'merged'
-                    merge_operations.append(
-                        (i, j)
-                    )  # Record this merge for edge updates
-                    index_updates[i] = None  # Update index as merged
+                    apply_merge(i,j,ratio,visual_sim,text_sim)
         else:
             if merge_decision_callback is not None:
                 merge_decision_callback(
@@ -882,6 +888,26 @@ def merge_overlap_objects(
                     candidate_rank,
                 )
             break  # Stop processing if the current overlap ratio is below the threshold
+
+    # Run only after native proposals; read live geometry after every accepted merge.
+    supplemental=getattr(merge_review,'supplemental_candidates',None)
+    if supplemental is not None:
+        for extra_rank,(i,j,report) in enumerate(supplemental(objects,kept_objects,native_pairs),start=len(x)+1):
+            if not kept_objects[i] or not kept_objects[j]:
+                continue
+            reject_reasons=[]
+            if merge_guard is not None:
+                why=merge_guard(objects[i],objects[j])
+                if why:reject_reasons.append(str(why))
+            ratio=max(report['a_in_b'],report['b_in_a'])
+            if not reject_reasons:
+                why=merge_review.supplemental_review(objects[i],objects[j],report)
+                if why:reject_reasons.append(str(why))
+            if merge_decision_callback is not None:
+                merge_decision_callback(objects[i],objects[j],ratio,0.,0.,
+                    'REJECT' if reject_reasons else 'ACCEPT',reject_reasons,True,True,extra_rank)
+            if not reject_reasons:
+                apply_merge(i,j,ratio,0.,0.)
 
     # Update remaining indices in index_updates
     current_index = 0

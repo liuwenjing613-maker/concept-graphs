@@ -1830,6 +1830,13 @@ UNCERTAIN = retain the mapper's original decision.</p>
             source, target, frame_idx=frame_idx, source_frame_id=source_frame_id,
             stage=stage, overlap=overlap, visual=visual, text=text,
         )
+        if self.mode == 'vlm':
+            gate=self._instance_merge_gate
+            callback.supplemental_candidates=lambda objects,kept,native: gate.supplemental_pairs(
+                objects,kept,native,frame_idx=frame_idx,stage=stage)
+            callback.supplemental_review=lambda source,target,report: gate.review(
+                source,target,frame_idx=frame_idx,source_frame_id=source_frame_id,
+                stage=stage+'_supplemental',supplemental=True,trigger_containment=report)
         callback.on_merged = getattr(self._instance_merge_gate, "on_merged", None)
         return callback
 

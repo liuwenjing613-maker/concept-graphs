@@ -79,13 +79,15 @@ class V7Runtime(VLMRuntime):
         self.templates=json.loads((PROMPTS/'request_templates.json').read_text())
         self.stage_prompts={p.stem:p.read_text() for p in PROMPTS.glob('*.txt')}
         self.forced_groups=[];self.staged_bindings={}
-        self.endpoint_pool=EndpointPool(json.loads(os.environ.get('V7_VLM_URLS', json.dumps([owner.base_url]))), owner.timeout_seconds)
+        self.endpoint_pool=EndpointPool(json.loads(os.environ.get('V7_VLM_URLS', json.dumps([owner.base_url]))), owner.timeout_seconds,
+            models=json.loads(os.environ['V7_VLM_MODELS']) if os.environ.get('V7_VLM_MODELS') else None)
         self.owner=owner;self.root=owner.output_dir;self.rows={};self.projection_frames={}
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='v7_merge',model=owner.model,fallback=self.fallback,
-            execution_revision='20260909_containment_direct_merge',
+        self.versions=dict(version='v7_merge_2',model=owner.model,fallback=self.fallback,
+            execution_revision='20260909_supplemental_containment_trigger',
+            endpoint_models=self.endpoint_pool.models, supplemental_trigger='active + AABB overlap + containment>90% + absent from native candidates; VLM gate only',
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
             timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
@@ -93,7 +95,7 @@ class V7Runtime(VLMRuntime):
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
             merge_required_consecutive=2,reject_required_total=2,containment_distance_m=self.containment_distance,
             containment_threshold=.9,auto_requires_human=False,
-            containment_trigger='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes')
+            containment_trigger='Native candidates only: negative + containment>90% direct approval; supplemental candidates never override VLM')
         save_json(self.root/'vlm_versions.json',self.versions)
         template=Path(__file__).with_name('v7_dashboard.html')
         for dest in [self.root/'index.html',self.root/'review/index.html']:dest.write_text(template.read_text())
@@ -172,6 +174,7 @@ class V7Runtime(VLMRuntime):
             attempt_dir=directory/'attempts'/f"{attempt['number']:02d}"
             attempt_dir.mkdir(parents=True,exist_ok=False)
             save_json(attempt_dir/'attempt.json',dict(attempt,h_snapshot_uid=snapshot))
+            save_json(attempt_dir/'request.json',dict(item['request'],model=attempt['model']))
             if response is not None:
                 try:save_json(attempt_dir/'response.json',response.json())
                 except (ValueError,TypeError):pass

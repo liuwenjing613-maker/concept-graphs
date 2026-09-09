@@ -1,3 +1,5 @@
+> 当前目录为 v7_merge_2，最新入口和策略见 [README_V7_MERGE_2.md](README_V7_MERGE_2.md)。
+
 # v7_merge：不合并 + 包含率超过 90% 直接合并
 
 基于 v7_VLMsplit_image fbd00e0，继承服务器现有输入/输出目录分离更新。

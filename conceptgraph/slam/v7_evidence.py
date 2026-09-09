@@ -154,13 +154,18 @@ class LiveEvidence:
         return self.render_merge(directory,source,target,frame,self.prepare_merge(source,target,frame))
 
     @staticmethod
-    def containment(source,target,distance):
+    def containment(source,target,distance,trees=None):
         from scipy.spatial import cKDTree
         a=np.asarray(source['pcd'].points);b=np.asarray(target['pcd'].points)
         if not len(a) or not len(b) or not np.isfinite(a).all() or not np.isfinite(b).all():
             raise ValueError('containment requires nonempty finite full point clouds')
-        ab=int(np.count_nonzero(cKDTree(b).query(a,k=1)[0]<=distance))
-        ba=int(np.count_nonzero(cKDTree(a).query(b,k=1)[0]<=distance))
+        tree_a,tree_b=trees if trees is not None else (cKDTree(a),cKDTree(b))
+        # Only distances <= the existing tolerance can contribute. The tiny padding
+        # includes equality despite cKDTree's strict upper-bound search; compare to
+        # the original distance afterwards, so the containment definition is unchanged.
+        bound=distance+max(1e-12,abs(distance)*1e-12)
+        ab=int(np.count_nonzero(tree_b.query(a,k=1,distance_upper_bound=bound)[0]<=distance))
+        ba=int(np.count_nonzero(tree_a.query(b,k=1,distance_upper_bound=bound)[0]<=distance))
         return dict(method='bidirectional_full_cloud_nearest_neighbor',
             distance_m=float(distance),a_points=len(a),b_points=len(b),a_in_b_count=ab,b_in_a_count=ba,
             a_in_b=ab/len(a),b_in_a=ba/len(b),threshold=.9,requires_human=ab/len(a)>.9 or ba/len(b)>.9)

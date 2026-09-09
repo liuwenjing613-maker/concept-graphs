@@ -34,20 +34,22 @@ class V7MergeGate:
         self.certificates={};self.last_event={};self._summary('ready')
     def _summary(self,status):
         save_json(self.root/'summary.json',dict(status=status,policy=self.votes.snapshot(),counts=dict(self.stats),
-            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes',
+            failure_policy=self.runtime.fallback,containment='Native negative >90% direct merge; supplemental trigger >90% requires VLM approval',
             unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock VLM voting; >90% containment independently overrides lock'))
     def close(self,status='completed'):self._summary(status)
-    def containment_check(self,source,target):
-        report=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
+    def containment_check(self,source,target,trees=None):
+        report=self.runtime.evidence.containment(source,target,self.runtime.containment_distance,**({} if trees is None else dict(trees=trees)))
         report['exceeds_threshold']=report.pop('requires_human')
         report['requires_human']=False
         report['resolution_policy']='DIRECT_MERGE' if report['exceeds_threshold'] else 'KEEP_SEPARATE'
         return report
     def negative_decision(self,source,target,event,directory):
-        report=self.containment_check(source,target)
+        report=dict(event['trigger_containment']) if event.get('supplemental_trigger') and event.get('trigger_containment') else self.containment_check(source,target)
+        if event.get('supplemental_trigger'):
+            report['resolution_policy']='VLM_KEEP_SEPARATE';report['requires_human']=False
         event['containment']=report;event['original_choice']='KEEP_SEPARATE'
         save_json(directory/'containment.json',report)
-        if report['exceeds_threshold']:
+        if report['exceeds_threshold'] and not event.get('supplemental_trigger'):
             # Preserve exact online geometry for reproducing this approval, even without images.
             import numpy as np
             path=directory/'containment_points.npz'
@@ -56,7 +58,48 @@ class V7MergeGate:
             event['decision_source']='containment_gt90'
             return 'MERGE'
         return 'KEEP_SEPARATE'
-    def review(self,source,target,*,frame_idx,source_frame_id,stage,overlap=0,visual=0,text=0,parent_event=None):
+    def supplemental_pairs(self,objects,kept,native_pairs,*,frame_idx,stage):
+        """Cheap live AABB overlap first; full-cloud containment only for missed pairs."""
+        import numpy as np
+        from scipy.spatial import cKDTree
+        started=time.perf_counter();counts=Counter();cache={}
+        def geometry(o):
+            # This pass is synchronous; only accepted object merges mutate geometry.
+            # on_merged increments the generation before this generator resumes.
+            key=(str(o['id']),self.votes.generations.get(str(o['id']),0))
+            if key not in cache:
+                points=np.asarray(o['pcd'].points)
+                valid=bool(len(points) and np.isfinite(points).all())
+                cache[key]=dict(points=points,valid=valid,lo=points.min(axis=0) if valid else None,
+                    hi=points.max(axis=0) if valid else None,tree=None)
+            return cache[key]
+        try:
+            for i in range(len(objects)):
+                for j in range(i+1,len(objects)):
+                    if not kept[i] or not kept[j]:continue
+                    pair=tuple(sorted((str(objects[i]['id']),str(objects[j]['id']))))
+                    if pair[0]==pair[1] or pair in native_pairs:continue
+                    counts['non_native_active_pairs']+=1
+                    a=geometry(objects[i]);b=geometry(objects[j])
+                    if not a['valid'] or not b['valid']:
+                        counts['invalid_geometry']+=1;continue
+                    if not np.all(np.minimum(a['hi'],b['hi'])>=np.maximum(a['lo'],b['lo'])):continue
+                    counts['bbox_overlap_pairs']+=1
+                    for g in (a,b):
+                        if g['tree'] is None:g['tree']=cKDTree(g['points'])
+                    report=self.containment_check(objects[i],objects[j],trees=(a['tree'],b['tree']))
+                    if not report['exceeds_threshold']:continue
+                    report['resolution_policy']='VLM_REVIEW_ONLY'
+                    counts['supplemental_triggers']+=1
+                    _jsonl_append(self.root/'supplemental_triggers.jsonl',dict(frame_idx=frame_idx,stage=stage,
+                        pair=pair,object_A=object_state(objects[i]),object_B=object_state(objects[j]),containment=report))
+                    yield i,j,report
+        finally:
+            row=dict(frame_idx=frame_idx,stage=stage,counts=dict(counts),pass_seconds_including_reviews=time.perf_counter()-started)
+            _jsonl_append(self.root/'supplemental_scans.jsonl',row)
+            print('[v7-supplemental]',row,flush=True)
+
+    def review(self,source,target,*,frame_idx,source_frame_id,stage,overlap=0,visual=0,text=0,parent_event=None,supplemental=False,trigger_containment=None):
         if source is target or str(source['id'])==str(target['id']):raise ValueError('distinct objects required')
         key=self.votes.key(source['id'],target['id']);states=state_key([object_state(source),object_state(target)])
         row=self.votes.state(key)
@@ -69,6 +112,7 @@ class V7MergeGate:
         directory=self.root/'events'/event_id;directory.mkdir(parents=True,exist_ok=False)
         event=dict(event_id=event_id,task='merge',frame_idx=frame_idx,pair_key=key,parent_event=parent_event,
             object_A=object_state(source),object_B=object_state(target),state_key=states,
+            supplemental_trigger=supplemental,trigger_containment=trigger_containment,
             timeline=dict(s_frame=frame_idx,d_frame=frame_idx,h_frame=frame_idx,h_utc=_utc_now(),
                 online_main_graph_latest_frame_at_h=frame_idx),status='preparing',execution='NOT_APPLIED',stages=[])
         self.events.append(event)
