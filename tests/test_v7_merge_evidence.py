@@ -15,6 +15,12 @@ from conceptgraph.slam.mapping import merge_obj_matches
 
 class MergeEvidenceSmoke(unittest.TestCase):
     def test_real_group_merge_then_observation_versions(self):
+        self.run_real_merge(False)
+
+    def test_containment_negative_executes_real_merge_and_strict_evidence(self):
+        self.run_real_merge(True)
+
+    def run_real_merge(self,containment_override):
         with tempfile.TemporaryDirectory(prefix='v7_merge_evidence_') as temp:
             root=Path(temp)
             def obj(i):
@@ -26,13 +32,25 @@ class MergeEvidenceSmoke(unittest.TestCase):
                 dbscan_remove_noise=False,dbscan_eps=.1,dbscan_min_points=2,spatial_sim_type='overlap',device='cpu',make_edges=False)
             evidence=EvidenceRecorder(root,cfg,cfg,enabled=True)
             objects=MapObjectList([obj(i) for i in range(3)]);original_ids=[o['id'] for o in objects]
+            if containment_override:
+                objects[1]['pcd']=o3d.geometry.PointCloud(objects[0]['pcd'])
+                objects[1]['bbox']=objects[1]['pcd'].get_axis_aligned_bounding_box()
             empty=np.empty((3,0));evidence.record_associations(0,objects,[],empty,empty,empty,[None]*3)
             for i,o in enumerate(objects):evidence.record_association_object_version(0,i,None,None,o)
             runtime=V7Runtime.__new__(V7Runtime);runtime.root=root/'gate';(runtime.root/'events/parent').mkdir(parents=True)
             runtime.rows={};runtime.publish=lambda:None
             votes=V7Votes();key=votes.key(objects[0]['id'],objects[1]['id'])
-            votes.record(key,1,'one','MERGE');votes.record(key,2,'two','MERGE')
-            gate=SimpleNamespace(votes=votes,mark_executed=Mock(),_summary=Mock())
+            if containment_override:
+                from test_v7_split import GateIntegration
+                fixture=GateIntegration();fixture.setUp();self.addCleanup(fixture.tearDown)
+                fixture.a,fixture.b=objects[:2]
+                gate=fixture.gate;votes=gate.votes;key=votes.key(*original_ids[:2])
+                self.assertIsNone(fixture.review(2))
+                self.assertEqual(gate.events[-1]['decision_source'],'containment_gt90')
+                self.assertEqual(gate.events[-1]['vote_after']['merge_streak'],0)
+            else:
+                votes.record(key,1,'one','MERGE');votes.record(key,2,'two','MERGE')
+                gate=SimpleNamespace(votes=votes,mark_executed=Mock(),_summary=Mock())
             runtime.owner=SimpleNamespace(events=[],_support_history={},_instance_merge_gate=gate)
             members=list(objects[:2]);runtime.forced_groups=[dict(parent_event='parent',objects=members,keys=[key],
                 state=state_key([object_state(o) for o in members]),h_snapshot_uid='H')]
@@ -41,6 +59,9 @@ class MergeEvidenceSmoke(unittest.TestCase):
             frozen_versions=list(snapshot['object_version_uids'])
             objects,matches=runtime.flush_groups(objects,[1,0,2,None,-1],cfg,evidence,2,None)
             self.assertEqual(matches,[0,0,1,None,-1])
+            if containment_override:
+                self.assertEqual(gate.events[-1]['execution'],'MERGED')
+                self.assertEqual(len(objects),2)
             self.assertEqual(evidence._object_versions[original_ids[0]],2)
             evidence.record_associations(2,detections,objects,scores,scores,scores,matches,similarity_snapshot=snapshot)
             objects=merge_obj_matches(detections,objects,matches,.01,False,.1,2,'overlap','cpu',

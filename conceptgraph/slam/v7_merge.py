@@ -12,6 +12,14 @@ class V7Votes(MergeVotes):
     def skip_reason(self,key,frame):
         why=super().skip_reason(key,frame)
         return 'locked_after_two_rejections' if why=='locked_after_three_rejections' else why
+    def approve_containment(self,key,frame,event_id):
+        """Geometry approval is independent of VLM votes, including a prior lock."""
+        row=self.state(key)
+        if row['last_frame'] is not None and frame<=row['last_frame']:
+            raise ValueError('duplicate or stale containment approval')
+        row.update(last_frame=frame,last_event=event_id,locked=False,
+            awaiting_execution=True,approval_source='containment_gt90')
+        return True,dict(row)
     def refresh_history(self,key,signature):
         row=self.state(key)
         if row['locked'] and row.get('history_signature')!=signature:
@@ -26,16 +34,28 @@ class V7MergeGate:
         self.certificates={};self.last_event={};self._summary('ready')
     def _summary(self,status):
         save_json(self.root/'summary.json',dict(status=status,policy=self.votes.snapshot(),counts=dict(self.stats),
-            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; >90%: human reviews, auto records conflict and keeps separate',
-            unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock'))
+            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes',
+            unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock VLM voting; >90% containment independently overrides lock'))
     def close(self,status='completed'):self._summary(status)
     def containment_check(self,source,target):
         report=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
         report['exceeds_threshold']=report.pop('requires_human')
-        report['requires_human']=report['exceeds_threshold'] and self.runtime.fallback=='human'
-        report['resolution_policy']=('HUMAN_REVIEW' if report['requires_human'] else
-            'AUTO_KEEP_SEPARATE' if report['exceeds_threshold'] else 'KEEP_SEPARATE')
+        report['requires_human']=False
+        report['resolution_policy']='DIRECT_MERGE' if report['exceeds_threshold'] else 'KEEP_SEPARATE'
         return report
+    def negative_decision(self,source,target,event,directory):
+        report=self.containment_check(source,target)
+        event['containment']=report;event['original_choice']='KEEP_SEPARATE'
+        save_json(directory/'containment.json',report)
+        if report['exceeds_threshold']:
+            # Preserve exact online geometry for reproducing this approval, even without images.
+            import numpy as np
+            path=directory/'containment_points.npz'
+            np.savez_compressed(path,A=np.asarray(source['pcd'].points),B=np.asarray(target['pcd'].points))
+            event['containment_geometry']=dict(path=str(path),sha256=sha(path))
+            event['decision_source']='containment_gt90'
+            return 'MERGE'
+        return 'KEEP_SEPARATE'
     def review(self,source,target,*,frame_idx,source_frame_id,stage,overlap=0,visual=0,text=0,parent_event=None):
         if source is target or str(source['id'])==str(target['id']):raise ValueError('distinct objects required')
         key=self.votes.key(source['id'],target['id']);states=state_key([object_state(source),object_state(target)])
@@ -69,6 +89,10 @@ class V7MergeGate:
                 save_json(directory/'history_check.json',dict(h_snapshot_uid=snapshot,selection=binding,
                     history_signature=fingerprint,vlm_images_rendered=False))
                 self.runtime.pending(event_id,directory,'merge',[],['KEEP_SEPARATE'])
+                choice=self.negative_decision(source,target,event,directory)
+                if choice=='MERGE':
+                    event['overrode_locked_rejection']=True
+                    return self.finish(source,target,key,states,event,directory,frame_idx,choice)
                 event.update(status='locked',execution='LOCKED_KEEP_SEPARATE',vote_after=dict(row))
                 event['timeline'].update(c_frame=frame_idx,c_utc=_utc_now(),online_main_graph_latest_frame_at_c=frame_idx,ordering_valid=True)
                 event['c_bound_h_snapshot_uid']=snapshot
@@ -101,14 +125,8 @@ class V7MergeGate:
             if choice is None:
                 choice=self.runtime.fallback_choice(event_id,directory,'merge',images,reason,[],snapshot)
                 event['fallback_reason']=reason
-            # Test only a negative decision. Never turn containment directly into a merge.
             if choice=='KEEP_SEPARATE':
-                containment=self.containment_check(source,target)
-                event['containment']=containment;save_json(directory/'containment.json',containment)
-                if containment['requires_human']:
-                    choice=self.runtime.human_choice(event_id,directory,['MERGE','KEEP_SEPARATE'],images,
-                        '不合并与点云包含率冲突：'+json.dumps(containment,ensure_ascii=False),snapshot)
-                    event['containment_human_choice']=choice
+                choice=self.negative_decision(source,target,event,directory)
         except self.runtime.input_unavailable:
             event['status']='waiting_for_human';save_json(directory/'decision.json',event);self._summary('waiting_for_human');raise
         except Exception as exc:
@@ -121,15 +139,18 @@ class V7MergeGate:
             if not images:
                 images=[(p.stem,p) for p in directory.glob('*.jpg')]
             choice=self.runtime.fallback_choice(event_id,directory,'merge',images,'INPUT_FAILURE',[],snapshot)
-            # Without valid geometric inputs a negative decision cannot pass the required check.
             if choice=='KEEP_SEPARATE':
-                containment=self.containment_check(source,target)
-                event['containment']=containment;save_json(directory/'containment.json',containment)
-                if containment['requires_human']:
-                    choice=self.runtime.human_choice(event_id,directory,['MERGE','KEEP_SEPARATE'],images,
-                        '不合并与点云包含率冲突：'+json.dumps(containment,ensure_ascii=False),snapshot)
+                choice=self.negative_decision(source,target,event,directory)
+        return self.finish(source,target,key,states,event,directory,frame_idx,choice)
+
+    def finish(self,source,target,key,states,event,directory,frame_idx,choice):
+        event_id=event['event_id']
         if states!=state_key([object_state(source),object_state(target)]):raise self.runtime.invariant_error('objects changed during blocking review')
-        approved,after=self.votes.record(key,frame_idx,event_id,choice)
+        if event.get('decision_source')=='containment_gt90':
+            approved,after=self.votes.approve_containment(key,frame_idx,event_id)
+            self.stats['containment_approvals']+=1
+        else:
+            approved,after=self.votes.record(key,frame_idx,event_id,choice)
         if approved:self.certificates[key]=states
         self.last_event[key]=event
         event.update(model_output=dict(choice=choice,confidence=0),vote_after=after,status='complete',

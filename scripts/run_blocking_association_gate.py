@@ -28,7 +28,7 @@ def main() -> int:
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--detections-exp-suffix", help="Explicit compatible full-resolution cache; default creates an isolated cache")
     parser.add_argument("--yolo-imgsz",type=int,default=1200)
-    parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463','http://127.0.0.1:11435'])
+    parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463','http://127.0.0.1:11436'])
     parser.add_argument("--vlm-timeout",type=float,default=300)
     parser.add_argument("--gpu", default="1")
     parser.add_argument("--margin-threshold", type=float, default=0.20)
@@ -55,8 +55,11 @@ def main() -> int:
     parser.add_argument("--python", default="/home/chenkejun/beauty/conceptgraphs/envs/cg-ali/bin/python")
     parser.add_argument(
         "--dataset-root",
-        default="/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica",
+        default="/home/chenkejun/beauty/conceptgraphs/data/Replica",
+        help="Raw Replica input root; output location is controlled by --output-root",
     )
+    parser.add_argument("--output-root", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica")
+    parser.add_argument("--dry-run", action="store_true", help="Validate paths and print command without launching or writing files")
     parser.add_argument("--dataset-config")
     parser.add_argument("--oracle-gt-path", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl")
     args = parser.parse_args()
@@ -71,7 +74,9 @@ def main() -> int:
 
     project_root = Path(args.project_root).resolve()
     worktree = Path(args.worktree).resolve()
-    dataset_root = Path(args.dataset_root).resolve()
+    from v7_scene_paths import scene_view
+    source_root = Path(args.dataset_root).resolve()
+    dataset_root = scene_view(source_root, args.output_root, args.scene)
     dataset_config = Path(args.dataset_config).resolve() if args.dataset_config else worktree / "conceptgraph" / "dataset" / "dataconfigs" / "replica" / "replica.yaml"
     exp_root = dataset_root / args.scene / "exps" / args.exp_suffix
     if exp_root.exists():
@@ -80,12 +85,12 @@ def main() -> int:
         raise RuntimeError("GATE_API_KEY must be present only in the process environment for vlm mode")
     if args.mode == "oracle" and not Path(args.oracle_gt_path).is_file():
         raise FileNotFoundError(args.oracle_gt_path)
-    if args.mode == "human" and not sys.stdin.isatty():
+    if args.mode == "human" and not args.dry_run and not sys.stdin.isatty():
         raise RuntimeError("human mode requires an interactive terminal (TTY)")
 
     if args.mode == "vlm" and args.start != 0:
         raise ValueError("v7 full online mapping must start at frame 0")
-    if args.mode == "vlm" and args.fallback == "human" and not sys.stdin.isatty():
+    if args.mode == "vlm" and args.fallback == "human" and not args.dry_run and not sys.stdin.isatty():
         raise RuntimeError("human fallback requires an interactive terminal")
     use_rerun = bool(args.rerun_connect_addr)
     command = [
@@ -144,11 +149,19 @@ def main() -> int:
         "hydra.job_logging.root.level=INFO",
     ]
     launch_dir = project_root / "results" / "blocking_association_gate_v1" / "launches"
-    launch_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = launch_dir / f"{args.exp_suffix}.json"
     if manifest_path.exists():
         raise FileExistsError(f"refusing to overwrite launch manifest: {manifest_path}")
+    if not dataset_config.is_file():
+        raise FileNotFoundError(dataset_config)
+    if args.dry_run:
+        print(json.dumps({"source_dataset_root": str(source_root), "experiment_root": str(exp_root), "command": command}, ensure_ascii=False, indent=2))
+        return 0
+    scene_view(source_root, dataset_root, args.scene, create=True)
+    launch_dir.mkdir(parents=True, exist_ok=True)
     manifest = {
+        "source_dataset_root": str(source_root),
+        "output_dataset_root": str(dataset_root),
         "schema_version": "blocking-association-gate-launch-v1",
         "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "mode": args.mode,

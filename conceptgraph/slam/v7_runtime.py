@@ -84,8 +84,8 @@ class V7Runtime(VLMRuntime):
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='v7_VLMsplit_image',model=owner.model,fallback=self.fallback,
-            execution_revision='20260908_image_parallel_timeout_retry',
+        self.versions=dict(version='v7_merge',model=owner.model,fallback=self.fallback,
+            execution_revision='20260909_containment_direct_merge',
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
             timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
@@ -93,7 +93,7 @@ class V7Runtime(VLMRuntime):
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
             merge_required_consecutive=2,reject_required_total=2,containment_distance_m=self.containment_distance,
             containment_threshold=.9,auto_requires_human=False,
-            containment_trigger='KEEP_SEPARATE only; >90%: human reviews, auto records conflict and keeps separate')
+            containment_trigger='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes')
         save_json(self.root/'vlm_versions.json',self.versions)
         template=Path(__file__).with_name('v7_dashboard.html')
         for dest in [self.root/'index.html',self.root/'review/index.html']:dest.write_text(template.read_text())
@@ -303,7 +303,7 @@ class V7Runtime(VLMRuntime):
                 self.owner._support_history.pop(uid,None)
             save_json(self.root/'events'/group['parent_event']/'merge_execution.json',dict(status='MERGED',
                 source_uids=uids,target_uid=target_uid,h_snapshot_uid=group['h_snapshot_uid'],frame_idx=frame,
-                policy='every unordered pair approved twice before any component mutation'))
+                policy='every unordered pair approved by two VLM votes or >90% containment before any component mutation'))
         kept=[o for o in objects if str(o['id']) not in removed]
         new_index={str(o['id']):i for i,o in enumerate(kept)}
         def remap(idx):

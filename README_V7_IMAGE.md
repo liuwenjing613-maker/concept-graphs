@@ -1,3 +1,5 @@
+> 本目录为 v7_merge，当前行为与运行入口见 [README_V7_MERGE.md](README_V7_MERGE.md)。下文为继承版本说明，90% 包含率策略以新说明为准。
+
 # v7_VLMsplit_image
 
 基于 ali-my-v7-VLMsplit / df4d51d，只改变 YOLO 推理输入、事件内 HTTP 并行调度和超时重试。保留 SAM、CLIP、VLM 模型/请求提示词、候选数、选图、包含率、投票和 human/auto 策略。
