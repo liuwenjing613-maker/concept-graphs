@@ -461,7 +461,13 @@ class MultiWinApp:
 
                 # Compute and save the clip features of detections
                 image_crops, image_feats, text_feats = compute_clip_features_batched(
-                    image_rgb, curr_det, self.clip_model, self.clip_preprocess, self.clip_tokenizer, self.obj_classes.get_classes_arr(), self.cfg.device)
+                    image_rgb, curr_det, self.clip_model, self.clip_preprocess,
+                    self.clip_tokenizer, self.obj_classes.get_classes_arr(),
+                    self.cfg.device, bbox_padding=self.cfg.clip_bbox_padding,
+                    masked_weight=self.cfg.clip_masked_weight,
+                    masked_background_factor=self.cfg.clip_masked_background_factor,
+                    masked_blur_radius=self.cfg.clip_masked_blur_radius,
+                )
 
                 # increment total object detections
                 self.tracker.increment_total_detections(len(curr_det.xyxy))

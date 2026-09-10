@@ -112,6 +112,19 @@ class Stages(unittest.TestCase):
         self.assertEqual(self.r.fallback_choice('e',self.root,'observation',[],'timeout',[],'H'),'NEW');self.assertEqual(len(calls),1)
 
 class Cache(unittest.TestCase):
+    def test_clip_fusion_settings_invalidate_cache(self):
+        from conceptgraph.slam.v7_image_detection import contract
+        with patch('conceptgraph.slam.v7_image_detection.digest',return_value='weight-sha'), patch('conceptgraph.slam.v7_image_detection.version',return_value='test'):
+            fused=contract(1200,['x'],'.',[680,1200])
+            bbox=contract(1200,['x'],'.',[680,1200],clip_masked_weight=0)
+        self.assertNotEqual(fused,bbox)
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            DetectionCache(root,fused,[],True)
+            DetectionCache(root,fused,[],False)
+            with self.assertRaisesRegex(ValueError,'mismatch'):DetectionCache(root,bbox,[],False)
+            old=dict(fused);old.pop('clip_features');old['schema']='v7-image-detection-v1'
+            with self.assertRaisesRegex(ValueError,'mismatch'):DetectionCache(root,old,[],False)
     def test_old_cache_rejected_and_new_cache_checks_coverage_and_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);source=root/'frame000000.jpg';source.write_bytes(b'RGB')

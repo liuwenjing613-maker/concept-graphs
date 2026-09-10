@@ -4,7 +4,7 @@ from conceptgraph.utils.general_utils import measure_time
 # from segment_anything import sam_model_registry, SamPredictor, SamAutomaticMaskGenerator
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageFilter
 from scipy.spatial.distance import cosine
 
 # def get_sam_predictor(cfg) -> SamPredictor:
@@ -129,8 +129,44 @@ def compute_clip_features(image, detections, clip_model, clip_preprocess, clip_t
 
     return image_crops, image_feats, text_feats
 
+def _make_mask_focused_crop(
+    cropped_image,
+    mask,
+    crop_box,
+    background_factor,
+    blur_radius,
+):
+    """Keep the detected foreground and suppress, but do not erase, its context."""
+    mask_image = Image.fromarray((np.asarray(mask) > 0.5).astype(np.uint8) * 255)
+    cropped_mask = np.asarray(mask_image.crop(crop_box), dtype=np.float32) / 255.0
+    cropped_mask = cropped_mask[..., None]
+
+    foreground = np.asarray(cropped_image, dtype=np.float32)
+    blurred_context = np.asarray(
+        cropped_image.filter(ImageFilter.GaussianBlur(radius=blur_radius)),
+        dtype=np.float32,
+    )
+    focused = (
+        cropped_mask * foreground
+        + (1.0 - cropped_mask) * background_factor * blurred_context
+    )
+    return Image.fromarray(np.rint(focused).clip(0, 255).astype(np.uint8))
+
+
 # @profile
-def compute_clip_features_batched(image, detections, clip_model, clip_preprocess, clip_tokenizer, classes, device):
+def compute_clip_features_batched(
+    image,
+    detections,
+    clip_model,
+    clip_preprocess,
+    clip_tokenizer,
+    classes,
+    device,
+    bbox_padding=20,
+    masked_weight=0.5,
+    masked_background_factor=0.1,
+    masked_blur_radius=3.0,
+):
 
     if len(detections.xyxy) == 0:
         output_dim = int(
@@ -138,43 +174,85 @@ def compute_clip_features_batched(image, detections, clip_model, clip_preprocess
         )
         return [], np.empty((0, output_dim), dtype=np.float32), []
 
+    if bbox_padding < 0:
+        raise ValueError("bbox_padding must be non-negative")
+    if not 0.0 <= masked_weight <= 1.0:
+        raise ValueError("masked_weight must be between 0 and 1")
+    if not 0.0 <= masked_background_factor <= 1.0:
+        raise ValueError("masked_background_factor must be between 0 and 1")
+    if masked_blur_radius < 0:
+        raise ValueError("masked_blur_radius must be non-negative")
+    if masked_weight > 0 and detections.mask is None:
+        raise ValueError("detections.mask is required when masked_weight is positive")
+
     image = Image.fromarray(image)
-    padding = 20  # Adjust the padding amount as needed
     
     image_crops = []
-    preprocessed_images = []
+    preprocessed_bbox_images = []
+    preprocessed_masked_images = []
     text_tokens = []
     
     # Prepare data for batch processing
     for idx in range(len(detections.xyxy)):
         x_min, y_min, x_max, y_max = detections.xyxy[idx]
         image_width, image_height = image.size
-        left_padding = min(padding, x_min)
-        top_padding = min(padding, y_min)
-        right_padding = min(padding, image_width - x_max)
-        bottom_padding = min(padding, image_height - y_max)
+        left_padding = min(bbox_padding, x_min)
+        top_padding = min(bbox_padding, y_min)
+        right_padding = min(bbox_padding, image_width - x_max)
+        bottom_padding = min(bbox_padding, image_height - y_max)
 
         x_min -= left_padding
         y_min -= top_padding
         x_max += right_padding
         y_max += bottom_padding
 
-        cropped_image = image.crop((x_min, y_min, x_max, y_max))
-        preprocessed_image = clip_preprocess(cropped_image).unsqueeze(0)
-        preprocessed_images.append(preprocessed_image)
+        crop_box = (x_min, y_min, x_max, y_max)
+        cropped_image = image.crop(crop_box)
+        preprocessed_bbox_images.append(
+            clip_preprocess(cropped_image).unsqueeze(0)
+        )
+        if masked_weight > 0:
+            masked_crop = _make_mask_focused_crop(
+                cropped_image,
+                detections.mask[idx],
+                crop_box,
+                masked_background_factor,
+                masked_blur_radius,
+            )
+            preprocessed_masked_images.append(
+                clip_preprocess(masked_crop).unsqueeze(0)
+            )
 
         class_id = detections.class_id[idx]
         text_tokens.append(classes[class_id])
         image_crops.append(cropped_image)
     
     # Convert lists to batches
-    preprocessed_images_batch = torch.cat(preprocessed_images, dim=0).to(device)
+    preprocessed_bbox_batch = torch.cat(preprocessed_bbox_images, dim=0).to(device)
     text_tokens_batch = clip_tokenizer(text_tokens).to(device)
     
     # Batch inference
     with torch.no_grad():
-        image_features = clip_model.encode_image(preprocessed_images_batch)
-        image_features /= image_features.norm(dim=-1, keepdim=True)
+        bbox_features = clip_model.encode_image(preprocessed_bbox_batch)
+        bbox_features = torch.nn.functional.normalize(bbox_features, p=2, dim=-1)
+
+        if masked_weight > 0:
+            del preprocessed_bbox_batch
+            preprocessed_masked_batch = torch.cat(
+                preprocessed_masked_images, dim=0
+            ).to(device)
+            masked_features = clip_model.encode_image(preprocessed_masked_batch)
+            masked_features = torch.nn.functional.normalize(
+                masked_features, p=2, dim=-1
+            )
+            image_features = torch.nn.functional.normalize(
+                (1.0 - masked_weight) * bbox_features
+                + masked_weight * masked_features,
+                p=2,
+                dim=-1,
+            )
+        else:
+            image_features = bbox_features
         
         # text_features = clip_model.encode_text(text_tokens_batch)
         # text_features /= text_features.norm(dim=-1, keepdim=True)

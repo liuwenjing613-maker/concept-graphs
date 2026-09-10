@@ -19,12 +19,17 @@ def save(path,value):
     temporary.replace(path)
 
 
-def contract(imgsz,classes,weights_root,image_hw):
-    return dict(schema='v7-image-detection-v1',yolo_imgsz=int(imgsz),yolo_rect=True,
+def contract(imgsz,classes,weights_root,image_hw,*,clip_bbox_padding=20,
+             clip_masked_weight=0.5,clip_masked_background_factor=0.1,clip_masked_blur_radius=3.0):
+    return dict(schema='v7-image-detection-clip-fusion-v2',yolo_imgsz=int(imgsz),yolo_rect=True,
                 yolo_conf=0.1,sam_imgsz=1024,image_hw=list(image_hw),
                 classes=list(classes),ultralytics=version('ultralytics'),
                 weights={name:digest(Path(weights_root)/name) for name in ['yolov8l-world.pt','sam_l.pt']},
-                clip='ViT-H-14/laion2b_s32b_b79k')
+                clip='ViT-H-14/laion2b_s32b_b79k',
+                clip_features=dict(algorithm='bbox-softmask-fusion-v1',
+                    bbox_padding=clip_bbox_padding,masked_weight=clip_masked_weight,
+                    masked_background_factor=clip_masked_background_factor,
+                    masked_blur_radius=clip_masked_blur_radius))
 
 
 class DetectionCache:

@@ -184,7 +184,10 @@ def main(cfg : DictConfig):
     run_detections = check_run_detections(cfg.force_detection, det_exp_path)
     weights_root = Path(os.environ.get('V7_MODEL_ROOT', '/home/chenkejun/beauty/conceptgraphs/models/runtime'))
     image_cache = DetectionCache(det_exp_path,
-        detection_contract(cfg.yolo_imgsz,obj_classes.get_classes_arr(),weights_root,[cfg.image_height,cfg.image_width]),
+        detection_contract(cfg.yolo_imgsz,obj_classes.get_classes_arr(),weights_root,[cfg.image_height,cfg.image_width],
+            clip_bbox_padding=cfg.clip_bbox_padding,clip_masked_weight=cfg.clip_masked_weight,
+            clip_masked_background_factor=cfg.clip_masked_background_factor,
+            clip_masked_blur_radius=cfg.clip_masked_blur_radius),
         dataset.color_paths,create=run_detections)
     if run_detections and not cfg.save_detections:
         raise ValueError('new full-resolution detections must be saved for reproducible comparisons')
@@ -374,7 +377,13 @@ def main(cfg : DictConfig):
             )
 
             image_crops, image_feats, text_feats = compute_clip_features_batched(
-                image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer, obj_classes.get_classes_arr(), cfg.device)
+                image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
+                obj_classes.get_classes_arr(), cfg.device,
+                bbox_padding=cfg.clip_bbox_padding,
+                masked_weight=cfg.clip_masked_weight,
+                masked_background_factor=cfg.clip_masked_background_factor,
+                masked_blur_radius=cfg.clip_masked_blur_radius,
+            )
 
             # increment total object detections
             tracker.increment_total_detections(len(curr_det.xyxy))

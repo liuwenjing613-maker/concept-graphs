@@ -1,4 +1,4 @@
 # Server paths for this host. Keep the original file in
 # base_paths.yaml.original for comparison.
-repo_root: /home/chenkejun/beauty/conceptgraphs/code/experiments/v7_merge
+repo_root: /home/chenkejun/beauty/conceptgraphs/code/experiments/v7_CLIP
 data_root: /home/chenkejun/beauty/conceptgraphs/data

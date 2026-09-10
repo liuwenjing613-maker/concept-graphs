@@ -31,6 +31,7 @@ def main() -> int:
     parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463'])
     parser.add_argument("--vlm-timeout",type=float,default=300)
     parser.add_argument("--gpu", default="1")
+    parser.add_argument("--clip-masked-weight",type=float,default=0.5,help="Softmask CLIP fusion weight; 0 restores bbox only")
     parser.add_argument("--margin-threshold", type=float, default=0.20)
     parser.add_argument("--threshold-distance", type=float, default=0.30)
     parser.add_argument("--threshold-scope", choices=("create_only", "both"), default="create_only")
@@ -63,6 +64,7 @@ def main() -> int:
     parser.add_argument("--dataset-config")
     parser.add_argument("--oracle-gt-path", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl")
     args = parser.parse_args()
+    if not 0 <= args.clip_masked_weight <= 1:raise ValueError("CLIP masked weight must be between 0 and 1")
     sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
     from conceptgraph.slam.v7_endpoint_pool import validate_urls
     args.vlm_urls=validate_urls(args.vlm_urls)
@@ -112,6 +114,7 @@ def main() -> int:
         "force_detection=false",
         "save_detections=true",
         f"yolo_imgsz={args.yolo_imgsz}",
+        f"clip_masked_weight={args.clip_masked_weight}",
         f"detections_exp_suffix={args.detections_exp_suffix}",
         f"exp_suffix={args.exp_suffix}",
         "save_video=false",
@@ -170,6 +173,7 @@ def main() -> int:
         "vlm_timeout_seconds": args.vlm_timeout,
         "timeout_retries": 3,
         "yolo_imgsz": args.yolo_imgsz,
+        "clip_masked_weight": args.clip_masked_weight,
         "detection_cache": args.detections_exp_suffix,
         "fresh_online_map": True,
         "worktree": str(worktree),

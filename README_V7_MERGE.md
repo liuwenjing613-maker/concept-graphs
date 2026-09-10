@@ -2,7 +2,7 @@
 
 基于 v7_VLMsplit_image fbd00e0，继承服务器现有输入/输出目录分离更新。
 
-## 唯一算法变化
+## 合并规则
 
 对最终 KEEP_SEPARATE 的对象对，计算当前在线地图的完整点云双向最近邻包含率。
 距离沿用原设置（默认 0.01 米）；任一方向严格大于 0.90，直接批准本次合并，不等待两次 MERGE，也不为这条规则请求人工。
@@ -39,3 +39,14 @@ YOLO imgsz=1200、三接口并行和超时原请求加三次重试保持一致�
 
 仅 smoke，不代表准确率提升。包含率高也可能是被污染节点包含另一物体，本版本用于用户要求的直接合并实验，保留原始结论供比较。
 服务器验证报告：`/home/chenkejun/beauty/v7_merge_smoke_20260909/summary.md`。
+
+## CLIP bbox + softmask 融合（2026-09-09）
+
+接入 DarrenYeh05 的 feat/clip-bbox-softmask-fusion / 0ae881f。
+bbox 原图与保留前景、抑制背景后的图分别提取 CLIP 特征，归一化后等权融合并再次归一化。
+默认 padding=20、masked_weight=0.5、background_factor=0.1、blur_radius=3.0。
+现有运行命令默认启用；`--clip-masked-weight 0` 恢复 bbox-only，human/auto 均支持。
+新缓存契约绑定 CLIP 参数，拒绝旧版或不同参数的缓存。默认每次生成新缓存。
+52 项 v7 检查、5 项 CLIP/检测检查、两帧真实在线 smoke 和严格证据审计通过。
+只验证链路，不代表准确率提高；完整场景由用户运行。
+报告：`/home/chenkejun/beauty/v7_merge_clip_smoke_20260909/summary.md`。
