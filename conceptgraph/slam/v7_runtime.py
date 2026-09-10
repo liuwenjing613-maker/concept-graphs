@@ -47,6 +47,10 @@ def parse_stage(content,task,labels=None):
             raise ValueError('invalid merge fields')
         if type(value['confidence']) is not int or not 0<=value['confidence']<=5 or not isinstance(value['reason'],str) or not 1<=len(value['reason'])<=240:
             raise ValueError('invalid merge values')
+    elif task=='fragment':
+        if set(value)!={'choice','reason'} or value['choice'] not in {'SAME_FRAGMENT','DISTINCT_OBJECT','UNCERTAIN'}:
+            raise ValueError('invalid fragment fields')
+        if not isinstance(value['reason'],str) or not 1<=len(value['reason'])<=240:raise ValueError('invalid fragment reason')
     elif task=='node_quality':
         if set(value)!={'views','choice','reason'} or value['choice'] not in {'CLEAN','CONTAMINATED','INSUFFICIENT'}:
             raise ValueError('invalid node quality fields')
@@ -79,13 +83,15 @@ class V7Runtime(VLMRuntime):
         self.templates=json.loads((PROMPTS/'request_templates.json').read_text())
         self.stage_prompts={p.stem:p.read_text() for p in PROMPTS.glob('*.txt')}
         self.forced_groups=[];self.staged_bindings={}
-        self.endpoint_pool=EndpointPool(json.loads(os.environ.get('V7_VLM_URLS', json.dumps([owner.base_url]))), owner.timeout_seconds)
+        self.endpoint_pool=EndpointPool(json.loads(os.environ.get('V7_VLM_URLS', json.dumps([owner.base_url]))), owner.timeout_seconds,
+            models=json.loads(os.environ['V7_VLM_MODELS']) if os.environ.get('V7_VLM_MODELS') else None)
         self.owner=owner;self.root=owner.output_dir;self.rows={};self.projection_frames={}
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='v7_merge',model=owner.model,fallback=self.fallback,
-            execution_revision='20260909_containment_direct_merge',
+        self.versions=dict(version='v7_merge_v3',model=owner.model,fallback=self.fallback,
+            execution_revision='20260909_mutual_fragment_arbitration',
+            endpoint_models=self.endpoint_pool.models,
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
             timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
@@ -93,7 +99,7 @@ class V7Runtime(VLMRuntime):
             renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
             merge_required_consecutive=2,reject_required_total=2,containment_distance_m=self.containment_distance,
             containment_threshold=.9,auto_requires_human=False,
-            containment_trigger='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes')
+            containment_trigger='quality veto; max>90/min>60 mutual approval; otherwise high containment uses fragment resolver')
         save_json(self.root/'vlm_versions.json',self.versions)
         template=Path(__file__).with_name('v7_dashboard.html')
         for dest in [self.root/'index.html',self.root/'review/index.html']:dest.write_text(template.read_text())
@@ -154,6 +160,7 @@ class V7Runtime(VLMRuntime):
             if alias not in {'A','B','C'}:raise ValueError('pairwise request needs frozen candidate alias')
             payload['messages'][1]['content']=re.sub(r'CANDIDATE [ABC]', 'CANDIDATE '+alias,
                 payload['messages'][1]['content'])
+        if task=='fragment':payload['messages'][1]['content']+='\n本次冻结的几何信息：'+json.dumps(labels,ensure_ascii=False,sort_keys=True)
         payload['messages'][1]['images']=[base64.b64encode(p.read_bytes()).decode() for _,p in images]
         request=copy.deepcopy(payload)
         request['messages'][1]['images']=[dict(label=n,path=str(p.relative_to(self.root)),sha256=sha(p)) for n,p in images]
@@ -172,6 +179,7 @@ class V7Runtime(VLMRuntime):
             attempt_dir=directory/'attempts'/f"{attempt['number']:02d}"
             attempt_dir.mkdir(parents=True,exist_ok=False)
             save_json(attempt_dir/'attempt.json',dict(attempt,h_snapshot_uid=snapshot))
+            save_json(attempt_dir/'request.json',dict(item['request'],model=attempt['model']))
             if response is not None:
                 try:save_json(attempt_dir/'response.json',response.json())
                 except (ValueError,TypeError):pass

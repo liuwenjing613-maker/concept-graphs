@@ -228,5 +228,50 @@
       "num_ctx": 32768,
       "num_predict": 1024
     }
+  },
+  "fragment": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "stream": false,
+    "think": false,
+    "keep_alive": -1,
+    "messages": [
+      {
+        "role": "system",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "请结合三张图及提供的几何方向，判断被包含节点是同物体碎片还是独立物体。",
+        "images": []
+      }
+    ],
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "SAME_FRAGMENT",
+            "DISTINCT_OBJECT",
+            "UNCERTAIN"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      },
+      "required": [
+        "choice",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "temperature": 0,
+      "num_ctx": 32768,
+      "num_predict": 1024
+    }
   }
 }

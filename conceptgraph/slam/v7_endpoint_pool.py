@@ -18,8 +18,11 @@ def validate_urls(urls):
 
 
 class EndpointPool:
-    def __init__(self, urls, timeout, max_timeout_retries=3):
+    def __init__(self, urls, timeout, max_timeout_retries=3, models=None):
         self.urls = validate_urls(urls)
+        if models is not None and (len(models)!=len(self.urls) or any(not isinstance(m,str) or not m.strip() for m in models)):
+            raise ValueError('One nonempty model name is required per distinct endpoint')
+        self.models=dict(zip(self.urls,models)) if models is not None else {}
         self.timeout = float(timeout)
         self.max_timeout_retries = int(max_timeout_retries)
         if self.timeout <= 0 or self.max_timeout_retries != 3:
@@ -53,13 +56,15 @@ class EndpointPool:
         attempts = []
         for number in range(1, self.max_timeout_retries + 2):
             with self.lease(previous) as url:
+                actual_payload=dict(payload)
+                if url in self.models:actual_payload['model']=self.models[url]
                 started = time.perf_counter()
                 response = None
                 error = None
                 timed_out = False
                 try:
                     with httpx.Client(timeout=self.timeout, trust_env=False) as client:
-                        response = client.post(url + '/api/chat', json=payload)
+                        response = client.post(url + '/api/chat', json=actual_payload)
                     if response.status_code in (408, 504):
                         timed_out = True
                         error = f'HTTP {response.status_code} timeout'
@@ -70,7 +75,7 @@ class EndpointPool:
                     error = type(exc).__name__ + ': ' + str(exc)
                 except Exception as exc:
                     error = type(exc).__name__ + ': ' + str(exc)
-                attempt = dict(number=number, endpoint=url, seconds=time.perf_counter()-started,
+                attempt = dict(number=number, endpoint=url, model=actual_payload.get('model'), seconds=time.perf_counter()-started,
                                http_status=None if response is None else response.status_code,
                                timed_out=timed_out, error=error)
                 attempts.append(attempt)

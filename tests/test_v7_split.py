@@ -89,7 +89,7 @@ class GateIntegration(unittest.TestCase):
         runtime.evidence=SimpleNamespace(prepare_merge=prepare,render_merge=render,observations={},containment=LiveEvidence.containment)
         def stage(event,directory,task,images,snapshot,labels=None):
             self.calls.append(task)
-            return dict(value=dict(choice=self.quality) if task=='node_quality' else None if self.answer is None else dict(choice=self.answer,confidence=5,reason='x'))
+            return dict(task=task,value=dict(choice=self.quality) if task=='node_quality' else None if self.answer is None else dict(choice=self.answer,confidence=5,reason='x'))
         runtime.stage=stage
         runtime.stage_many=lambda eid,specs,snapshot:[stage(eid,d,t,i,snapshot,l) for d,t,i,l in specs]
         runtime.pending=lambda eid,directory,task,images,allowed:runtime.rows.setdefault(eid,dict(event_id=eid))
@@ -98,9 +98,10 @@ class GateIntegration(unittest.TestCase):
         runtime.human_choice=human;self.owner.vlm_runtime=runtime;self.gate=V7MergeGate(self.owner)
     def tearDown(self):self.tmp.cleanup()
     def review(self,frame):return self.gate.review(self.a,self.b,frame_idx=frame,source_frame_id=str(frame),stage='smoke')
-    def test_failed_vlm_auto_is_rejection(self):
+    def test_failed_vlm_auto_defers_without_rejection(self):
         self.answer=None;self.review(1);self.review(2)
-        self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+        self.assertFalse(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+        self.assertEqual(self.gate.votes.state(self.gate.votes.key('a','b'))['reject_total'],0)
     def test_quality_mixed_no_identity_call(self):
         self.quality='CONTAMINATED';self.review(1)
         self.assertEqual(self.calls,['node_quality','node_quality'])
@@ -114,39 +115,34 @@ class GateIntegration(unittest.TestCase):
                 self.assertEqual(self.humans,[])
                 self.assertEqual(event['identity_output']['choice'],'DIFFERENT')
                 self.assertEqual(event['original_choice'],'KEEP_SEPARATE')
-                self.assertEqual(event['containment']['resolution_policy'],'DIRECT_MERGE')
+                self.assertEqual(event['containment']['resolution_policy'],'MUTUAL_APPROVAL')
                 self.assertEqual(event['vote_after']['merge_streak'],0)
                 self.assertTrue(event['vote_after']['awaiting_execution'])
                 self.assertTrue(Path(event['containment_geometry']['path']).exists())
-    def test_input_failure_with_containment_auto_direct_merge(self):
+    def test_input_failure_with_containment_auto_defers(self):
         self.b['pcd'].points=self.a['pcd'].points.copy()
         self.owner.vlm_runtime.evidence.prepare_merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))
-        self.assertIsNone(self.review(1));self.assertEqual(self.humans,[])
-        self.assertEqual(self.gate.events[0]['model_output']['choice'],'MERGE')
-    def test_contaminated_fallback_with_containment_direct_merge(self):
+        self.assertIsNotNone(self.review(1));self.assertEqual(self.humans,[])
+        self.assertEqual(self.gate.events[0]['model_output']['choice'],'DEFER')
+    def test_contaminated_fallback_with_containment_defers(self):
         self.quality='CONTAMINATED';self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.assertIsNone(self.review(1))
+        self.assertIsNotNone(self.review(1))
         self.assertEqual(self.gate.events[-1]['fallback_reason'],'NODE_CONTAMINATED')
         self.assertEqual(self.calls,['node_quality','node_quality'])
-    def test_locked_pair_geometry_override_without_new_history_or_vlm(self):
+    def test_locked_pair_cannot_bypass_lock_with_geometry(self):
         self.review(1);self.review(2);count=len(self.calls)
         self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.assertIsNone(self.review(3));self.assertEqual(len(self.calls),count)
-        event=self.gate.events[-1]
-        self.assertTrue(event['overrode_locked_rejection'])
-        self.assertEqual(event['vote_after']['reject_total'],2)
-        self.assertFalse(event['vote_after']['locked'])
+        self.assertIsNotNone(self.review(3));self.assertEqual(len(self.calls),count)
+        self.assertTrue(self.gate.events[-1]['vote_after']['locked'])
     def test_exact_90_does_not_approve(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.b['pcd'].points[-1]=[99,0,0]
         self.assertIsNotNone(self.review(1))
         self.assertEqual(self.gate.events[-1]['containment']['a_in_b'],.9)
-    def test_one_direction_and_same_frame_certificate(self):
+    def test_one_direction_requires_resolver(self):
         self.b['pcd'].points=np.r_[self.a['pcd'].points,np.ones((20,3))*100]
-        self.assertIsNone(self.review(1));count=len(self.calls)
-        self.assertIsNone(self.review(1));self.assertEqual(len(self.calls),count)
-        self.assertLess(self.gate.events[-1]['containment']['b_in_a'],.9)
-        self.gate.on_merged(self.a,self.b)
-        self.assertEqual(self.gate.events[-1]['execution'],'MERGED')
+        self.assertIsNotNone(self.review(1))
+        self.assertIn('fragment',self.calls)
+        self.assertEqual(self.gate.events[-1]['model_output']['choice'],'DEFER')
     def test_positive_does_not_containment_check(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.answer='SAME'
         self.assertIsNotNone(self.review(1));self.assertIsNone(self.review(2));self.assertFalse(self.humans)

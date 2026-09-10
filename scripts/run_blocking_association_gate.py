@@ -41,6 +41,7 @@ def main() -> int:
     parser.add_argument("--no-human-merge-review", "--no-merge-review", action="store_true", help="Ablation only: disable instance merge review (human/VLM)")
     parser.add_argument("--support-drop-threshold", type=float, default=0.20)
     parser.add_argument("--max-events", type=int, default=0)
+    parser.add_argument("--vlm-models", nargs="+", help="Model names in the same order as --vlm-urls; defaults to --model for every endpoint")
     parser.add_argument("--model", default="qwen3.6:35b-a3b-mtp-q4_K_M")
     parser.add_argument("--reasoning-effort", default="high", choices=("none", "low", "medium", "high"))
     parser.add_argument("--no-api-key-required", action="store_true", default=True, help="Native local Ollama does not require an API key")
@@ -66,6 +67,9 @@ def main() -> int:
     sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
     from conceptgraph.slam.v7_endpoint_pool import validate_urls
     args.vlm_urls=validate_urls(args.vlm_urls)
+    args.vlm_models=args.vlm_models or [args.model]*len(args.vlm_urls)
+    if len(args.vlm_models)!=len(args.vlm_urls) or any(not m.strip() for m in args.vlm_models):
+        raise ValueError('--vlm-models must give one nonempty model per --vlm-urls endpoint')
     if args.yolo_imgsz<=0 or args.vlm_timeout<=0:raise ValueError('sizes and timeout must be positive')
     args.detections_exp_suffix=args.detections_exp_suffix or args.exp_suffix+'_detections'
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',args.detections_exp_suffix):raise ValueError('invalid detection cache name')
@@ -155,7 +159,7 @@ def main() -> int:
     if not dataset_config.is_file():
         raise FileNotFoundError(dataset_config)
     if args.dry_run:
-        print(json.dumps({"source_dataset_root": str(source_root), "experiment_root": str(exp_root), "command": command}, ensure_ascii=False, indent=2))
+        print(json.dumps({"source_dataset_root": str(source_root), "experiment_root": str(exp_root), "vlm_endpoints": list(zip(args.vlm_urls,args.vlm_models)), "command": command}, ensure_ascii=False, indent=2))
         return 0
     scene_view(source_root, dataset_root, args.scene, create=True)
     launch_dir.mkdir(parents=True, exist_ok=True)
@@ -167,6 +171,7 @@ def main() -> int:
         "mode": args.mode,
         "fallback": args.fallback,
         "vlm_urls": args.vlm_urls,
+        "vlm_models": args.vlm_models,
         "vlm_timeout_seconds": args.vlm_timeout,
         "timeout_retries": 3,
         "yolo_imgsz": args.yolo_imgsz,
@@ -204,6 +209,7 @@ def main() -> int:
     environment["CUDA_VISIBLE_DEVICES"] = str(args.gpu)
     environment["V7_FALLBACK"] = args.fallback
     environment["V7_VLM_URLS"] = json.dumps(args.vlm_urls)
+    environment["V7_VLM_MODELS"] = json.dumps(args.vlm_models)
     environment["V7_MODEL_ROOT"] = str(project_root / "models/runtime")
     existing_pythonpath = environment.get("PYTHONPATH")
     environment["PYTHONPATH"] = str(worktree / ".runtime-deps") + os.pathsep + str(worktree) + (os.pathsep + existing_pythonpath if existing_pythonpath else "")

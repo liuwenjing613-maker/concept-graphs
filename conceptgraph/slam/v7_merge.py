@@ -1,5 +1,6 @@
 """V7 pair voting and live merge review."""
 from collections import Counter
+from conceptgraph.slam.v7_merge_policy import containment_route,fragment_context
 import hashlib,json,time
 from itertools import combinations
 from conceptgraph.slam.vlm_instance_merge import MergeVotes
@@ -12,13 +13,13 @@ class V7Votes(MergeVotes):
     def skip_reason(self,key,frame):
         why=super().skip_reason(key,frame)
         return 'locked_after_two_rejections' if why=='locked_after_three_rejections' else why
-    def approve_containment(self,key,frame,event_id):
+    def approve_containment(self,key,frame,event_id,approval_source="containment_gt90"):
         """Geometry approval is independent of VLM votes, including a prior lock."""
         row=self.state(key)
         if row['last_frame'] is not None and frame<=row['last_frame']:
             raise ValueError('duplicate or stale containment approval')
         row.update(last_frame=frame,last_event=event_id,locked=False,
-            awaiting_execution=True,approval_source='containment_gt90')
+            awaiting_execution=True,approval_source=approval_source)
         return True,dict(row)
     def refresh_history(self,key,signature):
         row=self.state(key)
@@ -34,8 +35,8 @@ class V7MergeGate:
         self.certificates={};self.last_event={};self._summary('ready')
     def _summary(self,status):
         save_json(self.root/'summary.json',dict(status=status,policy=self.votes.snapshot(),counts=dict(self.stats),
-            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes',
-            unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock VLM voting; >90% containment independently overrides lock'))
+            failure_policy=self.runtime.fallback,containment='quality veto; mutual max>90/min>60 approval; one-way fragment resolver; uncertainty defers without negative votes',
+            unlock='changed selected history observation UIDs or masks; locked pairs require selected-history update; no geometry-only bypass'))
     def close(self,status='completed'):self._summary(status)
     def containment_check(self,source,target):
         report=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
@@ -43,19 +44,42 @@ class V7MergeGate:
         report['requires_human']=False
         report['resolution_policy']='DIRECT_MERGE' if report['exceeds_threshold'] else 'KEEP_SEPARATE'
         return report
+    def arbitrate_negative(self,event,directory):
+        report=event['containment']
+        qualities=[s['value']['choice'] if s.get('value') else None for s in event.get('stages',[]) if s['task']=='node_quality']
+        route=containment_route(qualities,report)
+        if event.get('input_error'):route='DEFER_INPUT_FAILURE'
+        event['node_quality']=dict(zip('AB',qualities));event['override_route']=route
+        report['resolution_policy']=route;save_json(directory/'containment.json',report)
+        if route.startswith('DEFER_'):
+            event['defer_reason']=route;return 'DEFER'
+        if route=='NO_HIGH_CONTAINMENT':
+            if (event.get('identity_output') or {}).get('choice')=='DIFFERENT':return 'KEEP_SEPARATE'
+            event['defer_reason']='IDENTITY_UNRESOLVED';return 'DEFER'
+        if route=='MUTUAL_APPROVAL':
+            event['decision_source']='mutual_containment';return 'MERGE'
+        images=[('QUALITY A',directory/'quality_A.jpg'),('QUALITY B',directory/'quality_B.jpg'),('MERGE',directory/'merge.png')]
+        if not all(p.is_file() for _,p in images):
+            event['defer_reason']='FRAGMENT_IMAGES_MISSING';return 'DEFER'
+        result=self.runtime.stage(event['event_id'],directory/'fragment','fragment',images,
+            event['h_snapshot_uid'],fragment_context(report))
+        event.setdefault('stages',[]).append(result);event['fragment_output']=result.get('value')
+        value=result.get('value') or {};choice=value.get('choice')
+        if choice=='SAME_FRAGMENT':event['decision_source']='fragment_same';return 'MERGE'
+        if choice=='DISTINCT_OBJECT':return 'KEEP_SEPARATE'
+        event['defer_reason']='FRAGMENT_UNCERTAIN' if choice=='UNCERTAIN' else 'FRAGMENT_INTERFACE_FAILURE'
+        return 'DEFER'
+
     def negative_decision(self,source,target,event,directory):
         report=self.containment_check(source,target)
         event['containment']=report;event['original_choice']='KEEP_SEPARATE'
-        save_json(directory/'containment.json',report)
         if report['exceeds_threshold']:
-            # Preserve exact online geometry for reproducing this approval, even without images.
             import numpy as np
             path=directory/'containment_points.npz'
             np.savez_compressed(path,A=np.asarray(source['pcd'].points),B=np.asarray(target['pcd'].points))
             event['containment_geometry']=dict(path=str(path),sha256=sha(path))
-            event['decision_source']='containment_gt90'
-            return 'MERGE'
-        return 'KEEP_SEPARATE'
+        return self.arbitrate_negative(event,directory)
+
     def review(self,source,target,*,frame_idx,source_frame_id,stage,overlap=0,visual=0,text=0,parent_event=None):
         if source is target or str(source['id'])==str(target['id']):raise ValueError('distinct objects required')
         key=self.votes.key(source['id'],target['id']);states=state_key([object_state(source),object_state(target)])
@@ -89,16 +113,16 @@ class V7MergeGate:
                 save_json(directory/'history_check.json',dict(h_snapshot_uid=snapshot,selection=binding,
                     history_signature=fingerprint,vlm_images_rendered=False))
                 self.runtime.pending(event_id,directory,'merge',[],['KEEP_SEPARATE'])
-                choice=self.negative_decision(source,target,event,directory)
-                if choice=='MERGE':
-                    event['overrode_locked_rejection']=True
-                    return self.finish(source,target,key,states,event,directory,frame_idx,choice)
                 event.update(status='locked',execution='LOCKED_KEEP_SEPARATE',vote_after=dict(row))
                 event['timeline'].update(c_frame=frame_idx,c_utc=_utc_now(),online_main_graph_latest_frame_at_c=frame_idx,ordering_valid=True)
                 event['c_bound_h_snapshot_uid']=snapshot
                 save_json(directory/'decision.json',event)
                 self.runtime.rows[event_id].update(event);self.runtime.publish();self.stats['locked_skips']+=1
                 return 'v7_locked_after_two_rejections'
+            event['evidence_signature']=hashlib.sha256((fingerprint+states).encode()).hexdigest()
+            if row.get('deferred_signature')==event['evidence_signature']:
+                event['defer_reason']='UNCHANGED_DEFERRED_EVIDENCE'
+                return self.finish(source,target,key,states,event,directory,frame_idx,'DEFER')
             render_started=time.perf_counter()
             binding=self.runtime.evidence.render_merge(directory,source,target,frame_idx,binding)
             event['render_seconds']=time.perf_counter()-render_started
@@ -115,6 +139,7 @@ class V7MergeGate:
             event['stages'].extend(results);qualities=[result['value'] for result in results]
             if any(q is None for q in qualities):reason='NODE_QUALITY_INTERFACE_FAILURE'
             elif any(q['choice']=='CONTAMINATED' for q in qualities):reason='NODE_CONTAMINATED'
+            elif any(q['choice']!='CLEAN' for q in qualities):reason='NODE_QUALITY_INSUFFICIENT'
             else:
                 result=self.runtime.stage(event_id,directory/'identity','merge',[('MERGE',directory/'merge.png')],snapshot)
                 event['stages'].append(result)
@@ -123,9 +148,9 @@ class V7MergeGate:
                 event['identity_output']=value
                 reason='IDENTITY_UNCERTAIN' if value else 'IDENTITY_INTERFACE_FAILURE'
             if choice is None:
-                choice=self.runtime.fallback_choice(event_id,directory,'merge',images,reason,[],snapshot)
+                choice='DEFER' if any(q is None or q.get('choice')!='CLEAN' for q in qualities) else self.runtime.fallback_choice(event_id,directory,'merge',images,reason,[],snapshot)
                 event['fallback_reason']=reason
-            if choice=='KEEP_SEPARATE':
+            if choice in {'KEEP_SEPARATE','DEFER'}:
                 choice=self.negative_decision(source,target,event,directory)
         except self.runtime.input_unavailable:
             event['status']='waiting_for_human';save_json(directory/'decision.json',event);self._summary('waiting_for_human');raise
@@ -138,19 +163,20 @@ class V7MergeGate:
             snapshot=event.setdefault('h_snapshot_uid',states)
             if not images:
                 images=[(p.stem,p) for p in directory.glob('*.jpg')]
-            choice=self.runtime.fallback_choice(event_id,directory,'merge',images,'INPUT_FAILURE',[],snapshot)
-            if choice=='KEEP_SEPARATE':
+            choice='DEFER'
+            if choice in {'KEEP_SEPARATE','DEFER'}:
                 choice=self.negative_decision(source,target,event,directory)
         return self.finish(source,target,key,states,event,directory,frame_idx,choice)
 
     def finish(self,source,target,key,states,event,directory,frame_idx,choice):
         event_id=event['event_id']
         if states!=state_key([object_state(source),object_state(target)]):raise self.runtime.invariant_error('objects changed during blocking review')
-        if event.get('decision_source')=='containment_gt90':
-            approved,after=self.votes.approve_containment(key,frame_idx,event_id)
+        if event.get('decision_source') in {'mutual_containment','fragment_same'}:
+            approved,after=self.votes.approve_containment(key,frame_idx,event_id,event['decision_source'])
             self.stats['containment_approvals']+=1
         else:
             approved,after=self.votes.record(key,frame_idx,event_id,choice)
+        self.votes.state(key)['deferred_signature']=event.get('evidence_signature') if choice=='DEFER' else None
         if approved:self.certificates[key]=states
         self.last_event[key]=event
         event.update(model_output=dict(choice=choice,confidence=0),vote_after=after,status='complete',
