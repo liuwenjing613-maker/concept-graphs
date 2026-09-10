@@ -1,5 +1,7 @@
 # 统一指标评估器
 
+**协议版本：`unified_fullmesh_v2_20260910`。旧 v1 分数不能混入本协议；旧地图必须使用新输出目录重评估。**
+
 选择已完成在线建图的结果文件夹，使用固定完整 GT 网格评估。支持 Replica room0–2、office0–4。此工具只评估最终地图，不继续建图，也不加载未来帧修正地图。
 
 ## 使用
@@ -36,18 +38,22 @@ bash evaluate_folder.sh "/path/to/result_folder" --scene room0 --map pcd_run.pkl
 
 ## 指标和排除规则
 
-所有方法在共同完整 GT 网格上比较。每个 GT 顶点取最近预测点，距离严格小于 5 cm 才接受预测。未覆盖 GT 保留为漏检。
+所有方法在共同完整 GT 网格上比较。投影前排除 owner=-1 的无归属点，每个 GT 顶点取最近有效物体预测点，距离严格小于 5 cm 才接受预测。未覆盖 GT 保留为漏检。
 
 | 指标 | 计算与用途 |
 |---|---|
-| Instance mIoU | 不看类别，一对一最大总 IoU 匹配；全部合格 GT 实例平均，未匹配为0。衡量物体分割重合程度。 |
+| Instance mIoU | 不看类别，每个 GT 独立取最大 IoU，可重复使用预测；GT 至少10点，预测不作大小过滤，漏检为0。匹配与平均方式参照 OVI 原脚本，评估对象仍使用共同48类。 |
 | Instance AP25/50/75 | 不看类别，IoU 严格大于对应阈值才匹配；按固定引擎计算精确率-召回率面积，兼顾漏检、误检和重复预测。 |
-| Semantic mIoU | 每类交并比再平均；含墙、天花板、地板；GT和预测都缺席的类忽略，只有误报的类保留为0。 |
-| Semantic AP50 | 类别正确且 IoU >0.5；在有合格 GT 的类别间平均。 |
-| Coverage@5cm | 48 个物体类别的 GT 顶点中，被有效预测覆盖的比例；不要求类别或实例正确。 |
+| Semantic mIoU | 每类交并比再平均；含墙、天花板、地板；只平均 GT 实际出现的类别。union-present 版本另存诊断。 |
+| Semantic AP25 / AP50 | 类别正确且 IoU >0.25 / >0.5；在有合格 GT 的类别间平均。 |
+| Object Surface Coverage@5cm | 48 个物体类别的 GT 顶点中，被有效预测覆盖的比例；不要求类别或实例正确。 |
 | mAcc | 每类正确预测点数/该类 GT 点数，再对有GT的类别平均；含墙、天花板、地板。 |
 
-实例指标与 Semantic AP 排除墙、天花板、地板、无效 GT 实例及小于100个GT顶点的实例；预测投影不足100点不作有效候选。类别无关指标不会仅按预测类别删除预测。Coverage 不使用100点过滤。语义点指标忽略 GT 未标注点，不按实例大小过滤。
+主 Instance mIoU 的 GT 最少10点，预测不做100点过滤。原 Hungarian 一对一版本保存为 `instance_mIoU_one_to_one`，继续采用 GT/预测各100点门槛。AP 同样采用100点门槛。三者都对 GT 排除墙、天花板、地板及无效实例；类别无关指标不按预测语义标签过滤候选。Object Surface Coverage 不过滤小实例，字段为 `object_surface_coverage_5cm`，不是实例召回率。
+
+内部诊断保存 TP/FP/FN、Precision/Recall/F1@50：GT/预测至少100点，IoU >=0.5，一对一最大匹配数量优先、总IoU其次。诊断中所有合格但未匹配的预测计FP，不沿用AP的void忽略规则。没有GT时 Recall 为null；GT和预测都为空时F1为null。
+
+CLIP 物体与文本特征均显式 L2 归一化后计算余弦相似度。零向量和非有限值报错。固定51类，不使用 exclude6；door/window 仍参与评估。
 
 AP 对未匹配预测沿用原引擎忽略规则：忽略区域占预测比例大于当前阈值时不计误检。AP 排序分数是投影点数/最大投影点数，保留6位小数；类别相关 AP 在预测类别内归一化，不是 VLM 置信度。源引擎与许可见 NOTICE.md。
 
@@ -61,7 +67,17 @@ AP 对未匹配预测沿用原引擎忽略规则：忽略区域占预测比例�
 
 ```bash
 python3 evaluate_unified.py --manifest batch.json --out /path/to/batch_output
-python3 -m unittest -v test_evaluator.py
+python3 -m unittest -v test_evaluator test_protocol_v2
 ```
 
-测试覆盖完美预测、漏检、空预测、错类别、错合并、错拆分、5cm及IoU边界、小实例和仅误报类别。固定指标代码与当前实验版本保持一致。
+测试覆盖完美预测、漏检、空预测、错类别、错合并、错拆分、5cm及IoU边界、小实例和仅误报类别。新增格式一致性、无归属最近邻、文本缩放不变性、10点边界与参考 manifest 缓存失效测试。
+
+## 从 v1 迁移
+
+- `instance_mIoU` 现为 GT-best、GT>=10；旧定义保存在 `instance_mIoU_one_to_one`，对应 `gt_instances_one_to_one`。主结果 `gt_instances` 是10点门槛计数。
+- `semantic_mIoU` 改为GT-present；旧定义为 `semantic_mIoU_union_present_diagnostic`。
+- `coverage_instances` 更名为 `object_surface_coverage_5cm`，更新表格读取字段；原始 covered_instances/vertices_instances 保留作加权分子分母。
+- 新增 semantic_AP25 与诊断 TP/FP/FN/P/R/F1。联合 F1 先加总TP/FP/FN再计算，禁止直接平均场景F1。
+- 指纹增加 reference_manifest_sha256。旧 projection_cache 字段不再读取，首次计算一律从地图重新投影；同一v2完整结果仍可通过指纹复用。
+- 固定 reference.npz、manifest.json 和 clip_text51.npy 无须修改。已有参考包的 config.json 可用于目录入口，入口自动写入新版本。
+- 这是共享完整网格上的统一重评估，不能宣称复现 OVI 论文全部数字；前端、语义特征、过滤、聚合与原论文实验条件仍须分别说明。

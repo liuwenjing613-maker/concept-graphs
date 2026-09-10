@@ -1,5 +1,5 @@
 {
-  "protocol": "unified_fullmesh_v1_20260910",
+  "protocol": "unified_fullmesh_v2_20260910",
   "reference_root": "/path/to/reference",
   "clip_text": "/path/to/clip_text51.npy",
   "entries": []

@@ -4,7 +4,7 @@ from evaluate_unified import *
 class Tests(unittest.TestCase):
  def metrics(self,gt,pred,classes):
   ids,n,area,inter=contingency(np.array(gt),np.array(pred),len(classes))
-  m,_=instance_iou(ids,n,area,inter,[1,2]);ca=build_matches('s',ids,n,area,inter,np.array(classes),[1,2],['a','b'],True);sa=build_matches('s',ids,n,area,inter,np.array(classes),[1,2],['a','b'],False)
+  m,_=instance_iou_one_to_one(ids,n,area,inter,[1,2]);ca=build_matches('s',ids,n,area,inter,np.array(classes),[1,2],['a','b'],True);sa=build_matches('s',ids,n,area,inter,np.array(classes),[1,2],['a','b'],False)
   return m,run_ap({'s':ca},['object'])[0],run_ap({'s':sa},['a','b'])[0]
  def test_perfect(self):
   m,ca,sa=self.metrics([1000]*200+[2000]*200,[0]*200+[1]*200,[1,2]);self.assertEqual(m['instance_mIoU'],1);self.assertEqual(ca,[1,1,1]);self.assertEqual(sa,[1,1,1])
@@ -21,7 +21,7 @@ class Tests(unittest.TestCase):
  def test_projection_boundary(self):
   pred,dist=project(np.array([[0.,0,0]]),np.array([0]),np.array([[.049,0,0],[.05,0,0],[.051,0,0]]),1);np.testing.assert_array_equal(pred,[0,-1,-1])
  def test_absent_class_false_positive(self):
-  conf=np.array([[0,0,0],[0,100,100],[0,0,0]]);m,_=semantic(conf,['a','b']);self.assertEqual(m['semantic_mIoU'],.25);self.assertEqual(m['semantic_mIoU_GT_present_diagnostic'],.5)
+  conf=np.array([[0,0,0],[0,100,100],[0,0,0]]);m,_=semantic(conf,['a','b']);self.assertEqual(m['semantic_mIoU'],.5);self.assertEqual(m['semantic_mIoU_union_present_diagnostic'],.25)
  def test_unobserved_false_negative(self):
   conf=np.array([[0,0],[100,100]]);m,_=semantic(conf,['a']);self.assertEqual(m['semantic_mIoU'],.5)
  def test_small_masks(self):

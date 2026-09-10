@@ -2,6 +2,7 @@
 """Select a completed result folder, then evaluate with the frozen protocol."""
 import argparse,json,re,subprocess,sys,os
 from pathlib import Path
+from evaluate_unified import VERSION
 ROOT=Path(__file__).resolve().parent
 SCENES=['room0','room1','room2','office0','office1','office2','office3','office4']
 def select(items,label):
@@ -59,6 +60,7 @@ def main():
  cfg=d/'config_params.json'
  if cfg.exists():
   c=json.load(open(cfg));entry['input']={k:c.get(k) for k in ['start','end','stride','image_width','image_height','clip_masked_weight','detections_exp_suffix']}
+ template['protocol']=VERSION
  template['entries']=[entry];manifest=out/'selection_manifest.json';manifest.write_text(json.dumps(template,ensure_ascii=False,indent=2))
  print('地图：',mp,'\n场景：',scene,'\n结果：',out,flush=True)
  if args.dry_run:return
