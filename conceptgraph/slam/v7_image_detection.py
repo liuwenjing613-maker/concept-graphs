@@ -21,12 +21,12 @@ def save(path,value):
 
 def contract(imgsz,classes,weights_root,image_hw,*,clip_bbox_padding=20,
              clip_masked_weight=0.5,clip_masked_background_factor=0.1,clip_masked_blur_radius=3.0):
-    return dict(schema='v7-image-detection-clip-fusion-v2',yolo_imgsz=int(imgsz),yolo_rect=True,
+    return dict(schema='v7-image-detection-two-road-v1',yolo_imgsz=int(imgsz),yolo_rect=True,
                 yolo_conf=0.1,sam_imgsz=1024,image_hw=list(image_hw),
                 classes=list(classes),ultralytics=version('ultralytics'),
                 weights={name:digest(Path(weights_root)/name) for name in ['yolov8l-world.pt','sam_l.pt']},
                 clip='ViT-H-14/laion2b_s32b_b79k',
-                clip_features=dict(algorithm='bbox-softmask-fusion-v1',
+                clip_features=dict(algorithm='bbox-softmask-fusion-v1', semantic_feature='bbox_feats',
                     bbox_padding=clip_bbox_padding,masked_weight=clip_masked_weight,
                     masked_background_factor=clip_masked_background_factor,
                     masked_blur_radius=clip_masked_blur_radius))
@@ -50,7 +50,7 @@ class DetectionCache:
             if missing:raise ValueError(f'incomplete detection cache: {len(missing)} requested frames missing')
             for stem in self.sources:
                 folder=self.root/'detections'/stem
-                for filename in ['xyxy.npz','mask.npz','class_id.npz','confidence.npz','image_feats.npz','v7_frame.json']:
+                for filename in ['xyxy.npz','mask.npz','class_id.npz','confidence.npz','image_feats.npz','bbox_feats.npz','v7_frame.json']:
                     if not (folder/filename).is_file():raise ValueError(f'incomplete detection cache file: {folder/filename}')
 
     def check_source(self,path):
@@ -84,3 +84,15 @@ def validate_coordinates(gobs,image_hw,classes):
         raise ValueError('detection boxes outside original image coordinates')
     if list(gobs['classes'])!=list(classes) or (len(ids) and ((ids<0).any() or (ids>=len(classes)).any())):
         raise ValueError('cached detection class ordering mismatch')
+
+
+def validate_two_road_features(gobs):
+    import numpy as np
+    for key in ('image_feats', 'bbox_feats'):
+        if key not in gobs:
+            raise ValueError('TwoRoad requires fresh dual-feature cache: missing '+key)
+        ft = np.asarray(gobs[key])
+        if ft.shape != (len(gobs['mask']), 1024) or not np.isfinite(ft).all():
+            raise ValueError('invalid TwoRoad feature: '+key)
+        if len(ft) and not np.allclose(np.linalg.norm(ft, axis=1), 1, atol=1e-4):
+            raise ValueError('unnormalized TwoRoad feature: '+key)

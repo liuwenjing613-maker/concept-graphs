@@ -133,7 +133,7 @@ class Cache(unittest.TestCase):
             spec={'yolo_imgsz':1200};cache=DetectionCache(c,spec,[source],True)
             with self.assertRaisesRegex(ValueError,'incomplete'):DetectionCache(c,spec,[source],False)
             folder=c/'detections'/source.stem;folder.mkdir(parents=True)
-            for name in ['xyxy','mask','class_id','confidence','image_feats']:(folder/(name+'.npz')).touch()
+            for name in ['xyxy','mask','class_id','confidence','image_feats','bbox_feats']:(folder/(name+'.npz')).touch()
             cache.record(source,[704,1216],[680,1200])
             reused=DetectionCache(c,spec,[source],False);self.assertEqual(reused.check_source(source)['actual_yolo_input_hw'],[704,1216])
             with self.assertRaisesRegex(ValueError,'mismatch'):DetectionCache(c,{'yolo_imgsz':640},[source],False)

@@ -11,4 +11,4 @@ fi
 shift
 PYTHON="${V7_PYTHON:-/home/chenkejun/beauty/conceptgraphs/envs/cg-ali/bin/python}"
 export PYTHONPATH="$ROOT/.runtime-deps${PYTHONPATH:+:$PYTHONPATH}"
-exec "$PYTHON" "$ROOT/scripts/run_blocking_association_gate.py" --mode vlm --fallback "$MODE" --exp-suffix "v7_CLIP_${MODE}_$(date +%Y%m%d_%H%M%S)_$$" "$@"
+exec "$PYTHON" "$ROOT/scripts/run_blocking_association_gate.py" --mode vlm --fallback "$MODE" --exp-suffix "v7_CLIP_TwoRoad_${MODE}_$(date +%Y%m%d_%H%M%S)_$$" "$@"

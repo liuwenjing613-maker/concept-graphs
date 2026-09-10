@@ -1,3 +1,7 @@
+# v7_CLIP_TwoRoad
+
+当前版本请先阅读 [README_V7_CLIP_TwoRoad.md](README_V7_CLIP_TwoRoad.md)。下方为继承的历史说明。
+
 [本分支：ali-my-v7-VLMsplit 在线建图与 human/auto 运行说明](README_V7.md)
 
 

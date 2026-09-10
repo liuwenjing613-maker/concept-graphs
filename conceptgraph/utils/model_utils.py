@@ -166,13 +166,15 @@ def compute_clip_features_batched(
     masked_weight=0.5,
     masked_background_factor=0.1,
     masked_blur_radius=3.0,
+    return_bbox_features=False,
 ):
 
     if len(detections.xyxy) == 0:
         output_dim = int(
             getattr(getattr(clip_model, "visual", None), "output_dim", 0) or 0
         )
-        return [], np.empty((0, output_dim), dtype=np.float32), []
+        empty = np.empty((0, output_dim), dtype=np.float32)
+        return ([], empty, [], empty.copy()) if return_bbox_features else ([], empty, [])
 
     if bbox_padding < 0:
         raise ValueError("bbox_padding must be non-negative")
@@ -263,7 +265,8 @@ def compute_clip_features_batched(
     # image_feats = []
     text_feats = []
     
-    return image_crops, image_feats, text_feats
+    result = (image_crops, image_feats, text_feats)
+    return (*result, bbox_features.cpu().numpy()) if return_bbox_features else result
 
 
 def compute_ft_vector_closeness_statistics(unbatched, batched):

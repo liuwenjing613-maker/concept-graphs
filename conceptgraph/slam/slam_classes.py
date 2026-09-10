@@ -133,6 +133,8 @@ class MapObjectList(DetectionList):
             s_obj_dict = copy.deepcopy(obj)
             
             s_obj_dict['clip_ft'] = to_numpy(s_obj_dict['clip_ft'])
+            if 'clip_semantic_ft' in s_obj_dict:
+                s_obj_dict['clip_semantic_ft'] = to_numpy(s_obj_dict['clip_semantic_ft'])
             # s_obj_dict['text_ft'] = to_numpy(s_obj_dict['text_ft'])
             
             s_obj_dict['pcd_np'] = np.asarray(s_obj_dict['pcd'].points)
@@ -152,6 +154,8 @@ class MapObjectList(DetectionList):
             new_obj = copy.deepcopy(s_obj_dict)
             
             new_obj['clip_ft'] = to_tensor(new_obj['clip_ft'])
+            if 'clip_semantic_ft' in new_obj:
+                new_obj['clip_semantic_ft'] = to_tensor(new_obj['clip_semantic_ft'])
             # new_obj['text_ft'] = to_tensor(new_obj['text_ft'])
             
             new_obj['pcd'] = o3d.geometry.PointCloud()

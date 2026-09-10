@@ -412,6 +412,7 @@ def merge_obj2_into_obj1(
         "pcd",
         "bbox",
         "clip_ft",
+        "clip_semantic_ft",
         "text_ft",
         "n_points",
         "revision_lineage_uids",
@@ -431,6 +432,8 @@ def merge_obj2_into_obj1(
         )
 
     # Custom handling for 'pcd', 'bbox', 'clip_ft', and 'text_ft'
+    if ("clip_semantic_ft" in obj1) != ("clip_semantic_ft" in obj2):
+        raise ValueError("cannot merge single-road and TwoRoad objects")
     n_obj1_det = obj1["num_detections"]
     n_obj2_det = obj2["num_detections"]
 
@@ -484,6 +487,11 @@ def merge_obj2_into_obj1(
         n_obj1_det + n_obj2_det
     )
     obj1["clip_ft"] = F.normalize(obj1["clip_ft"], dim=0)
+
+    if "clip_semantic_ft" in obj1:
+        obj1["clip_semantic_ft"] = F.normalize(
+            (obj1["clip_semantic_ft"] * n_obj1_det + obj2["clip_semantic_ft"] * n_obj2_det)
+            / (n_obj1_det + n_obj2_det), dim=0)
 
     # merge text_ft
     # obj2['text_ft'] = to_tensor(obj2['text_ft'], device)
@@ -1484,6 +1492,7 @@ def make_detection_list_from_pcd_and_gobs(
             "pcd": obj_pcds_and_bboxes[mask_idx]["pcd"],
             "bbox": obj_pcds_and_bboxes[mask_idx]["bbox"],
             "clip_ft": to_tensor(gobs["image_feats"][mask_idx]),
+            "clip_semantic_ft": to_tensor(gobs["bbox_feats"][mask_idx]),
             # 'text_ft': to_tensor(gobs['text_feats'][mask_idx]),
             "num_obj_in_class": num_obj_in_class,
             "curr_obj_num": tracker.total_object_count,
@@ -1722,6 +1731,7 @@ def prepare_objects_save_vis(objects: MapObjectList, downsample_size: float = 0.
                 "pcd",
                 "bbox",
                 "clip_ft",
+                "clip_semantic_ft",
                 "text_ft",
                 "class_id",
                 "num_detections",
@@ -1772,6 +1782,7 @@ def prepare_objects_save_vis(objects: MapObjectList, downsample_size: float = 0.
                 "pcd",
                 "bbox",
                 "clip_ft",
+                "clip_semantic_ft",
                 "text_ft",
                 "class_id",
                 "num_detections",

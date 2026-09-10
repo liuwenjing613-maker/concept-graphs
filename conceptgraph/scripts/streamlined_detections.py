@@ -100,13 +100,14 @@ def main(cfg : DictConfig):
         )
         
         # Compute and save the clip features of detections  
-        image_crops, image_feats, text_feats = compute_clip_features_batched(
+        image_crops, image_feats, text_feats, bbox_feats = compute_clip_features_batched(
             image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
             obj_classes.get_classes_arr(), cfg.device,
             bbox_padding=cfg.clip_bbox_padding,
             masked_weight=cfg.clip_masked_weight,
             masked_background_factor=cfg.clip_masked_background_factor,
             masked_blur_radius=cfg.clip_masked_blur_radius,
+            return_bbox_features=True,
         )
 
 
@@ -120,6 +121,7 @@ def main(cfg : DictConfig):
             "classes": obj_classes.get_classes_arr(),
             "image_crops": image_crops,
             "image_feats": image_feats,
+            "bbox_feats": bbox_feats,
             "text_feats": text_feats,
         }
         

@@ -376,13 +376,14 @@ def main(cfg : DictConfig):
                 {"FRAME_EDGE": edges, "FRAME_CAPTION": captions}
             )
 
-            image_crops, image_feats, text_feats = compute_clip_features_batched(
+            image_crops, image_feats, text_feats, bbox_feats = compute_clip_features_batched(
                 image_rgb, curr_det, clip_model, clip_preprocess, clip_tokenizer,
                 obj_classes.get_classes_arr(), cfg.device,
                 bbox_padding=cfg.clip_bbox_padding,
                 masked_weight=cfg.clip_masked_weight,
                 masked_background_factor=cfg.clip_masked_background_factor,
                 masked_blur_radius=cfg.clip_masked_blur_radius,
+                return_bbox_features=True,
             )
 
             # increment total object detections
@@ -399,6 +400,7 @@ def main(cfg : DictConfig):
                 "classes": obj_classes.get_classes_arr(),
                 "image_crops": image_crops,
                 "image_feats": image_feats,
+                "bbox_feats": bbox_feats,
                 "text_feats": text_feats,
                 "detection_class_labels": detection_class_labels,
                 "labels": labels,
@@ -436,6 +438,9 @@ def main(cfg : DictConfig):
             else:
                 # if no detections, throw an error
                 raise FileNotFoundError(f"No detections found for frame {frame_idx}at paths \n{det_exp_pkl_path / color_path.stem} or \n{det_exp_pkl_path / f'{int(color_path.stem):06}'}.")
+
+        from conceptgraph.slam.v7_image_detection import validate_two_road_features
+        validate_two_road_features(raw_gobs)
 
         if not run_detections:
             metadata=image_cache.check_source(color_path)
@@ -961,6 +966,9 @@ def main(cfg : DictConfig):
             object['consolidated_caption'] = ""
 
     handle_rerun_saving(cfg.use_rerun, cfg.save_rerun, cfg.exp_suffix, exp_out_path)
+
+    from conceptgraph.slam.two_road import export_readouts
+    export_readouts(objects, exp_out_path)
 
     # Save the pointcloud
     if cfg.save_pcd:
