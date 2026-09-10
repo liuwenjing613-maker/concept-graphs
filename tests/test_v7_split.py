@@ -2,7 +2,7 @@
 import copy,json,tempfile,unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import patch,Mock
 import numpy as np
 from conceptgraph.slam.v7_runtime import parse_stage,V7Runtime,EvidenceInvariantError
 from conceptgraph.slam.v7_merge import V7Votes,V7MergeGate
@@ -89,7 +89,7 @@ class GateIntegration(unittest.TestCase):
         runtime.evidence=SimpleNamespace(prepare_merge=prepare,render_merge=render,observations={},containment=LiveEvidence.containment)
         def stage(event,directory,task,images,snapshot,labels=None):
             self.calls.append(task)
-            return dict(value=dict(choice=self.quality) if task=='node_quality' else None if self.answer is None else dict(choice=self.answer,confidence=5,reason='x'))
+            return dict(task=task,h_snapshot_uid=snapshot,c_bound_h_snapshot_uid=snapshot,error=None,value=dict(choice=self.quality) if task=='node_quality' else None if self.answer is None else dict(choice=self.answer,confidence=5,reason='x'))
         runtime.stage=stage
         runtime.stage_many=lambda eid,specs,snapshot:[stage(eid,d,t,i,snapshot,l) for d,t,i,l in specs]
         runtime.pending=lambda eid,directory,task,images,allowed:runtime.rows.setdefault(eid,dict(event_id=eid))
@@ -118,24 +118,30 @@ class GateIntegration(unittest.TestCase):
                 self.assertEqual(event['vote_after']['merge_streak'],0)
                 self.assertTrue(event['vote_after']['awaiting_execution'])
                 self.assertTrue(Path(event['containment_geometry']['path']).exists())
-    def test_input_failure_with_containment_auto_direct_merge(self):
+    def test_input_failure_never_checks_containment(self):
         self.b['pcd'].points=self.a['pcd'].points.copy()
         self.owner.vlm_runtime.evidence.prepare_merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))
-        self.assertIsNone(self.review(1));self.assertEqual(self.humans,[])
-        self.assertEqual(self.gate.events[0]['model_output']['choice'],'MERGE')
-    def test_contaminated_fallback_with_containment_direct_merge(self):
+        self.owner.vlm_runtime.evidence.containment=Mock(side_effect=AssertionError('must not check geometry'))
+        self.assertIsNotNone(self.review(1));self.assertEqual(self.humans,[])
+        self.assertEqual(self.gate.events[0]['model_output']['choice'],'KEEP_SEPARATE')
+        self.owner.vlm_runtime.evidence.containment.assert_not_called()
+    def test_contaminated_fallback_never_checks_containment(self):
         self.quality='CONTAMINATED';self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.assertIsNone(self.review(1))
+        self.owner.vlm_runtime.evidence.containment=Mock(side_effect=AssertionError('must not check geometry'))
+        self.assertIsNotNone(self.review(1))
+        self.owner.vlm_runtime.evidence.containment.assert_not_called()
         self.assertEqual(self.gate.events[-1]['fallback_reason'],'NODE_CONTAMINATED')
         self.assertEqual(self.calls,['node_quality','node_quality'])
-    def test_locked_pair_geometry_override_without_new_history_or_vlm(self):
+    def test_locked_pair_cannot_override_without_new_identity_judgment(self):
         self.review(1);self.review(2);count=len(self.calls)
         self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.assertIsNone(self.review(3));self.assertEqual(len(self.calls),count)
+        self.owner.vlm_runtime.evidence.containment=Mock(side_effect=AssertionError('must not check geometry'))
+        self.assertIsNotNone(self.review(3));self.assertEqual(len(self.calls),count)
+        self.owner.vlm_runtime.evidence.containment.assert_not_called()
         event=self.gate.events[-1]
-        self.assertTrue(event['overrode_locked_rejection'])
+        self.assertNotIn('overrode_locked_rejection',event)
         self.assertEqual(event['vote_after']['reject_total'],2)
-        self.assertFalse(event['vote_after']['locked'])
+        self.assertTrue(event['vote_after']['locked'])
     def test_exact_90_does_not_approve(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.b['pcd'].points[-1]=[99,0,0]
         self.assertIsNotNone(self.review(1))
@@ -147,6 +153,58 @@ class GateIntegration(unittest.TestCase):
         self.assertLess(self.gate.events[-1]['containment']['b_in_a'],.9)
         self.gate.on_merged(self.a,self.b)
         self.assertEqual(self.gate.events[-1]['execution'],'MERGED')
+    def test_uncertain_or_failed_identity_never_checks_geometry(self):
+        self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.owner.vlm_runtime.evidence.containment=Mock(side_effect=AssertionError('must not check geometry'))
+        for frame,answer in enumerate(['UNCERTAIN',None],1):
+            self.answer=answer
+            self.assertIsNotNone(self.review(frame))
+            self.assertFalse(self.gate.events[-1]['containment_eligible'])
+        self.owner.vlm_runtime.evidence.containment.assert_not_called()
+
+    def test_quality_interface_failure_never_checks_geometry(self):
+        self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.owner.vlm_runtime.stage_many=lambda *args:[dict(value=None),dict(value=None)]
+        self.owner.vlm_runtime.evidence.containment=Mock(side_effect=AssertionError('must not check geometry'))
+        self.assertIsNotNone(self.review(1))
+        self.assertEqual(self.calls,[])
+        self.owner.vlm_runtime.evidence.containment.assert_not_called()
+
+    def test_different_with_error_or_wrong_snapshot_is_not_eligible(self):
+        from copy import deepcopy
+        self.review(1)
+        original=self.gate.events[-1]
+        self.assertTrue(self.gate.containment_eligible(original))
+        for patch in [dict(error='format failure'),dict(h_snapshot_uid='wrong'),dict(c_bound_h_snapshot_uid='wrong')]:
+            event=deepcopy(original);event['stages'][-1].update(patch)
+            self.assertFalse(self.gate.containment_eligible(event))
+        event=deepcopy(original);event['input_error']='late failure'
+        self.assertFalse(self.gate.containment_eligible(event))
+        event=deepcopy(original);event['fallback_reason']='HUMAN_KEEP_SEPARATE'
+        self.assertFalse(self.gate.containment_eligible(event))
+
+    def test_insufficient_quality_with_explicit_different_retains_old_behavior(self):
+        self.quality='INSUFFICIENT';self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.assertIsNone(self.review(1))
+        self.assertEqual(self.calls,['node_quality','node_quality','merge'])
+        self.assertTrue(self.gate.events[-1]['containment_eligible'])
+
+    def test_containment_failure_cannot_retry_via_input_fallback(self):
+        self.owner.vlm_runtime.evidence.containment=Mock(side_effect=ValueError('geometry failure'))
+        self.assertIsNotNone(self.review(1))
+        self.assertEqual(self.owner.vlm_runtime.evidence.containment.call_count,1)
+        self.assertFalse(self.gate.events[-1]['containment_eligible'])
+        self.assertNotIn('decision_source',self.gate.events[-1])
+
+    def test_locked_new_history_and_new_different_can_check_geometry(self):
+        self.review(1);self.review(2)
+        self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.assertIsNotNone(self.review(3))
+        self.a['obs_uids'].append('a-h2');self.a['image_idx'].append(4);self.a['num_detections']=2
+        self.assertIsNone(self.review(4))
+        self.assertEqual(self.gate.events[-1]['identity_output']['choice'],'DIFFERENT')
+        self.assertTrue(self.gate.events[-1]['containment_eligible'])
+
     def test_positive_does_not_containment_check(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.answer='SAME'
         self.assertIsNotNone(self.review(1));self.assertIsNone(self.review(2));self.assertFalse(self.humans)

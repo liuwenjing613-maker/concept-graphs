@@ -34,8 +34,8 @@ class V7MergeGate:
         self.certificates={};self.last_event={};self._summary('ready')
     def _summary(self,status):
         save_json(self.root/'summary.json',dict(status=status,policy=self.votes.snapshot(),counts=dict(self.stats),
-            failure_policy=self.runtime.fallback,containment='KEEP_SEPARATE only; either full-cloud direction >90% directly approves merge, bypassing VLM votes',
-            unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock VLM voting; >90% containment independently overrides lock'))
+            failure_policy=self.runtime.fallback,containment='Current valid identity DIFFERENT only; either full-cloud direction >90% directly approves merge, bypassing VLM votes',
+            unlock='changed selected history observation UIDs or masks; geometry-only update does not unlock VLM voting; locked events cannot use containment override'))
     def close(self,status='completed'):self._summary(status)
     def containment_check(self,source,target):
         report=self.runtime.evidence.containment(source,target,self.runtime.containment_distance)
@@ -43,7 +43,30 @@ class V7MergeGate:
         report['requires_human']=False
         report['resolution_policy']='DIRECT_MERGE' if report['exceeds_threshold'] else 'KEEP_SEPARATE'
         return report
+    @staticmethod
+    def containment_eligible(event):
+        """Only this event's valid, snapshot-bound identity rejection qualifies."""
+        if event.get('fallback_reason') or event.get('input_error'):
+            return False
+        identity=event.get('identity_output')
+        if not isinstance(identity,dict) or identity.get('choice')!='DIFFERENT':
+            return False
+        stages=[s for s in event.get('stages',[]) if s.get('task')=='merge']
+        if len(stages)!=1:
+            return False
+        stage=stages[0];snapshot=event.get('h_snapshot_uid')
+        return bool(snapshot and not stage.get('error') and stage.get('value')==identity
+            and stage.get('h_snapshot_uid')==snapshot
+            and stage.get('c_bound_h_snapshot_uid')==snapshot)
+
     def negative_decision(self,source,target,event,directory):
+        event['original_choice']='KEEP_SEPARATE'
+        eligible=self.containment_eligible(event)
+        event['containment_eligible']=eligible
+        if not eligible:
+            event.pop('decision_source',None)
+            event['containment_skip_reason']='NO_CURRENT_VALID_IDENTITY_DIFFERENT'
+            return 'KEEP_SEPARATE'
         report=self.containment_check(source,target)
         event['containment']=report;event['original_choice']='KEEP_SEPARATE'
         save_json(directory/'containment.json',report)
@@ -147,6 +170,8 @@ class V7MergeGate:
         event_id=event['event_id']
         if states!=state_key([object_state(source),object_state(target)]):raise self.runtime.invariant_error('objects changed during blocking review')
         if event.get('decision_source')=='containment_gt90':
+            if not self.containment_eligible(event):
+                raise self.runtime.invariant_error('containment requires current valid identity DIFFERENT')
             approved,after=self.votes.approve_containment(key,frame_idx,event_id)
             self.stats['containment_approvals']+=1
         else:
