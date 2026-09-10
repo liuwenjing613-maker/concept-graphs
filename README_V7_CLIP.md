@@ -1,3 +1,5 @@
+> This is v7_CLIP_mod. Current defaults and entry point: [README_V7_CLIP_MOD.md](README_V7_CLIP_MOD.md). The following describes the parent version.
+
 # v7_CLIP
 
 基于 v7_merge fb05116，接入 DarrenYeh05 feat/clip-bbox-softmask-fusion / 0ae881f。

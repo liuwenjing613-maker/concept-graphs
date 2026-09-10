@@ -20,7 +20,7 @@ def _bool(value: bool) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--mode", required=True, choices=("off", "audit", "oracle", "vlm", "human"))
-    parser.add_argument("--exp-suffix", required=True)
+    parser.add_argument("--exp-suffix", help="Unique output name; default includes mode, scene and mask weight")
     parser.add_argument("--fallback", choices=("human", "auto"), default="auto")
     parser.add_argument("--scene", default="room0")
     parser.add_argument("--start", type=int, default=0)
@@ -28,10 +28,12 @@ def main() -> int:
     parser.add_argument("--stride", type=int, default=5)
     parser.add_argument("--detections-exp-suffix", help="Explicit compatible full-resolution cache; default creates an isolated cache")
     parser.add_argument("--yolo-imgsz",type=int,default=1200)
-    parser.add_argument("--vlm-urls",nargs='+',default=['http://127.0.0.1:11464','http://127.0.0.1:11463'])
+    endpoints = parser.add_mutually_exclusive_group()
+    endpoints.add_argument("--vlm-urls", nargs='+', help="One to three actual VLM base URLs")
+    endpoints.add_argument("--vlm-ports", nargs='+', type=int, help="One to three localhost VLM ports")
     parser.add_argument("--vlm-timeout",type=float,default=300)
     parser.add_argument("--gpu", default="1")
-    parser.add_argument("--clip-masked-weight",type=float,default=0.5,help="Softmask CLIP fusion weight; 0 restores bbox only")
+    parser.add_argument("--clip-masked-weight","--mask-weight",type=float,default=0.25,help="Softmask CLIP fusion weight; 0 restores bbox only")
     parser.add_argument("--margin-threshold", type=float, default=0.20)
     parser.add_argument("--threshold-distance", type=float, default=0.30)
     parser.add_argument("--threshold-scope", choices=("create_only", "both"), default="create_only")
@@ -59,7 +61,7 @@ def main() -> int:
         default="/home/chenkejun/beauty/conceptgraphs/data/Replica",
         help="Raw Replica input root; output location is controlled by --output-root",
     )
-    parser.add_argument("--output-root", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica")
+    parser.add_argument("--output-root", default="/data/chenkejun/beauty/conceptgraphs/results/experiments/oracle_three_error_20260828/pilot/b0_dataset/Replica")
     parser.add_argument("--dry-run", action="store_true", help="Validate paths and print command without launching or writing files")
     parser.add_argument("--dataset-config")
     parser.add_argument("--oracle-gt-path", default="/home/chenkejun/beauty/conceptgraphs/results/experiments/experiment0_manual_annotation_20260901/corrected_gt_audit_room0/observation_gt.jsonl")
@@ -67,7 +69,14 @@ def main() -> int:
     if not 0 <= args.clip_masked_weight <= 1:raise ValueError("CLIP masked weight must be between 0 and 1")
     sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
     from conceptgraph.slam.v7_endpoint_pool import validate_urls
-    args.vlm_urls=validate_urls(args.vlm_urls)
+    if args.vlm_ports is not None:
+        if any(not 1 <= port <= 65535 for port in args.vlm_ports):
+            parser.error("VLM ports must be between 1 and 65535")
+        args.vlm_urls = [f"http://127.0.0.1:{port}" for port in args.vlm_ports]
+    args.vlm_urls=validate_urls(args.vlm_urls or ['http://127.0.0.1:11464','http://127.0.0.1:11463'])
+    if args.exp_suffix is None:
+        alpha = format(args.clip_masked_weight, '.8g').replace('.', 'p')
+        args.exp_suffix = f"v7_CLIP_mod_{args.fallback}_{args.scene}_mask{alpha}_{datetime.now():%Y%m%d_%H%M%S_%f}_{os.getpid()}"
     if args.yolo_imgsz<=0 or args.vlm_timeout<=0:raise ValueError('sizes and timeout must be positive')
     args.detections_exp_suffix=args.detections_exp_suffix or args.exp_suffix+'_detections'
     if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_.-]*',args.detections_exp_suffix):raise ValueError('invalid detection cache name')
@@ -158,7 +167,7 @@ def main() -> int:
     if not dataset_config.is_file():
         raise FileNotFoundError(dataset_config)
     if args.dry_run:
-        print(json.dumps({"source_dataset_root": str(source_root), "experiment_root": str(exp_root), "command": command}, ensure_ascii=False, indent=2))
+        print(json.dumps({"source_dataset_root": str(source_root), "experiment_root": str(exp_root), "vlm_urls": args.vlm_urls, "clip_masked_weight": args.clip_masked_weight, "clip_bbox_weight": 1.0-args.clip_masked_weight, "command": command}, ensure_ascii=False, indent=2))
         return 0
     scene_view(source_root, dataset_root, args.scene, create=True)
     launch_dir.mkdir(parents=True, exist_ok=True)
@@ -174,6 +183,7 @@ def main() -> int:
         "timeout_retries": 3,
         "yolo_imgsz": args.yolo_imgsz,
         "clip_masked_weight": args.clip_masked_weight,
+        "clip_bbox_weight": 1.0 - args.clip_masked_weight,
         "detection_cache": args.detections_exp_suffix,
         "fresh_online_map": True,
         "worktree": str(worktree),
@@ -184,6 +194,7 @@ def main() -> int:
         "interactive_stdin_required": args.mode == "human" or (args.mode == "vlm" and args.fallback == "human"),
     }
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    print(f"[launch] CLIP mask={args.clip_masked_weight:g} bbox={1-args.clip_masked_weight:g} VLM={args.vlm_urls}", flush=True)
     print(f"[launch] mode={args.mode} fresh_output={exp_root}", flush=True)
     print(f"[launch] GPU={args.gpu} frames=[{args.start},{args.end}) stride={args.stride}", flush=True)
     if args.mode == "human":

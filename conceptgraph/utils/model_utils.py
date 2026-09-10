@@ -208,9 +208,10 @@ def compute_clip_features_batched(
 
         crop_box = (x_min, y_min, x_max, y_max)
         cropped_image = image.crop(crop_box)
-        preprocessed_bbox_images.append(
-            clip_preprocess(cropped_image).unsqueeze(0)
-        )
+        if masked_weight < 1.0:
+            preprocessed_bbox_images.append(
+                clip_preprocess(cropped_image).unsqueeze(0)
+            )
         if masked_weight > 0:
             masked_crop = _make_mask_focused_crop(
                 cropped_image,
@@ -228,16 +229,18 @@ def compute_clip_features_batched(
         image_crops.append(cropped_image)
     
     # Convert lists to batches
-    preprocessed_bbox_batch = torch.cat(preprocessed_bbox_images, dim=0).to(device)
+    if masked_weight < 1.0:
+        preprocessed_bbox_batch = torch.cat(preprocessed_bbox_images, dim=0).to(device)
     text_tokens_batch = clip_tokenizer(text_tokens).to(device)
     
     # Batch inference
     with torch.no_grad():
-        bbox_features = clip_model.encode_image(preprocessed_bbox_batch)
-        bbox_features = torch.nn.functional.normalize(bbox_features, p=2, dim=-1)
+        if masked_weight < 1.0:
+            bbox_features = clip_model.encode_image(preprocessed_bbox_batch)
+            bbox_features = torch.nn.functional.normalize(bbox_features, p=2, dim=-1)
+            del preprocessed_bbox_batch
 
         if masked_weight > 0:
-            del preprocessed_bbox_batch
             preprocessed_masked_batch = torch.cat(
                 preprocessed_masked_images, dim=0
             ).to(device)
@@ -245,12 +248,15 @@ def compute_clip_features_batched(
             masked_features = torch.nn.functional.normalize(
                 masked_features, p=2, dim=-1
             )
-            image_features = torch.nn.functional.normalize(
-                (1.0 - masked_weight) * bbox_features
-                + masked_weight * masked_features,
-                p=2,
-                dim=-1,
-            )
+            if masked_weight == 1.0:
+                image_features = masked_features
+            else:
+                image_features = torch.nn.functional.normalize(
+                    (1.0 - masked_weight) * bbox_features
+                    + masked_weight * masked_features,
+                    p=2,
+                    dim=-1,
+                )
         else:
             image_features = bbox_features
         
