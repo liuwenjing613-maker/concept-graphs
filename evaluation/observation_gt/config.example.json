@@ -1,0 +1,18 @@
+{
+  "gt_match_distance_m": 0.05,
+  "min_depth_m": 0.05,
+  "max_depth_m": 10.0,
+  "min_valid_depth_ratio": 0.7,
+  "min_gt_support_ratio": 0.8,
+  "min_matched_gt_points": 50,
+  "min_core_matched_gt_points": 20,
+  "min_top1_purity": 0.8,
+  "max_top2_purity": 0.15,
+  "min_purity_margin": 0.6,
+  "mask_erosion_radius": 2,
+  "max_sampled_points_per_mask": 2048,
+  "min_prediction_identity_purity": 0.8,
+  "verify_evidence_hashes": true,
+  "query_workers": 4,
+  "diagnostic_samples_per_status": 8
+}
