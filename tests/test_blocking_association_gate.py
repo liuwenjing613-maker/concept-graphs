@@ -144,7 +144,7 @@ def test_vlm_media_is_validated_jpeg(tmp_path: Path):
     try:
         _image_data_url(svg)
     except ValueError as exc:
-        assert "not a JPEG bitstream" in str(exc)
+        assert "not a JPEG or PNG bitstream" in str(exc)
     else:
         raise AssertionError("SVG payload was not rejected")
 
@@ -398,7 +398,7 @@ def test_discard_route_is_a_formal_vlm_action(tmp_path: Path):
         return [dict(path=path.name)], [('CURRENT',path)]
     gate._event_evidence=evidence
     gate.vlm_runtime.bind_projection_snapshot=lambda *args:None
-    gate.vlm_runtime.adjudicate=lambda *args: ({"mock_staged":True},{"choice":"DISCARD","confidence":0},0.01)
+    gate.vlm_runtime.adjudicate=lambda *args,**kwargs: ({"mock_staged":True},{"choice":"DISCARD","confidence":0},0.01)
     routed = gate.route_frame(
         frame_idx=5,
         source_frame_id="5",

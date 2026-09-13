@@ -535,18 +535,16 @@ def _write_rgb(path: Path, image_rgb: np.ndarray) -> None:
 
 def _image_data_url(path: Path) -> str:
     raw = path.read_bytes()
-    # The upstream VLM accepts raster images only.  Evidence is always rendered
-    # by OpenCV as JPEG; validate both the container signature and decodability
-    # before constructing the request so SVG (or a mislabeled file) can never
-    # reach the API as ``data:image/jpeg``.
-    if not raw.startswith(b"\xff\xd8\xff"):
-        raise ValueError(f"VLM evidence is not a JPEG bitstream: {path}")
+    # Preserve exact confirmed PNG cards and existing JPEG evidence.
+    if raw.startswith(b"\xff\xd8\xff"):mime="image/jpeg"
+    elif raw.startswith(b"\x89PNG\r\n\x1a\n"):mime="image/png"
+    else:raise ValueError(f"VLM evidence is not a JPEG or PNG bitstream: {path}")
     decoded = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
     if decoded is None or decoded.size == 0:
-        raise ValueError(f"VLM evidence JPEG cannot be decoded: {path}")
+        raise ValueError(f"VLM evidence raster cannot be decoded: {path}")
     if min(decoded.shape[:2]) < 512:
         raise ValueError(f"VLM evidence raster is smaller than 512px: {path} {decoded.shape[1]}x{decoded.shape[0]}")
-    return "data:image/jpeg;base64," + base64.b64encode(raw).decode("ascii")
+    return f"data:{mime};base64," + base64.b64encode(raw).decode("ascii")
 
 
 def _image_media_descriptor(path: Path) -> dict:
@@ -555,9 +553,10 @@ def _image_media_descriptor(path: Path) -> dict:
     decoded = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
     return {
         "path": path.name,
-        "mime_type": "image/jpeg",
-        "data_url_prefix": "data:image/jpeg;base64,",
-        "jpeg_magic_hex": raw[:3].hex(),
+        "mime_type": data_url.split(";")[0][5:],
+        "data_url_prefix": data_url.split(",")[0]+",",
+        "jpeg_magic_hex": raw[:3].hex() if raw.startswith(b"\xff\xd8\xff") else None,
+        "png_magic_hex": raw[:8].hex() if raw.startswith(b"\x89PNG") else None,
         "encoded_bytes": len(raw),
         "payload_sha256": hashlib.sha256(raw).hexdigest(),
         "width": int(decoded.shape[1]),
@@ -630,7 +629,7 @@ def route_choice(
         return None, "model_new"
     if normalized == "DISCARD":
         return DISCARD_MATCH_INDEX, "model_discard_observation"
-    return baseline_match, "fallback_baseline"
+    return baseline_match, "defer_preserves_baseline" if normalized == "DEFER" else "fallback_baseline"
 
 
 def same_frame_mask_iou(
@@ -1091,8 +1090,8 @@ class BlockingAssociationGate:
             if part.get("type") == "image_url":
                 label, path = next(image_iter)
                 part["image_url"]["url"] = (
-                    "data:image/jpeg;base64,"
-                    f"<redacted label={label!r} sha256={_sha256_file(path)}>"
+                    part["image_url"]["url"].split(",")[0]+","
+                    +f"<redacted label={label!r} sha256={_sha256_file(path)}>"
                 )
         return redacted
 
@@ -1644,7 +1643,8 @@ UNCERTAIN = retain the mapper's original decision.</p>
             try:
                 if self.mode == "vlm":
                     raw_response, output, latency_seconds = self.vlm_runtime.adjudicate(
-                        event_dir, candidates, snapshot_uid, frame_idx, source_frame_id)
+                        event_dir, candidates, snapshot_uid, frame_idx, source_frame_id,
+                        association_scores={a:float(scores[detected_idx,i]) for a,i,_ in candidates})
                     _json_dump(event_dir / "vlm_raw_response.json", raw_response)
                     decision_source = "v7_staged_vlm"
                 elif self.mode == "human":
@@ -1700,6 +1700,7 @@ UNCERTAIN = retain the mapper's original decision.</p>
                 allowed = set(aliases_to_indices) | {"NEW", "UNCERTAIN"}
                 if self.mode in {"human", "vlm"}:
                     allowed.add("DISCARD")
+                    if self.mode == "vlm": allowed.add("DEFER")
                 if self.mode == "vlm":
                     from conceptgraph.slam.vlm_runtime import validate
                     validate(output, allowed)

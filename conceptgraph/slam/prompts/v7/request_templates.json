@@ -11,30 +11,51 @@
       },
       {
         "role": "user",
-        "content": "请审核图中 CURRENT，返回 status 和 reason。",
+        "content": "",
         "images": []
       }
     ],
     "format": {
       "type": "object",
       "properties": {
-        "status": {
+        "quality": {
           "type": "string",
           "enum": [
             "USABLE",
-            "CORRUPTED",
-            "INSUFFICIENT"
+            "INVALID",
+            "UNCERTAIN"
           ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
         },
         "reason": {
           "type": "string",
           "minLength": 1,
           "maxLength": 120
+        },
+        "error_type": {
+          "type": "string",
+          "enum": [
+            "none",
+            "mixed_objects",
+            "background_leak",
+            "severe_truncation",
+            "too_small",
+            "blurry",
+            "heavy_occlusion",
+            "wrong_target",
+            "other"
+          ]
         }
       },
       "required": [
-        "status",
-        "reason"
+        "quality",
+        "confidence",
+        "reason",
+        "error_type"
       ],
       "additionalProperties": false
     },

@@ -22,8 +22,8 @@ class EndpointPool:
         self.urls = validate_urls(urls)
         self.timeout = float(timeout)
         self.max_timeout_retries = int(max_timeout_retries)
-        if self.timeout <= 0 or self.max_timeout_retries != 3:
-            raise ValueError('Positive timeout and exactly three timeout retries required')
+        if self.timeout <= 0 or self.max_timeout_retries not in (0,3):
+            raise ValueError('Positive timeout and zero or three timeout retries required')
         self.condition = threading.Condition()
         self.busy = set()
         self.timeouts = dict.fromkeys(self.urls, 0)
@@ -78,9 +78,9 @@ class EndpointPool:
                 if timed_out:
                     with self.condition:
                         self.timeouts[url] += 1
-                    print(f'[v7-timeout] endpoint={url} attempt={number}/4; ' +
-                          ('retry on another available endpoint' if number < 4 else 'timeout budget exhausted'), flush=True)
+                    print(f'[v7-timeout] endpoint={url} attempt={number}/{self.max_timeout_retries+1}; ' +
+                          ('retry on another available endpoint' if number <= self.max_timeout_retries else 'timeout budget exhausted'), flush=True)
                 else:
                     return response, attempts, error
             previous = url
-        return None, attempts, 'TIMEOUT_EXHAUSTED: initial request and three retries all timed out'
+        return None, attempts, 'TIMEOUT_EXHAUSTED: request budget exhausted'

@@ -154,7 +154,7 @@ def main(cfg : DictConfig):
     )
     # cam_K = dataset.get_cam_K()
 
-    objects = MapObjectList(device=cfg.device)
+    objects = MapObjectList()
     map_edges = MapEdgeMapping(objects)
 
     # For visualization

@@ -5,7 +5,8 @@ from functools import lru_cache
 import numpy as np
 from conceptgraph.slam.v7_errors import EvidenceInvariantError
 from conceptgraph.slam.history_projection import load_history,project_points,sha
-from conceptgraph.slam.staged_identity_cards import audit_card,unproject
+from conceptgraph.slam.staged_identity_cards import unproject
+from conceptgraph.slam.v7_quality_card import audit_quality_card
 from conceptgraph.slam.human_instance_merge import object_state,state_key
 from conceptgraph.slam.vlm_runtime import save_json
 from conceptgraph.slam import v7_render as render
@@ -67,12 +68,13 @@ class LiveEvidence:
         if cur['frame_idx']!=frame:raise EvidenceInvariantError('I1 must be from this issue S frame')
         if not np.array_equal(cur['rgb'],rgb):raise EvidenceInvariantError('current RGB mismatch')
         directory.mkdir(parents=True,exist_ok=True)
-        audit_card(cur,directory/'quality.jpg')
+        quality_render=audit_quality_card(cur,directory/'quality.png')
         states=[object_state(o) for _,_,o in candidates]
         if len({s['object_uid'] for s in states})!=len(states):raise EvidenceInvariantError('duplicate objects')
         binding=dict(current_observation_uid=uid,h_frame=frame,objects=states,candidates=[])
         clouds={'current':np.asarray(detection['pcd'].points).copy()}
-        images=[('CURRENT QUALITY',directory/'quality.jpg')]
+        images=[('CURRENT QUALITY',directory/'quality.png')]
+        binding['quality_render']=quality_render
         for alias,index,obj in candidates:
             members=self.members(obj,frame)
             if uid in members:raise EvidenceInvariantError('CURRENT already fused into candidate')
