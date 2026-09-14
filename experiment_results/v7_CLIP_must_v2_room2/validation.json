@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "frames": 400,
+  "strict_audit": "PASS",
+  "semantic_findings_not_visual_ground_truth": 1214,
+  "merges": {
+    "MERGED": 19,
+    "DEFERRED": 47,
+    "LOCKED_KEEP_SEPARATE": 241
+  },
+  "vote_threshold_events": {
+    "1": 18,
+    "2": 78
+  },
+  "quality_stages": 392,
+  "quality_cache_hits": 92,
+  "negative_confirmations": 99,
+  "http_attempts": 841,
+  "zero_evidence_logging_errors": true,
+  "run": "/home/chenkejun/beauty/v7_CLIP_must_v2_run_20260914/Replica/room2/exps/v7_CLIP_must_v2_room2_H800_20260914"
+}

@@ -1,0 +1,11 @@
+{
+  "engine/evaluate_unified.py": "4cb4553aeab7a151c91c872720bd4285afb01bb1a35e0d17a076b690b0f32ff1",
+  "engine/ovimap_ap_pinned.py": "fd90b3987d3e06879784d56bd7f92a25cd4cce17bf3bc9befe15b0d7913ca948",
+  "engine/README.md": "d99d225880e2e75300edbb9be93c501b1ea7462ecbd49d60e3c9a10c67961f79",
+  "engine/NOTICE.md": "4d0d26e3982d78f14cedc9ced41b4e45812bc1b0d82452e84ad4b0a9edf343e6",
+  "engine/OVIMAP_LICENSE.txt": "64528bf28e0437759f4d284a88ec5d06fee8f5dd17946baa929a0087647e7aa0",
+  "reference/room2/manifest.json": "aae484fe001a70b5bea6558b7bbc8b6082d3bf9e308881c75ad698a0c6f959ba",
+  "reference/room2/reference.npz": "37c0ee8d1139ee439e7a3716c9e62c0e47b590deb85d0dfb89ee25d0c6129f69",
+  "clip_text51.npy": "784cb0c4265b39dac1a6324e2fba04eecf6dd09b098db21563ec4b7feebe61ed",
+  "baseline_comparison.json": "c4505c85143ef30fb0317373b04e2fe91aaa6818d9933aad3c5d40b21c2501ef"
+}

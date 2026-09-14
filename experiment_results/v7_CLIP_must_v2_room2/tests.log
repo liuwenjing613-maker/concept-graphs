@@ -1,0 +1,91 @@
+......[v7-stage] e pairwise START A
+[v7-timeout] endpoint=http://one:1 attempt=1/4; retry on another available endpoint
+[v7-timeout] endpoint=http://two:2 attempt=2/4; retry on another available endpoint
+[v7-timeout] endpoint=http://three:3 attempt=3/4; retry on another available endpoint
+[v7-timeout] endpoint=http://one:1 attempt=4/4; timeout budget exhausted
+[v7-stage] e pairwise DONE RuntimeError: TIMEOUT_EXHAUSTED: initial request and three retries all timed out
+.[v7-stage] e pairwise START A
+[v7-stage] e pairwise START B
+[v7-stage] e pairwise START C
+[v7-stage] e pairwise DONE {'choice': 'DIFFERENT', 'confidence': 5}
+[v7-stage] e pairwise DONE {'choice': 'SAME', 'confidence': 5}
+[v7-stage] e pairwise DONE {'choice': 'DIFFERENT', 'confidence': 5}
+.[v7-stage] e pairwise START A
+[v7-timeout] endpoint=http://one:1 attempt=1/4; retry on another available endpoint
+[v7-timeout] endpoint=http://two:2 attempt=2/4; retry on another available endpoint
+[v7-timeout] endpoint=http://three:3 attempt=3/4; retry on another available endpoint
+[v7-stage] e pairwise DONE {'choice': 'SAME', 'confidence': 5}
+.[v7-stage] e pairwise START A
+[v7-stage] e pairwise DONE ValueError: wrong model or incomplete response
+.[v7-timeout] endpoint=http://one:1 attempt=1/4; retry on another available endpoint
+[v7-timeout] endpoint=http://two:2 attempt=2/4; retry on another available endpoint
+[v7-timeout] endpoint=http://three:3 attempt=3/4; retry on another available endpoint
+[v7-timeout] endpoint=http://one:1 attempt=4/4; timeout budget exhausted
+.[v7-timeout] endpoint=http://one:1 attempt=1/4; retry on another available endpoint
+...[v7-timeout] endpoint=http://one:1 attempt=1/4; retry on another available endpoint
+[v7-timeout] endpoint=http://two:2 attempt=2/4; retry on another available endpoint
+[v7-timeout] endpoint=http://three:3 attempt=3/4; retry on another available endpoint
+.[v7-merge] m00001_f000001_smoke MERGE merge=1/2 reject=0/2 DEFERRED
+[v7-merge] m00002_f000002_smoke MERGE merge=2/2 reject=0/2 APPROVED_AWAITING_EXECUTION
+.....[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/2 reject=1/2 DEFERRED
+.[v7-merge] m00001_f000001_smoke DEFER merge=0/2 reject=0/2 DEFERRED
+[v7-merge] m00002_f000002_smoke DEFER merge=0/2 reject=0/2 DEFERRED
+[v7-merge] m00003_f000003_smoke DEFER merge=0/2 reject=0/2 DEFERRED
+....[v7-stage] x node_quality START 2
+[v7-stage] x node_quality START 3
+[v7-stage] x node_quality START 4
+[v7-stage] x node_quality START 5
+.[v7-stage] h1 node_quality START h1
+[v7-stage] h1 node_quality DONE {'choice': 'INSUFFICIENT', 'reason': '质量初判接口或格式失败，证据未获得有效判断。'}
+[v7-stage] h2 node_quality START h2
+[v7-stage] h2 node_quality DONE {'choice': 'CLEAN', 'reason': 'x'}
+[v7-stage] h3 node_quality START h3
+[v7-stage] h3 node_quality DONE {'choice': 'CLEAN', 'reason': 'x'}
+.[v7-stage] h1 node_quality START h1
+[v7-stage] h1 node_quality START confirmation
+[v7-stage] h1 node_quality DONE {'choice': 'INSUFFICIENT', 'reason': '两套提示词对相同证据的质量结论不一致，目标归属尚不能确认。'}
+[v7-stage] h2 node_quality START h2
+[v7-stage] h2 node_quality DONE {'choice': 'INSUFFICIENT', 'reason': '两套提示词对相同证据的质量结论不一致，目标归属尚不能确认。'}
+.[v7-merge] m00001_f000001_smoke MERGE merge=1/1 reject=0/2 APPROVED_AWAITING_EXECUTION
+[v7-merge] m00002_f000002_smoke MERGE merge=2/1 reject=0/2 APPROVED_AWAITING_EXECUTION
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/2 reject=1/2 DEFERRED
+.[v7-merge] m00001_f000001_smoke DEFER merge=0/1 reject=0/2 DEFERRED
+[v7-merge] m00002_f000002_smoke DEFER merge=0/1 reject=0/2 DEFERRED
+.[v7-input-error] m00001_f000001_smoke ValueError: missing history
+[v7-merge] m00001_f000001_smoke DEFER merge=0/2 reject=0/2 DEFERRED
+.[v7-merge] m00001_f000001_smoke MERGE merge=1/2 reject=0/2 DEFERRED
+[v7-merge] m00002_f000002_smoke MERGE merge=2/2 reject=0/2 APPROVED_AWAITING_EXECUTION
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/1 reject=1/2 DEFERRED
+[v7-merge] m00002_f000002_smoke KEEP_SEPARATE merge=0/1 reject=2/2 LOCKED_KEEP_SEPARATE
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/1 reject=1/2 DEFERRED
+[v7-merge] m00002_f000002_smoke KEEP_SEPARATE merge=0/1 reject=2/2 LOCKED_KEEP_SEPARATE
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/1 reject=1/2 DEFERRED
+[v7-merge] m00002_f000002_smoke KEEP_SEPARATE merge=0/1 reject=2/2 LOCKED_KEEP_SEPARATE
+[v7-merge] m00004_f000004_smoke MERGE merge=1/1 reject=0/2 APPROVED_AWAITING_EXECUTION
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/1 reject=1/2 DEFERRED
+[v7-merge] m00002_f000002_smoke KEEP_SEPARATE merge=0/1 reject=2/2 LOCKED_KEEP_SEPARATE
+.[v7-merge] m00001_f000001_smoke MERGE merge=1/1 reject=0/2 APPROVED_AWAITING_EXECUTION
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/2 reject=1/2 DEFERRED
+.[v7-merge] m00001_f000001_smoke KEEP_SEPARATE merge=0/1 reject=1/2 DEFERRED
+[v7-merge] m00002_f000002_smoke KEEP_SEPARATE merge=0/1 reject=2/2 LOCKED_KEEP_SEPARATE
+.[v7-merge] m00001_f000001_smoke MERGE merge=1/2 reject=0/2 DEFERRED
+[v7-merge] m00002_f000002_smoke MERGE merge=2/2 reject=0/2 APPROVED_AWAITING_EXECUTION
+.[v7-merge] m00001_f000001_smoke MERGE merge=1/1 reject=0/2 APPROVED_AWAITING_EXECUTION
+........[v7-human] 建图暂停；复核页: /tmp/tmpws4bj0z3/review/index.html
+[v7-human] smoke 
+输入: E-SNAPSHOT 选项: MERGE,KEEP_SEPARATE
+[v7-human] 编号或选项无效；请从当前题复制答案。
+.[v7-human] 建图暂停；复核页: /tmp/tmp9_bd5dpe/review/index.html
+[v7-human] failure 
+输入: E-SNAPSHOT 选项: A,NEW,DISCARD
+....[v7-stage] A pairwise START A
+[v7-stage] A pairwise DONE {'choice': 'SAME', 'confidence': 5}
+[v7-stage] B pairwise START B
+[v7-stage] B pairwise DONE {'choice': 'SAME', 'confidence': 5}
+[v7-stage] C pairwise START C
+[v7-stage] C pairwise DONE {'choice': 'SAME', 'confidence': 5}
+.............
+----------------------------------------------------------------------
+Ran 67 tests in 0.450s
+
+OK

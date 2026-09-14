@@ -1,0 +1,35 @@
+{
+  "input_sha256": "a459faf24861b5c173371f05d0f2766e4beacb8e217fd74a22f2eab1c864b987",
+  "output_sha256": "55f67ba8dcc8135da4871f8bd529f7318b9db554b3b99b21231abc7de32c63e4",
+  "added_ranges": {
+    "统一指标": [
+      182,
+      187
+    ],
+    "逐场景结果": [
+      120,
+      122
+    ],
+    "诊断指标": [
+      314,
+      319
+    ],
+    "成本记录": [
+      116,
+      118
+    ],
+    "评估说明": [
+      115,
+      120
+    ],
+    "地图来源": [
+      102,
+      102
+    ]
+  },
+  "original_formula_count": 93,
+  "original_rows_and_formula_caches_preserved": true,
+  "unchanged_zip_parts_byte_identical": true,
+  "new_cells_numeric": true,
+  "recalculation": "No existing cells or formulas changed; cached results preserved. No new formulas."
+}

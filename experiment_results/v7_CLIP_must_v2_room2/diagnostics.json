@@ -1,0 +1,50 @@
+{
+  "http_attempts": 841,
+  "http_status": {
+    "200": 841
+  },
+  "failed_http": 0,
+  "timeouts": 0,
+  "http_total_seconds": 1230.6166494768113,
+  "quality_stages": 392,
+  "quality_cache_hits": 92,
+  "quality_interface_failures": 0,
+  "negative_confirmations": 99,
+  "quality_policy_reasons": {
+    "primary_positive": 223,
+    "negative_not_confirmed": 94,
+    "negative_confirmed": 62,
+    "primary_uncertain": 13
+  },
+  "association_events": 200,
+  "association_reasons": {
+    "QUALITY_CORRUPTED": 43,
+    "ALL_DISPLAYED_CANDIDATES_DIFFERENT": 52,
+    "UNIQUE_SAME": 74,
+    "MULTIPLE_SAME_UNIQUE_ANCHOR": 16,
+    "QUALITY_INSUFFICIENT": 15
+  },
+  "merge_events": 307,
+  "merge_execution": {
+    "LOCKED_KEEP_SEPARATE": 241,
+    "DEFERRED": 47,
+    "MERGED": 19
+  },
+  "merge_actions": {
+    "locked": 211,
+    "KEEP_SEPARATE": 62,
+    "MERGE": 34
+  },
+  "unique_merge_pairs": 33,
+  "interpretation": "Raw operational event counts; repeated pair/locked events are not independent errors or GT causal evidence.",
+  "observation_quality": {
+    "CORRUPTED": 43,
+    "USABLE": 142,
+    "INSUFFICIENT": 15
+  },
+  "node_quality": {
+    "CLEAN": 81,
+    "INSUFFICIENT": 92,
+    "CONTAMINATED": 19
+  }
+}
