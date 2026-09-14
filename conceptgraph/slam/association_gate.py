@@ -738,6 +738,9 @@ class BlockingAssociationGate:
         self.mode = str(gate_cfg.get("mode", "off")).lower()
         if self.mode not in VALID_MODES:
             raise ValueError(f"unsupported association gate mode: {self.mode}")
+        self.association_review_enabled = self.mode != "off" and bool(
+            gate_cfg.get("association_review_enabled", True)
+        )
         self.threshold_scope = str(gate_cfg.get("threshold_scope", "create_only"))
         if self.threshold_scope not in VALID_SCOPES:
             raise ValueError(f"unsupported threshold_scope: {self.threshold_scope}")
@@ -801,6 +804,7 @@ class BlockingAssociationGate:
         self.config = {
             "schema_version": SCHEMA_VERSION,
             "mode": self.mode,
+            "association_review_enabled": self.association_review_enabled,
             "sim_threshold": self.sim_threshold,
             "margin_threshold": self.margin_threshold,
             "threshold_distance": self.threshold_distance,
@@ -1472,7 +1476,7 @@ UNCERTAIN = retain the mapper's original decision.</p>
         spatial_sim: Any = None,
     ) -> List[Optional[int]]:
         final_matches = list(baseline_match_indices)
-        if self.mode == "off":
+        if not self.association_review_enabled:
             return final_matches
         scores = _as_numpy(aggregate_sim).astype(float, copy=False)
         if scores.shape != (len(detection_list), len(objects)):

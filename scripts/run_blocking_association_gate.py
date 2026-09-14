@@ -34,6 +34,10 @@ def main() -> int:
     parser.add_argument("--clip-masked-weight",type=float,default=0.5,help="Softmask CLIP fusion weight; 0 restores bbox only")
     parser.add_argument("--margin-threshold", type=float, default=0.20)
     parser.add_argument("--threshold-distance", type=float, default=0.30)
+    parser.add_argument(
+        "--no-association-review", action="store_true",
+        help="Ablation only: bypass all observation association/NEW VLM review",
+    )
     parser.add_argument("--threshold-scope", choices=("create_only", "both"), default="create_only")
     parser.add_argument("--candidate-iou-threshold", type=float, default=0.85)
     parser.add_argument("--no-candidate-iou-filter", action="store_true")
@@ -130,6 +134,7 @@ def main() -> int:
         "revision.enabled=false",
         f"association_gate.mode={args.mode}",
         f"association_gate.margin_threshold={args.margin_threshold}",
+        f"association_gate.association_review_enabled={_bool(not args.no_association_review)}",
         f"association_gate.threshold_distance={args.threshold_distance}",
         f"association_gate.threshold_scope={args.threshold_scope}",
         f"association_gate.review_all_new={_bool(not args.no_review_all_new)}",

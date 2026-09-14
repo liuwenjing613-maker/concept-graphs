@@ -290,6 +290,32 @@ def test_off_is_identity(tmp_path: Path):
         baseline_match_indices=baseline,
     ) == baseline
 
+def test_merge_only_scope_keeps_baseline_association(tmp_path: Path):
+    tmp_path.mkdir(parents=True, exist_ok=True)
+    gate = BlockingAssociationGate(
+        cfg={
+            "sim_threshold": 1.2,
+            "association_gate": {
+                "mode": "vlm",
+                "association_review_enabled": False,
+                "human_merge_review": True,
+            },
+        },
+        output_dir=tmp_path / "merge_only",
+    )
+    baseline = [0, None]
+    assert gate.vlm_runtime is not None
+    assert gate.human_merge_review_enabled is True
+    assert gate.route_frame(
+        frame_idx=0,
+        source_frame_id="0",
+        image_rgb=np.zeros((2, 2, 3), dtype=np.uint8),
+        detection_list=[{}, {}],
+        objects=[{}],
+        aggregate_sim=np.array([[99.0], [-99.0]]),
+        baseline_match_indices=baseline,
+    ) == baseline
+
 
 def test_human_mode_blocks_for_one_option_and_routes_without_api(tmp_path: Path):
     tmp_path.mkdir(parents=True, exist_ok=True)
