@@ -1644,7 +1644,7 @@ UNCERTAIN = retain the mapper's original decision.</p>
             try:
                 if self.mode == "vlm":
                     raw_response, output, latency_seconds = self.vlm_runtime.adjudicate(
-                        event_dir, candidates, snapshot_uid, frame_idx, source_frame_id)
+                        event_dir, candidates, snapshot_uid, frame_idx, source_frame_id, baseline_match=baseline_match)
                     _json_dump(event_dir / "vlm_raw_response.json", raw_response)
                     decision_source = "v7_staged_vlm"
                 elif self.mode == "human":

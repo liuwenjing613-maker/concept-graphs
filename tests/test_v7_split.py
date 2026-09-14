@@ -54,7 +54,7 @@ class Parsing(unittest.TestCase):
         with self.assertRaises(ValueError):parse_stage(json.dumps(x),'node_quality',['H1'])
     def test_quality_failure_blocks_candidates(self):
         self.assertEqual(decide_event(dict(status='INSUFFICIENT',reason='x'),[],['A'])['kind'],'PENDING')
-    def test_multiple_same_requires_all_pairs(self):
+    def test_multiple_same_identified_for_separate_merge_review(self):
         p=[dict(alias=a,value=dict(choice='SAME',confidence=0)) for a in 'ABC']
         self.assertEqual(decide_event(dict(status='USABLE',reason='x'),p,list('ABC'))['same_aliases'],list('ABC'))
 
@@ -93,58 +93,47 @@ class GateIntegration(unittest.TestCase):
         runtime.stage=stage
         runtime.stage_many=lambda eid,specs,snapshot:[stage(eid,d,t,i,snapshot,l) for d,t,i,l in specs]
         runtime.pending=lambda eid,directory,task,images,allowed:runtime.rows.setdefault(eid,dict(event_id=eid))
-        runtime.fallback_choice=lambda *args:'KEEP_SEPARATE'
+        runtime.fallback_choice=lambda *args:'DEFER'
         def human(*args):self.humans.append(args);return self.human_answer
         runtime.human_choice=human;self.owner.vlm_runtime=runtime;self.gate=V7MergeGate(self.owner)
     def tearDown(self):self.tmp.cleanup()
     def review(self,frame):return self.gate.review(self.a,self.b,frame_idx=frame,source_frame_id=str(frame),stage='smoke')
-    def test_failed_vlm_auto_is_rejection(self):
+    def test_failed_vlm_auto_defers_without_rejection(self):
         self.answer=None;self.review(1);self.review(2)
-        self.assertTrue(self.gate.votes.state(self.gate.votes.key('a','b'))['locked'])
+        row=self.gate.votes.state(self.gate.votes.key('a','b'))
+        self.assertFalse(row['locked']);self.assertEqual(row['reject_total'],0)
+        self.assertEqual(row['merge_streak'],0)
     def test_quality_mixed_no_identity_call(self):
         self.quality='CONTAMINATED';self.review(1)
         self.assertEqual(self.calls,['node_quality','node_quality'])
-    def test_negative_containment_both_modes_direct_approval(self):
-        for mode in ['auto','human']:
-            with self.subTest(mode=mode):
-                self.owner.vlm_runtime.fallback=mode
-                self.b['pcd'].points=self.a['pcd'].points.copy()
-                self.assertIsNone(self.review(1 if mode=='auto' else 2))
-                event=self.gate.events[-1]
-                self.assertEqual(self.humans,[])
-                self.assertEqual(event['identity_output']['choice'],'DIFFERENT')
-                self.assertEqual(event['original_choice'],'KEEP_SEPARATE')
-                self.assertEqual(event['containment']['resolution_policy'],'DIRECT_MERGE')
-                self.assertEqual(event['vote_after']['merge_streak'],0)
-                self.assertTrue(event['vote_after']['awaiting_execution'])
-                self.assertTrue(Path(event['containment_geometry']['path']).exists())
-    def test_input_failure_with_containment_auto_direct_merge(self):
+    def test_negative_full_containment_never_approves(self):
+        self.b['pcd'].points=self.a['pcd'].points.copy()
+        self.assertIsNotNone(self.review(1));self.assertIsNotNone(self.review(2))
+        self.assertTrue(self.gate.events[-1]['vote_after']['locked'])
+        self.assertNotIn('containment',self.gate.events[-1])
+    def test_input_failure_full_containment_defers(self):
         self.b['pcd'].points=self.a['pcd'].points.copy()
         self.owner.vlm_runtime.evidence.prepare_merge=lambda *args: (_ for _ in ()).throw(ValueError('missing history'))
-        self.assertIsNone(self.review(1));self.assertEqual(self.humans,[])
-        self.assertEqual(self.gate.events[0]['model_output']['choice'],'MERGE')
-    def test_contaminated_fallback_with_containment_direct_merge(self):
+        self.assertIsNotNone(self.review(1))
+        self.assertEqual(self.gate.events[-1]['model_output']['choice'],'DEFER')
+    def test_contaminated_full_containment_veto(self):
         self.quality='CONTAMINATED';self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.assertIsNone(self.review(1))
-        self.assertEqual(self.gate.events[-1]['fallback_reason'],'NODE_CONTAMINATED')
+        self.assertIsNotNone(self.review(1))
         self.assertEqual(self.calls,['node_quality','node_quality'])
-    def test_locked_pair_geometry_override_without_new_history_or_vlm(self):
+        self.assertEqual(self.gate.events[-1]['model_output']['choice'],'KEEP_SEPARATE')
+    def test_locked_pair_cannot_be_overridden_by_geometry(self):
         self.review(1);self.review(2);count=len(self.calls)
         self.b['pcd'].points=self.a['pcd'].points.copy()
-        self.assertIsNone(self.review(3));self.assertEqual(len(self.calls),count)
-        event=self.gate.events[-1]
-        self.assertTrue(event['overrode_locked_rejection'])
-        self.assertEqual(event['vote_after']['reject_total'],2)
-        self.assertFalse(event['vote_after']['locked'])
-    def test_exact_90_does_not_approve(self):
-        self.b['pcd'].points=self.a['pcd'].points.copy();self.b['pcd'].points[-1]=[99,0,0]
+        self.assertIsNotNone(self.review(3));self.assertEqual(len(self.calls),count)
+        self.assertTrue(self.gate.events[-1]['vote_after']['locked'])
+    def test_insufficient_node_does_not_call_identity_or_vote_no(self):
+        self.quality='INSUFFICIENT'
         self.assertIsNotNone(self.review(1))
-        self.assertEqual(self.gate.events[-1]['containment']['a_in_b'],.9)
-    def test_one_direction_and_same_frame_certificate(self):
-        self.b['pcd'].points=np.r_[self.a['pcd'].points,np.ones((20,3))*100]
-        self.assertIsNone(self.review(1));count=len(self.calls)
-        self.assertIsNone(self.review(1));self.assertEqual(len(self.calls),count)
-        self.assertLess(self.gate.events[-1]['containment']['b_in_a'],.9)
+        self.assertEqual(self.calls,['node_quality','node_quality'])
+        self.assertEqual(self.gate.events[-1]['vote_after']['reject_total'],0)
+    def test_same_frame_certificate_only_for_two_positive_votes(self):
+        self.answer='SAME';self.review(1);self.assertIsNone(self.review(2));count=len(self.calls)
+        self.assertIsNone(self.review(2));self.assertEqual(len(self.calls),count)
         self.gate.on_merged(self.a,self.b)
         self.assertEqual(self.gate.events[-1]['execution'],'MERGED')
     def test_positive_does_not_containment_check(self):
@@ -181,9 +170,30 @@ class MutationAndFallback(unittest.TestCase):
         self.r=V7Runtime.__new__(V7Runtime);self.r.root=self.root;self.r.rows={};self.r.fallback='auto'
         self.r.owner=SimpleNamespace(events=[],_support_history={});self.r.publish=lambda:None
     def tearDown(self):self.tmp.cleanup()
-    def test_auto_fallback_discards_observation_and_keeps_merge(self):
-        for task,expected in [('observation','DISCARD'),('merge','KEEP_SEPARATE')]:
+    def test_auto_fallback_preserves_observation_and_defers_merge(self):
+        for task,expected in [('observation','BASELINE_FALLBACK'),('merge','DEFER')]:
             self.assertEqual(self.r.fallback_choice('e',self.root,task,[],'failure',['A'],'snap'),expected)
+    def test_quality_and_pair_fallback_matrix(self):
+        from conceptgraph.slam.association_gate import route_choice
+        candidates=[(a,i,obj(a,i*100)) for i,a in enumerate('ABC')]
+        directory=self.root/'e';directory.mkdir()
+        self.r.staged_bindings={'e':dict(objects=[object_state(o) for _,_,o in candidates],images=[dict(label='quality',path='quality.jpg')])}
+        self.r.pending=lambda *args:self.r.rows.setdefault('e',{})
+        self.r.pending_merges=[]
+        cases=[(None,[],'BASELINE_FALLBACK'),('INSUFFICIENT',[],'BASELINE_FALLBACK'),
+            ('CORRUPTED',[],'DISCARD'),('USABLE',['DIFFERENT']*3,'NEW'),
+            ('USABLE',['UNCERTAIN','DIFFERENT','DIFFERENT'],'BASELINE_FALLBACK'),
+            ('USABLE',[None,'SAME','DIFFERENT'],'BASELINE_FALLBACK'),
+            ('USABLE',['DIFFERENT','SAME','UNCERTAIN'],'B')]
+        for quality,pairs,expected in cases:
+            with self.subTest(quality=quality,pairs=pairs):
+                self.r.stage=lambda *args:dict(value=None if quality is None else dict(status=quality,reason='x'))
+                self.r.stage_many=lambda *args:[dict(value=None if v is None else dict(choice=v,confidence=5)) for v in pairs]
+                decision,output,_=self.r.adjudicate(directory,candidates,'H',2,'10',baseline_match=0)
+                self.assertEqual(output['choice'],expected)
+                if expected=='BASELINE_FALLBACK':
+                    self.assertEqual(route_choice(expected,{'A':0,'B':1,'C':2},0)[0],0)
+                    self.assertIsNone(route_choice(expected,{'A':0,'B':1,'C':2},None)[0])
     def test_human_choice_rejects_wrong_snapshot_token(self):
         self.r.fallback="human"
         answers=iter(['OLD MERGE','E-SNAPSHOT MERGE'])
@@ -192,7 +202,7 @@ class MutationAndFallback(unittest.TestCase):
         self.assertEqual(json.loads((self.root/'human_answer.json').read_text())['c_bound_h_snapshot_uid'],'snapshot')
     def test_auto_guard_never_reads_stdin_or_creates_human_question(self):
         self.r.owner._human_input=lambda prompt: (_ for _ in ()).throw(AssertionError('auto read stdin'))
-        for allowed,expected in [(['MERGE','KEEP_SEPARATE'],'KEEP_SEPARATE'),(['A','NEW','DISCARD'],'DISCARD')]:
+        for allowed,expected in [(['MERGE','KEEP_SEPARATE'],'DEFER'),(['A','NEW','DISCARD'],'BASELINE_FALLBACK')]:
             self.assertEqual(self.r.human_choice('e',self.root,allowed,[],'conflict','H'),expected)
         self.assertFalse((self.root/'human_question.json').exists())
     def test_human_fallback_uses_explicit_choice(self):
@@ -213,52 +223,54 @@ class MutationAndFallback(unittest.TestCase):
                 payload=client.return_value.__enter__.return_value.post.call_args.kwargs['json']
                 self.assertIn('CANDIDATE '+alias,payload['messages'][1]['content'])
                 self.assertEqual(result['value']['choice'],'SAME')
-    def test_multi_same_routes_every_unordered_pair(self):
+    def test_multi_same_keeps_anchor_despite_merge_rejection(self):
         candidates=[(a,i,obj(a,i*100)) for i,a in enumerate('ABC')]
         directory=self.root/'e';directory.mkdir()
         self.r.staged_bindings={'e':dict(objects=[object_state(o) for _,_,o in candidates],images=[dict(label='quality',path='quality.jpg')])}
         self.r.pending=lambda *args:self.r.rows.setdefault('e',{})
-        self.r.stage=lambda eid,d,task,*args:dict(value=dict(status='USABLE',reason='x') if task=='observation_quality' else dict(choice='SAME',confidence=5))
-        self.r.stage_many=lambda eid,specs,snapshot:[self.r.stage(eid,d,t,i,snapshot,l) for d,t,i,l in specs]
+        self.r.stage=lambda *args:dict(value=dict(status='USABLE',reason='x'))
+        self.r.stage_many=lambda *args:[dict(value=dict(choice='SAME',confidence=5)) for _ in candidates]
         calls=[];votes=V7Votes()
-        def review(a,b,**kwargs):calls.append((a['id'],b['id']));return None
+        def review(a,b,**kwargs):calls.append((a['id'],b['id']));return 'v7_merge_deferred'
         self.r.merge_gate=lambda *args:SimpleNamespace(review=review,votes=votes)
-        self.r.forced_groups=[]
-        decision,output,_=self.r.adjudicate(directory,candidates,'H',2,'10')
-        self.assertEqual(calls,[('A','B'),('A','C'),('B','C')]);self.assertEqual(output['choice'],'A')
-        self.assertEqual(len(self.r.forced_groups),1);self.assertEqual(len(self.r.forced_groups[0]['keys']),3)
-        # Same-frame repeated identical clique shares the queued execution.
-        self.r.adjudicate(directory,candidates,'H',2,'10');self.assertEqual(len(self.r.forced_groups),1)
-        # A partially overlapping group cannot silently associate after stale merging.
-        self.r.forced_groups[0]['objects']=self.r.forced_groups[0]['objects'][:2]
-        _,output,_=self.r.adjudicate(directory,candidates,'H',2,'10');self.assertEqual(output['choice'],'DISCARD')
-    def test_merge_clique_execution_remaps_every_observation(self):
-        from itertools import combinations
+        self.r.pending_merges=[]
+        decision,output,_=self.r.adjudicate(directory,candidates,'H',2,'10',baseline_match=1)
+        self.assertEqual(calls,[('B','A'),('B','C')]);self.assertEqual(output['choice'],'B')
+        self.assertEqual(self.r.pending_merges,[])
+        self.assertEqual(decision['kind'],'ASSOCIATE')
+    def test_pair_commit_defers_overlapping_stale_certificate(self):
         from unittest.mock import Mock
+        from collections import Counter
         import sys
-        objects=[obj(x,i*100) for i,x in enumerate('abcd')];members=objects[:3]
-        votes=V7Votes();keys=[]
-        for a,b in combinations(members,2):
-            k=votes.key(a['id'],b['id']);keys.append(k);votes.record(k,1,'one','MERGE');votes.record(k,2,'two','MERGE')
-        gate=SimpleNamespace(votes=votes,mark_executed=Mock(),_summary=Mock())
-        self.r.owner._instance_merge_gate=gate
-        self.r.forced_groups=[dict(parent_event='parent',objects=members,keys=keys,state=state_key([object_state(o) for o in members]),h_snapshot_uid='H')]
+        objects=[obj(x,i*100) for i,x in enumerate('abcd')]
+        votes=V7Votes();proposals=[];certificates={};events={}
+        for other in objects[1:3]:
+            a=objects[0];k=votes.key(a['id'],other['id'])
+            votes.record(k,1,'one','MERGE');votes.record(k,2,k,'MERGE')
+            state=state_key([object_state(a),object_state(other)])
+            proposals.append(dict(parent_event='parent',objects=[a,other],key=k,state=state,h_snapshot_uid='H'))
+            certificates[k]=state;events[k]=dict(event_id=str(len(events)))
+        gate=SimpleNamespace(votes=votes,certificates=certificates,last_event=events,root=self.root,stats=Counter(),
+            runtime=SimpleNamespace(rows={e['event_id']:{} for e in events.values()}),_summary=Mock())
+        def on_merged(source,target):votes.merged(source['id'],target['id'])
+        gate.on_merged=Mock(side_effect=on_merged)
+        self.r.owner._instance_merge_gate=gate;self.r.pending_merges=proposals
         (self.root/'events/parent').mkdir(parents=True)
         evidence=SimpleNamespace(record_object_merge=Mock())
         def merge(a,b,*args,**kw):
             a['obs_uids']+=b['obs_uids'];a['num_detections']+=b['num_detections'];return a
         cfg=dict(downsample_voxel_size=.01,dbscan_remove_noise=False,dbscan_eps=.1,dbscan_min_points=2,spatial_sim_type='overlap',device='cpu',make_edges=False)
         with patch.dict(sys.modules,{'conceptgraph.slam.utils':SimpleNamespace(merge_obj2_into_obj1=merge)}):
-            result,matches=self.r.flush_groups(objects,[0,1,2,3,None,-1],cfg,evidence,2,None)
-        self.assertEqual([o['id'] for o in result],['a','d']);self.assertEqual(matches,[0,0,0,1,None,-1])
-        self.assertEqual(evidence.record_object_merge.call_count,2);self.assertEqual(gate.mark_executed.call_count,3)
-        self.assertEqual(votes.generations,dict(a=1,b=1,c=1))
-    def test_observation_input_failure_no_vlm_and_auto_discard(self):
+            result,matches=self.r.flush_merges(objects,[0,1,2,3,None,-1],cfg,evidence,2,None)
+        self.assertEqual([o['id'] for o in result],['a','c','d'])
+        self.assertEqual(matches,[0,0,1,2,None,-1]);self.assertEqual(gate.on_merged.call_count,1)
+        self.assertEqual(gate.stats['stale_pair_deferrals'],1)
+    def test_observation_input_failure_no_vlm_and_baseline_fallback(self):
         self.r.staged_bindings={'e':dict(objects=[],images=[],input_error='missing historical mask')}
         self.r.pending=lambda *args:self.r.rows.setdefault('e',{})
         self.r.stage=lambda *args: (_ for _ in ()).throw(AssertionError('must not call VLM'))
         decision,output,_=self.r.adjudicate(self.root/'e',[],'H',2,'10')
-        self.assertEqual(output['choice'],'DISCARD');self.assertTrue(decision['reason_code'].startswith('INPUT_FAILURE'))
+        self.assertEqual(output['choice'],'BASELINE_FALLBACK');self.assertTrue(decision['reason_code'].startswith('INPUT_FAILURE'))
 
 class IncrementalFeatureAllowlist(unittest.TestCase):
     def test_sync_registers_only_new_logged_refs_and_read_never_scans_observations(self):

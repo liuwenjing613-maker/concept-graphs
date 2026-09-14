@@ -154,7 +154,7 @@ def main(cfg : DictConfig):
     )
     # cam_K = dataset.get_cam_K()
 
-    objects = MapObjectList(device=cfg.device)
+    objects = MapObjectList()
     map_edges = MapEdgeMapping(objects)
 
     # For visualization
@@ -660,9 +660,9 @@ def main(cfg : DictConfig):
         # Scores belong to the original H columns; targets/versions belong to the
         # live map AFTER approved object merges and BEFORE observation fusion.
         similarity_snapshot = None
-        if association_gate.vlm_runtime and association_gate.vlm_runtime.forced_groups:
+        if association_gate.vlm_runtime and association_gate.vlm_runtime.pending_merges:
             similarity_snapshot = evidence.association_similarity_snapshot(objects)
-            objects, match_indices = association_gate.vlm_runtime.flush_groups(
+            objects, match_indices = association_gate.vlm_runtime.flush_merges(
                 objects, match_indices, cfg, evidence, frame_idx, map_edges)
         evidence.record_associations(
             frame_idx, detection_list, objects,

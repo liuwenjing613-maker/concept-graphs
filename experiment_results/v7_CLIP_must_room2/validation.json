@@ -1,0 +1,11 @@
+{
+  "frames": 400,
+  "objects": 63,
+  "map_sha256": "a0ffaec6f93a0f002e0d2eeaa4a9935077b8f23ef586719bfc8a5a851665cba8",
+  "audit": {
+    "schema_version": "0.2.0",
+    "run_id": "room2_20260913T200946Z_0b166dca",
+    "gate_status": "PASS",
+    "evidence_findings": []
+  }
+}

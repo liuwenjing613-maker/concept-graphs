@@ -106,8 +106,8 @@ class Stages(unittest.TestCase):
             client.return_value.__enter__.return_value.post.side_effect=httpx.ReadTimeout('slow')
             r=self.r.stage('e',self.root/'A','pairwise',[('A',self.image)],'H')
         self.assertEqual(len(r['attempts']),4);self.assertIsNone(r['value'])
-        self.assertEqual(self.r.fallback_choice('e',self.root,'observation',[],'timeout',[],'H'),'DISCARD')
-        self.assertEqual(self.r.fallback_choice('e',self.root,'merge',[],'timeout',[],'H'),'KEEP_SEPARATE')
+        self.assertEqual(self.r.fallback_choice('e',self.root,'observation',[],'timeout',[],'H'),'BASELINE_FALLBACK')
+        self.assertEqual(self.r.fallback_choice('e',self.root,'merge',[],'timeout',[],'H'),'DEFER')
         self.r.fallback='human';calls=[];self.r.human_choice=lambda *a:calls.append(a) or 'NEW'
         self.assertEqual(self.r.fallback_choice('e',self.root,'observation',[],'timeout',[],'H'),'NEW');self.assertEqual(len(calls),1)
 
