@@ -33,3 +33,19 @@ Original 400-frame detector/CLIP cache: all 6401 source files verified before re
 A four-frame fresh online smoke run completed with strict evidence audit PASS, zero logging/reference/duplicate-membership errors, 33 physical HTTP attempts, one executed CLEAN/one-vote merge and two deferred two-vote merge events. The initial smoke exposed a JPEG-only blind-annotation validator; the validator now supports actual PNG/JPEG signatures and has a regression test. The failed run is not included in results. Semantic audit findings are not visual ground truth or evidence that all mapping decisions are correct.
 
 Formal run: start=0, end=2000, stride=5 (400 frames), scene room2, empty map, own empty quality cache. Run root: /home/chenkejun/beauty/v7_CLIP_must_v2_run_20260914. Formal metrics are pending. Historical must used H800 FP8, so comparison to it must disclose model differences and cannot be called a strict single-factor ablation.
+
+## H800 switch (user requested, 2026-09-14)
+Mapping remains on 5880 GPU 5. The partial Q4 run was terminated and preserved;
+H800 runs start from frame zero with an empty map and a separate quality cache.
+The model is Qwen3.6-35B-A3B-FP8 served by vLLM. The original Q4 validation accuracy
+does not automatically transfer to FP8. Prompts, images and map decision rules are
+unchanged. An eight-case same-image transport smoke test is not an accuracy study.
+
+`V7_MODEL_IDENTITY_FILE` selects an explicit frozen model-file SHA256 manifest.
+Startup validates manifest integrity and both adapter endpoints. Cache signatures
+bind the verified model/backend/digest, prompt parameters, evidence and context.
+Without this variable, only the original validated Ollama Q4 digest is accepted.
+`scripts/v7_h800_adapter.py` converts native requests without visual decision logic;
+it preserves image bytes/MIME, JSON schema, temperature, token limit and thinking.
+The H800 model service has the same 32768 context limit. Two localhost ports share
+the same service and retain the runtime's two-request concurrency limit.

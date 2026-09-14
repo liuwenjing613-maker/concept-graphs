@@ -60,7 +60,7 @@ class RuntimeQuality(unittest.TestCase):
   r.owner=SimpleNamespace(model='test',timeout_seconds=1);r.templates=json.loads((PROMPTS/'request_templates.json').read_text());r.stage_prompts={p.stem:p.read_text() for p in PROMPTS.glob('*.txt')}
   self.image=self.root/'input.png';self.image.write_bytes(b'fixed evidence')
   r.evidence=SimpleNamespace(quality_contexts={str(self.image):dict(identity=dict(object_uid='a',generation=0),histories=[dict(uid='h1',mask_sha='m')])})
-  r.endpoint_pool=EndpointPool(['http://test:1'],1);r.quality_service=QualityService(r)
+  r.quality_model_identity={'test':dict(model='test',digest='test',backend='test')};r.endpoint_pool=EndpointPool(['http://test:1'],1);r.quality_service=QualityService(r)
  def invoke(self,eid):
   self.r.rows[eid]={};return self.r.stage(eid,self.root/eid,'node_quality',[('NODE A',self.image)],eid,['H1'])
  def test_real_dispatch_confirmation_cache_and_fresh_snapshot(self):

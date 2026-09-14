@@ -75,7 +75,7 @@ class V7Runtime(VLMRuntime):
         self.quality_service=quality_v2.QualityService(self)
         self.versions=dict(version='v7_CLIP_must_v2',model=owner.model,fallback=self.fallback,
             execution_revision='20260914_selective_quality_dynamic_votes_exact_cache',
-            quality_prompt_sha256={p.name:sha(p) for p in quality_v2.PROMPTS.glob('*.txt')},quality_policy=quality_v2.POLICY,model_digest=quality_v2.MODEL_DIGEST,quality_model_identity=self.quality_model_identity,
+            quality_prompt_sha256={p.name:sha(p) for p in quality_v2.PROMPTS.glob('*.txt')},quality_policy=quality_v2.POLICY,model_digest=next(iter(self.quality_model_identity.values()))['digest'],quality_model_identity=self.quality_model_identity,
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
             timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),

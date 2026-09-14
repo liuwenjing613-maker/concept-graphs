@@ -1,5 +1,5 @@
 """Frozen quality prompts, selective negative confirmation and run-local evidence cache."""
-import copy,hashlib,json,threading,time
+import copy,hashlib,json,threading,time,os
 from pathlib import Path
 from conceptgraph.slam.vlm_runtime import save_json
 PROMPTS=Path(__file__).with_name('prompts')/'v7_must_v2'
@@ -8,13 +8,21 @@ MODEL_DIGEST='c7bd058dd9774cae7dae32ef8cf3822aaacddd21e635e3cb6ec38effca0dc57f'
 POLICY='v2_quality_selective_negative_confirmation_20260914'
 def verify_model(model,urls):
  import httpx
+ identity_path=os.environ.get('V7_MODEL_IDENTITY_FILE')
+ expected=json.loads(Path(identity_path).read_text()) if identity_path else dict(model='qwen3.6:35b-a3b-mtp-q4_K_M',digest=MODEL_DIGEST,backend='ollama')
+ if model!=expected['model']:raise ValueError('Configured model does not match frozen model identity')
+ if identity_path:
+  digest=hashlib.sha256(json.dumps(expected['files'],sort_keys=True).encode()).hexdigest()
+  if digest!=expected['digest']:raise ValueError('Model file manifest digest mismatch')
  verified={}
  for url in urls:
   with httpx.Client(timeout=30,trust_env=False) as c:
    response=c.get(url+'/api/tags');response.raise_for_status()
   matches=[m for m in response.json()['models'] if m['name']==model]
-  if len(matches)!=1 or matches[0]['digest']!=MODEL_DIGEST:raise ValueError('v2 requires the exact validated quality model digest')
-  verified[url]=dict(model=model,digest=matches[0]['digest'])
+  if len(matches)!=1 or matches[0]['digest']!=expected['digest']:raise ValueError('Endpoint does not match frozen model digest')
+  if identity_path and matches[0].get('backend')!=expected['backend']:raise ValueError('Backend mismatch')
+  verified[url]=dict(model=model,digest=expected['digest'],backend=expected['backend'])
+ if not verified:raise ValueError('No verified model endpoint')
  return verified
 
 def style(task,confirmation=False):
@@ -65,7 +73,7 @@ class QualityService:
  def key(self,item):
   if not item.get('quality_context'):raise ValueError('missing frozen quality context')
   signature=dict(policy=POLICY,task=item['task'],context=item['quality_context'],
-      image_hashes=[x['sha256'] for x in item['request']['messages'][1]['images']],model_digest=MODEL_DIGEST,
+      image_hashes=[x['sha256'] for x in item['request']['messages'][1]['images']],model_identity=next(iter(self.runtime.quality_model_identity.values())),
       primary=payload(item['task'],self.runtime.owner.model),confirmation=payload(item['task'],self.runtime.owner.model,True))
   return hashlib.sha256(json.dumps(signature,sort_keys=True).encode()).hexdigest(),signature
  def invoke(self,item):
