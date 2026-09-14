@@ -1,0 +1,61 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "room0_20260819T055117Z_ffe24566",
+  "source_evidence_manifest": {
+    "path": "evidence/manifest.json",
+    "sha256": "d3e896057ebd626e79015b5c79567add74492bfdcc50de76464230ce6f84484d"
+  },
+  "audit_config": {
+    "path": "audit_config.yaml",
+    "sha256": "aa1f98264d5a8878b7d8be0e719ddc2fb823d242fe2bab66c0f9bfe8ea89cb9b",
+    "version": "1.0.0"
+  },
+  "policy": {
+    "observation_ownership": "exclusive_single_target",
+    "same_frame_many_to_one": "allowed",
+    "relation_cardinality": "many_to_many",
+    "object_granularity": "instance_with_part_whole_ambiguity",
+    "missing_evidence_policy": "unknown_not_pass",
+    "association_rule": {
+      "type": "independent_greedy_argmax",
+      "threshold_comparison": "strict_greater_than",
+      "max_score_equal_threshold": "create_object"
+    },
+    "postprocess_merge": {
+      "source_single_consumption": true,
+      "source_must_be_active": true,
+      "target_must_be_active": true
+    }
+  },
+  "policy_source": "audit_config_fallback",
+  "enabled_checkers": {
+    "system_integrity": true,
+    "detection": true,
+    "segmentation": true,
+    "projection_geometry": true,
+    "association": true,
+    "fusion": true,
+    "object_identity": true,
+    "caption": false,
+    "relation": false
+  },
+  "mapping_mutated": false,
+  "outputs": {
+    "evidence_validation.json": {
+      "path": "evidence_validation.json",
+      "sha256": "e6bf1c11dd2c0df79c9d0c6f367f1fe9641ad143c3bf7b96bcb18e2e6f0bcc0c"
+    },
+    "findings.jsonl": {
+      "path": "findings.jsonl",
+      "sha256": "ddafe23a7c24d02ec9963609321f3fbce9dd3dca7b432aa51a1730a9783217fa"
+    },
+    "root_causes.jsonl": {
+      "path": "root_causes.jsonl",
+      "sha256": "3a89aec747972bb66462e335019ac13906549f6cef5c8a6df9a6daae5a069f5b"
+    },
+    "audit_summary.json": {
+      "path": "audit_summary.json",
+      "sha256": "d9a1ca1e309b9778febedb156b6284c3898095bb0d4d63f29bb8c3036370fc02"
+    }
+  }
+}

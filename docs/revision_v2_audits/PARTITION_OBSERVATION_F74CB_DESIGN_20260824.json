@@ -1,0 +1,106 @@
+{
+  "case_uid": "human6_room0_false_merge_f74cb76c",
+  "design_uid": "partition_observation_f74cb_real_candidate_20260824",
+  "evaluation_role": "REAL_PAYLOAD_EXECUTABILITY_DESIGN; NOT_A_REPAIR CLAIM; NO SYNTHETIC OR HEURISTIC POINT ASSIGNMENT",
+  "future_admission_rule": {
+    "all_required": true,
+    "checks": [
+      "payload hash equals the frozen observation payload hash",
+      "assignment length equals source point count",
+      "assignment dtype is canonical uint16",
+      "part indices are contiguous and every part is nonempty",
+      "every point has exactly one part",
+      "each part receives one distinct effective identity",
+      "pre-association executor applies every point-aligned field atomically",
+      "shadow replay corrects an independently labeled endpoint",
+      "collateral, invariant, negative-control, and parity gates pass"
+    ]
+  },
+  "gate": {
+    "atomic_apply_attempted": false,
+    "candidate_family": "PARTITION_OBSERVATION",
+    "constraint_emitted": false,
+    "decision": "DEFER",
+    "missing_requirements": [
+      "uint16 point assignment with one label for every stored point",
+      "independent point-to-physical-part evidence for table versus floor",
+      "assignment artifact SHA-256",
+      "pre-association payload executor integration",
+      "independent partition endpoint evaluator"
+    ],
+    "reason": "The real 1,990-point payload is available and hash-bound, but no point-level table/floor assignment or independent split endpoint gold exists. Cluster geometry is not a substitute for physical-part truth, so emitting a partition would fabricate repair evidence."
+  },
+  "incident_uid": "incident_f74cb76c27100eb1b7b3",
+  "native_association": {
+    "event_sequence": 8077,
+    "event_uid": "room0_20260820T093325Z_581b7c84_e00008077",
+    "native_create_confirmed": true,
+    "recorded_decision": "CREATE_OBJECT",
+    "sim_threshold": 1.2,
+    "strict_greater_than_merge": false,
+    "top1_score": 0.7908799052238464
+  },
+  "non_executable_contract_template": {
+    "assignment_dtype": "uint16",
+    "assignment_sha256": null,
+    "disjoint_partition_proven": false,
+    "exhaustive_partition_proven": false,
+    "identity_uid_allocation_status": "WITHHELD_UNTIL_HASH_BOUND_POINT_ASSIGNMENT_EXISTS",
+    "nonempty_parts_proven": false,
+    "obs_uid": "room0_20260820T093325Z_581b7c84_f000165_r0020",
+    "parts": [
+      {
+        "effective_identity_uid": null,
+        "part_index": 0,
+        "semantic_role": "table_component"
+      },
+      {
+        "effective_identity_uid": null,
+        "part_index": 1,
+        "semantic_role": "floor_contamination"
+      }
+    ],
+    "source_payload_sha256": "16bc732c4608950806dbcec19679fcf8247edf76d3c478beed6d1c31e5d7d7cd",
+    "source_point_count": 1990,
+    "type": "PARTITION_OBSERVATION"
+  },
+  "posthoc_human_interpretation": {
+    "earliest_causal_stage": "SEGMENTATION_UNDERSEGMENTATION",
+    "endpoint_error_type": "FALSE_MERGE",
+    "notes": "把地板也融进去了"
+  },
+  "schema_version": "2.0.0",
+  "source_observation": {
+    "class_name": "end table",
+    "frame_uid": "room0_20260820T093325Z_581b7c84_f000165",
+    "ledger_points_sha256": "9eeb540b8fc35ccbb91e6e0939b52cf22544ff7e78475d6cc6b234cb822f8029",
+    "obs_uid": "room0_20260820T093325Z_581b7c84_f000165_r0020",
+    "observation_payload_sha256": "16bc732c4608950806dbcec19679fcf8247edf76d3c478beed6d1c31e5d7d7cd",
+    "pcd_is_sampled": false,
+    "pcd_stage": "after_init_process",
+    "point_count": 1990,
+    "point_payload_fields": {
+      "colors": {
+        "dtype": "float64",
+        "point_aligned": true,
+        "shape": [
+          1990,
+          3
+        ]
+      },
+      "points": {
+        "dtype": "float64",
+        "point_aligned": true,
+        "shape": [
+          1990,
+          3
+        ]
+      }
+    },
+    "point_payload_file_hash_matches_ledger": true,
+    "point_payload_file_sha256": "c77e582ae35a83fa31edd674b44ec5ff1bfd03fc6c9d6fb085d4b1e5b5f4c4ac",
+    "point_payload_path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/evidence/observation_pcd/room0_20260820T093325Z_581b7c84_f000165_r0020.npz",
+    "pre_dbscan_cluster_count": 2,
+    "pre_dbscan_cluster_labels_stored": false
+  }
+}

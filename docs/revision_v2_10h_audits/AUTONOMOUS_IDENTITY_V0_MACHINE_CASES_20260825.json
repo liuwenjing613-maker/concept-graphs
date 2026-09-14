@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_uid": "autonomous_identity_v0_machine_cases_20260825",
+  "role": "DEVELOPMENT_SHADOW",
+  "selection_basis": "EXISTING_MACHINE_ASSOCIATION_INCIDENT_WITH_COMPLETE_IDENTITY_BINDING",
+  "runtime_label_fields_present": false,
+  "cases": [
+    {
+      "case_uid": "identity_dev_001",
+      "scene_id": "office0",
+      "binding_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_001/binding.private.json",
+      "binding_sha256": "edb41edfbeb36d08d1034964e5bfb13c908c120c7184f7e578e9d4e80d6fb048"
+    },
+    {
+      "case_uid": "identity_dev_002",
+      "scene_id": "room0",
+      "binding_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_002/binding.private.json",
+      "binding_sha256": "7bc6a946c6585688991c8bfad2c8691d0b23190b5778735382b941594b650386"
+    },
+    {
+      "case_uid": "identity_dev_003",
+      "scene_id": "room0",
+      "binding_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_evidence_v1/identity_dev_003/binding.private.json",
+      "binding_sha256": "18419820c3f59a5763e79a8bbc49e95a15e55d4eefcbfbfde0bd58ed969831e0"
+    }
+  ]
+}

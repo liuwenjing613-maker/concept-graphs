@@ -1,0 +1,232 @@
+{
+  "observation_quality": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "stream": false,
+    "think": false,
+    "keep_alive": -1,
+    "messages": [
+      {
+        "role": "system",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "请审核图中 CURRENT，返回 status 和 reason。",
+        "images": []
+      }
+    ],
+    "format": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "USABLE",
+            "CORRUPTED",
+            "INSUFFICIENT"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        }
+      },
+      "required": [
+        "status",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "num_ctx": 32768,
+      "num_predict": 1024,
+      "temperature": 0
+    }
+  },
+  "pairwise": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "stream": false,
+    "think": false,
+    "keep_alive": -1,
+    "messages": [
+      {
+        "role": "system",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Verify the identity of the marked CURRENT and CANDIDATE B. Return only choice and confidence.",
+        "images": []
+      }
+    ],
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "SAME",
+            "DIFFERENT",
+            "UNCERTAIN"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      },
+      "required": [
+        "choice",
+        "confidence"
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "num_ctx": 32768,
+      "num_predict": 1024,
+      "temperature": 0
+    }
+  },
+  "node_quality": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "stream": false,
+    "think": false,
+    "keep_alive": -1,
+    "messages": [
+      {
+        "role": "system",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "请独立检查图片中所有展示历史。",
+        "images": []
+      }
+    ],
+    "format": {
+      "type": "object",
+      "properties": {
+        "views": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "view": {
+                "type": "string",
+                "enum": [
+                  "H1",
+                  "H2",
+                  "H3"
+                ]
+              },
+              "objects": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "SINGLE",
+                  "MULTIPLE",
+                  "UNCERTAIN"
+                ]
+              },
+              "evidence": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 240
+              }
+            },
+            "required": [
+              "view",
+              "objects",
+              "status",
+              "evidence"
+            ],
+            "additionalProperties": false
+          },
+          "minItems": 1,
+          "maxItems": 3
+        },
+        "choice": {
+          "type": "string",
+          "enum": [
+            "CLEAN",
+            "CONTAMINATED",
+            "INSUFFICIENT"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      },
+      "required": [
+        "views",
+        "choice",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "temperature": 0,
+      "num_ctx": 32768,
+      "num_predict": 1024
+    }
+  },
+  "merge": {
+    "model": "qwen3.6:35b-a3b-mtp-q4_K_M",
+    "stream": false,
+    "think": false,
+    "keep_alive": -1,
+    "messages": [
+      {
+        "role": "system",
+        "content": ""
+      },
+      {
+        "role": "user",
+        "content": "Compare OBJECT A and OBJECT B in the attached evidence. Return choice, confidence and reason.",
+        "images": []
+      }
+    ],
+    "format": {
+      "type": "object",
+      "properties": {
+        "choice": {
+          "type": "string",
+          "enum": [
+            "SAME",
+            "DIFFERENT",
+            "UNCERTAIN"
+          ]
+        },
+        "confidence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
+      },
+      "required": [
+        "choice",
+        "confidence",
+        "reason"
+      ],
+      "additionalProperties": false
+    },
+    "options": {
+      "temperature": 0,
+      "num_ctx": 32768,
+      "num_predict": 1024
+    }
+  }
+}

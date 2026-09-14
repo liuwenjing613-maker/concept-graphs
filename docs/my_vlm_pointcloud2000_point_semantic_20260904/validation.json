@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-09-03T22:40:36+08:00",
+  "scope": "my_vlm_pointcloud2000 room0 only",
+  "status": "PASS",
+  "protocol": {
+    "reference": "conceptgraph/scripts/eval_replica_semseg.py",
+    "feature_source": "native_clip",
+    "clip_model": "ViT-H-14",
+    "clip_pretrained": "laion2b_s32b_b79k",
+    "nearest_neighbor": "scipy.spatial.cKDTree exact k=1 on CPU",
+    "n_exclude": 6,
+    "excluded_classes": ["other", "floor", "wall", "ceiling", "door", "window"]
+  },
+  "metrics_percent": {
+    "miou": 19.51881265880493,
+    "macc_mrecall": 37.10469788561864,
+    "mprecision": 22.34635190740883,
+    "mf1score": 23.840992307580294,
+    "fwiou": 48.1758077116731,
+    "point_accuracy": 60.69425171777293
+  },
+  "counts": {
+    "processed_stride5_frames": 400,
+    "source_frame_first": 0,
+    "source_frame_last": 1995,
+    "source_frame_stride": 5,
+    "predicted_objects": 57,
+    "predicted_object_points": 721802,
+    "slam_points": 7754935,
+    "gt_points": 1556890,
+    "evaluated_points": 4085377,
+    "evaluated_classes": 23
+  },
+  "hashes_sha256": {
+    "map_pickle": "a6e51e96df4ff8e7efd8d58aad48003023e9c7e3765e159cf1604feb7f4cbaee",
+    "evaluator": "4a7d49ff2c12ebf5a2a44159e91b3d340075173e004520d63da877598a429ab7",
+    "gt_pc_points_h5": "ae803a741f2f472e6693ffcaaaaa3662ba502cf68c2fc5f18657039f199dbef5",
+    "gt_pc_embeddings_h5": "60eb3f27cbecfe02b438c8ac01a85bcb69d615652dc427cdd7bfd1d25395a547",
+    "gt_traj_w_c_txt": "907ba158f1342ab69470e7408022468ced28d60a3ed64f051abe9baad392c8b7",
+    "slam_pc_points_h5": "6761282d253ba23034c1111b572d458860c0f72c7ed3b1311fd8f9538855fd0e",
+    "semseg_results_json": "784c15b3e561483d17e3c830c23164a75f79a4048592b40f9c2aa7cf9b4ff918b",
+    "semseg_results_csv": "59af9ab72513144e8d9ab17b7fc53685c49416f49ad4471fcfbac8753e5beeae7",
+    "semseg_conf_matrices_npz": "1ae3552dda698ce1e3a62e212aeb2472457a83fba59111de3f178a5587a663c96"
+  },
+  "checks": {
+    "frame_sequence_exact_0_to_1995_stride5": true,
+    "manifest_completed_evidence_valid": true,
+    "all_map_points_and_clip_features_finite": true,
+    "all_clip_features_are_1024d": true,
+    "input_map_hash_matches_result_record": true,
+    "native_clip_feature_source": true,
+    "n_exclude_exactly_6": true,
+    "point_denominator_matches_existing_ali_dev_room0_protocol": true,
+    "json_csv_npz_consistent": true,
+    "all_metrics_independently_recomputed_from_confusion_matrix": true,
+    "failed_runs_that_produced_metrics": 0,
+    "successful_formal_runs": 1
+  },
+  "failed_start_attempts": [
+    "attempt 1: gradslam import path missing; stopped before reading evaluation inputs",
+    "attempt 2: offline CLIP cache root was incorrect; stopped before reading map"
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "affected_observation_count": 3779,
+  "association_effect": {
+    "applied_match": 4,
+    "changed_recorded_decision": true,
+    "historical_default_match": 21,
+    "restored_natural_match": 4,
+    "threshold_semantics": {
+      "comparator": "STRICT_GREATER_THAN",
+      "equality_decision": "CREATE_OBJECT",
+      "native_decision": "MERGE_TO_OBJECT",
+      "sim_threshold": 1.2,
+      "top1_minus_threshold": 0.6461323976516724,
+      "top1_score": 1.8461323976516724,
+      "top1_strictly_exceeds_threshold": true
+    }
+  },
+  "baseline_observation_geometry": {
+    "aabb_extent": [
+      0.24937483765879498,
+      0.003679414416533966,
+      0.0921336955084468
+    ],
+    "mask_area": 120,
+    "point_count": 44
+  },
+  "checks": {
+    "build_manifest_pass": true,
+    "collateral_safe": true,
+    "geometry_endpoint": true,
+    "geometry_noop": true,
+    "snapshot_validation": true,
+    "sources_immutable": true,
+    "sparse_runtime_invariants": true
+  },
+  "constraint_uid": "constraint_cde2d5822c47b2ba",
+  "endpoint_checks": {
+    "constraint_kept_recomputed_natural": true,
+    "constraint_not_identity_forced": true,
+    "geometry_overlay_hit_exactly_once": true,
+    "geometry_similarity_recomputed_exactly_once": true,
+    "geometry_trace_exactly_once": true,
+    "point_support_gain_ge_10x": true,
+    "point_support_increased": true,
+    "replacement_mask_exact": true,
+    "replacement_points_exact": true,
+    "restored_geometry_non_degenerate": true,
+    "sparse_observation_has_unique_owner": true
+  },
+  "evaluation_role": "DEVELOPMENT_GEOMETRY_LOCAL_CAUSAL_VALIDATION",
+  "event_uid": "room0_20260820T093325Z_581b7c84_e00000279",
+  "native_owner_uids": [
+    "45efc702-bad5-4328-88da-f5adf8c6e43a"
+  ],
+  "natural_owner_uids": [
+    "45efc702-bad5-4328-88da-f5adf8c6e43a"
+  ],
+  "noop_checks": {
+    "geometry_exact": true,
+    "membership_partition_exact": true,
+    "overlay_hit_exactly_once": true,
+    "runtime_invariants": true,
+    "similarity_recomputed_exactly_once": true,
+    "trace_exactly_once": true
+  },
+  "obs_uid": "room0_20260820T093325Z_581b7c84_f000005_r0012",
+  "pass": true,
+  "payload_uid": "geometry_payload_b6afe7f9f3a11e5f4ec1",
+  "production_commit_permitted": false,
+  "restored_observation_geometry": {
+    "aabb_extent": [
+      0.40714328906423747,
+      0.40895480170634535,
+      0.265139662324738
+    ],
+    "mask_area": 14825,
+    "point_count": 2148
+  },
+  "result_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/geometry_restoration_local_validation/local_validation.json",
+  "schema_version": "1.0.0",
+  "source_checks": {
+    "geometry_source_artifacts_unchanged": true,
+    "provenance_hashes_unchanged": true
+  },
+  "sparse_owner_uids": [
+    "8447580a-cd6e-45be-be76-2d14282b3d4d"
+  ],
+  "timing": {
+    "natural": {
+      "snapshot": {
+        "same_frame_prefix_wall_ms": 270.80995589494705,
+        "snapshot_amortized_wall_ms": 324.4917904958129,
+        "snapshot_assembly_wall_ms": 324.4791189208627,
+        "snapshot_builder_total_wall_ms": 324.4917904958129,
+        "snapshot_cold_upper_bound_wall_ms": 2594.586241990328,
+        "snapshot_runtime_legacy_replay_only_ms": 2270.094451494515,
+        "snapshot_timing_basis": {
+          "snapshot_amortized_wall_ms": "CURRENT_PREFIX_CACHE_REQUEST_PLUS_SNAPSHOT_ASSEMBLY",
+          "snapshot_assembly_wall_ms": "EXCLUDES_PREFIX_REPLAY_AND_INCLUDES_SAME_FRAME_PREFIX_VALIDATION_AND_HASHING",
+          "snapshot_cold_upper_bound_wall_ms": "CUMULATIVE_PREFIX_REPLAY_PLUS_SNAPSHOT_ASSEMBLY"
+        },
+        "snapshot_validation_wall_ms": 49.68939069658518
+      },
+      "suffix_execute_reported_total_ms": 65179.744123481214,
+      "suffix_execute_wall_total_ms": 65287.11878694594,
+      "suffix_orchestration_wall_ms": 12.675977312028408,
+      "suffix_overlay_wall_total_ms": 1.588447019457817,
+      "suffix_replay_attempt_count": 1,
+      "suffix_replay_attempts": [
+        {
+          "attempt": 1,
+          "execute_reported_ms": 65179.744123481214,
+          "execute_wall_ms": 65287.11878694594,
+          "overlay_wall_ms": 1.588447019457817,
+          "partial_outside_overlap_entity_count": 0,
+          "replayed_observation_count": 1279,
+          "scoped_observation_count": 1402
+        }
+      ],
+      "suffix_total_wall_ms": 65301.383211277425,
+      "timing_basis": {
+        "suffix_execute_reported_total_ms": "SUM_OF_MAPPER_EXECUTION_INTERNAL_TIMERS_ACROSS_ATTEMPTS",
+        "suffix_execute_wall_total_ms": "SUM_OF_MAPPER_EXECUTION_CALL_WALL_TIMES_ACROSS_ATTEMPTS",
+        "suffix_total_wall_ms": "FULL_SUFFIX_CALL_INCLUDING_SCOPE_EXPANSION_EXECUTION_AND_OVERLAY"
+      }
+    },
+    "noop": {
+      "snapshot": {
+        "same_frame_prefix_wall_ms": 270.80995589494705,
+        "snapshot_amortized_wall_ms": 324.4917904958129,
+        "snapshot_assembly_wall_ms": 324.4791189208627,
+        "snapshot_builder_total_wall_ms": 324.4917904958129,
+        "snapshot_cold_upper_bound_wall_ms": 2594.586241990328,
+        "snapshot_runtime_legacy_replay_only_ms": 2270.094451494515,
+        "snapshot_timing_basis": {
+          "snapshot_amortized_wall_ms": "CURRENT_PREFIX_CACHE_REQUEST_PLUS_SNAPSHOT_ASSEMBLY",
+          "snapshot_assembly_wall_ms": "EXCLUDES_PREFIX_REPLAY_AND_INCLUDES_SAME_FRAME_PREFIX_VALIDATION_AND_HASHING",
+          "snapshot_cold_upper_bound_wall_ms": "CUMULATIVE_PREFIX_REPLAY_PLUS_SNAPSHOT_ASSEMBLY"
+        },
+        "snapshot_validation_wall_ms": 49.68939069658518
+      },
+      "suffix_execute_reported_total_ms": 65998.36562480778,
+      "suffix_execute_wall_total_ms": 66140.2769498527,
+      "suffix_orchestration_wall_ms": 14.48790729045868,
+      "suffix_overlay_wall_total_ms": 1.7078211531043053,
+      "suffix_replay_attempt_count": 1,
+      "suffix_replay_attempts": [
+        {
+          "attempt": 1,
+          "execute_reported_ms": 65998.36562480778,
+          "execute_wall_ms": 66140.2769498527,
+          "overlay_wall_ms": 1.7078211531043053,
+          "partial_outside_overlap_entity_count": 0,
+          "replayed_observation_count": 1279,
+          "scoped_observation_count": 1402
+        }
+      ],
+      "suffix_total_wall_ms": 66156.47267829627,
+      "timing_basis": {
+        "suffix_execute_reported_total_ms": "SUM_OF_MAPPER_EXECUTION_INTERNAL_TIMERS_ACROSS_ATTEMPTS",
+        "suffix_execute_wall_total_ms": "SUM_OF_MAPPER_EXECUTION_CALL_WALL_TIMES_ACROSS_ATTEMPTS",
+        "suffix_total_wall_ms": "FULL_SUFFIX_CALL_INCLUDING_SCOPE_EXPANSION_EXECUTION_AND_OVERLAY"
+      }
+    },
+    "sparse": {
+      "snapshot": {
+        "same_frame_prefix_wall_ms": 270.80995589494705,
+        "snapshot_amortized_wall_ms": 324.4917904958129,
+        "snapshot_assembly_wall_ms": 324.4791189208627,
+        "snapshot_builder_total_wall_ms": 324.4917904958129,
+        "snapshot_cold_upper_bound_wall_ms": 2594.586241990328,
+        "snapshot_runtime_legacy_replay_only_ms": 2270.094451494515,
+        "snapshot_timing_basis": {
+          "snapshot_amortized_wall_ms": "CURRENT_PREFIX_CACHE_REQUEST_PLUS_SNAPSHOT_ASSEMBLY",
+          "snapshot_assembly_wall_ms": "EXCLUDES_PREFIX_REPLAY_AND_INCLUDES_SAME_FRAME_PREFIX_VALIDATION_AND_HASHING",
+          "snapshot_cold_upper_bound_wall_ms": "CUMULATIVE_PREFIX_REPLAY_PLUS_SNAPSHOT_ASSEMBLY"
+        },
+        "snapshot_validation_wall_ms": 49.68939069658518
+      },
+      "suffix_execute_reported_total_ms": 65494.318559765816,
+      "suffix_execute_wall_total_ms": 65609.26428157836,
+      "suffix_orchestration_wall_ms": 13.261022977530956,
+      "suffix_overlay_wall_total_ms": 2.211242914199829,
+      "suffix_replay_attempt_count": 1,
+      "suffix_replay_attempts": [
+        {
+          "attempt": 1,
+          "execute_reported_ms": 65494.318559765816,
+          "execute_wall_ms": 65609.26428157836,
+          "overlay_wall_ms": 2.211242914199829,
+          "partial_outside_overlap_entity_count": 0,
+          "replayed_observation_count": 1279,
+          "scoped_observation_count": 1402
+        }
+      ],
+      "suffix_total_wall_ms": 65624.7365474701,
+      "timing_basis": {
+        "suffix_execute_reported_total_ms": "SUM_OF_MAPPER_EXECUTION_INTERNAL_TIMERS_ACROSS_ATTEMPTS",
+        "suffix_execute_wall_total_ms": "SUM_OF_MAPPER_EXECUTION_CALL_WALL_TIMES_ACROSS_ATTEMPTS",
+        "suffix_total_wall_ms": "FULL_SUFFIX_CALL_INCLUDING_SCOPE_EXPANSION_EXECUTION_AND_OVERLAY"
+      }
+    }
+  }
+}

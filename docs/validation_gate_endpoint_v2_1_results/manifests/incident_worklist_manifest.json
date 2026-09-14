@@ -1,0 +1,70 @@
+{
+  "schema_version": "2.1.0",
+  "annotation_unit": "incident",
+  "strategy": "incident_deduplicated_endpoint_first",
+  "audit_dir_name": "audit_validity_gate_endpoint_v2_1",
+  "validation_root": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1",
+  "case_count": 97,
+  "scene_count": 2,
+  "selection_mode": "endpoint_census",
+  "full_endpoint_census": true,
+  "cohort_counts": {
+    "calibration_random": 68,
+    "diagnostic_priority": 29
+  },
+  "worklist_sha256": "b8915928d4e480073bdad6ba74c5847ca157a5553be169a3924d3eb20ce47b85",
+  "parity": {
+    "path": "/home/chenkejun/beauty/conceptgraphs/validation_gate/parity",
+    "report_sha256": "bf148b53a822e7f73871411206267ec5615774a0a48d931c183ec7b345f4b168",
+    "status": "PASS"
+  },
+  "scenes": [
+    {
+      "scene_id": "room0",
+      "experiment_dir": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820",
+      "audit_dir": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1",
+      "selection_manifest": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/audit_validity_gate_endpoint_v2_1/case_selection.json",
+      "selection_manifest_sha256": "365d13ff0fc69bec95c01aff58795dd89f6bd7ade650ed1095080400e549ceb0",
+      "selected_incident_count": 69,
+      "reviewable_endpoint_count": 69,
+      "selection_mode": "endpoint_census",
+      "deduplication": {
+        "eligible_finding_count": 3715,
+        "incident_count_before_evidence_block": 70,
+        "reviewable_incident_count": 69,
+        "blocked_incident_count": 1,
+        "collapsed_finding_count": 3645,
+        "cross_checker_incident_count": 57,
+        "blocked_finding_count": 1
+      },
+      "selected_cohort_counts": {
+        "calibration_random": 40,
+        "diagnostic_priority": 29
+      },
+      "weighted_precision_allowed": true
+    },
+    {
+      "scene_id": "office0",
+      "experiment_dir": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820",
+      "audit_dir": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1",
+      "selection_manifest": "/home/chenkejun/beauty/conceptgraphs/data/Replica/office0/exps/ali_my_validity_office0_full_200f_20260820/audit_validity_gate_endpoint_v2_1/case_selection.json",
+      "selection_manifest_sha256": "f18b61a5764b4d5a9408b81541bdfa4894d98c57c223324044c987f83a2e474c",
+      "selected_incident_count": 28,
+      "reviewable_endpoint_count": 28,
+      "selection_mode": "endpoint_census",
+      "deduplication": {
+        "eligible_finding_count": 1862,
+        "incident_count_before_evidence_block": 28,
+        "reviewable_incident_count": 28,
+        "blocked_incident_count": 0,
+        "collapsed_finding_count": 1834,
+        "cross_checker_incident_count": 23,
+        "blocked_finding_count": 0
+      },
+      "selected_cohort_counts": {
+        "calibration_random": 28
+      },
+      "weighted_precision_allowed": true
+    }
+  ]
+}

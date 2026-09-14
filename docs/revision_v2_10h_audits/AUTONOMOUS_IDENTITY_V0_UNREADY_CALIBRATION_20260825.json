@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0.0",
+  "capability": "IDENTITY",
+  "feature_names": [
+    "primary_advantage",
+    "vlm_pairwise_preference"
+  ],
+  "coefficients": [
+    0.0,
+    1.0
+  ],
+  "intercept": 0.0,
+  "commit_threshold": 0.9,
+  "ready_for_automatic_commit": false,
+  "fit_case_count": 0,
+  "fit_positive_count": 0,
+  "fit_negative_count": 0,
+  "target_harm_rate": 0.05,
+  "source_hashes": {},
+  "status": "SHADOW_ONLY_PENDING_CLEAN_NEGATIVE_CALIBRATION"
+}

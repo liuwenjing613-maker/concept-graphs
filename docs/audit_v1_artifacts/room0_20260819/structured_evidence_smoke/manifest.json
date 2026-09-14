@@ -1,0 +1,218 @@
+{
+  "schema_version": "0.2.0",
+  "run_id": "room0_20260819T115630Z_608171bd",
+  "scene_id": "room0",
+  "dataset": "/home/chenkejun/beauty/conceptgraphs/code/official/ali-my/conceptgraph/dataset/dataconfigs/replica/replica.yaml",
+  "branch": "ali-my",
+  "git_commit": "fda44745c846b00a2e030c58ea990834c1cd1401",
+  "git_dirty": true,
+  "git_diff_sha256": "703bf4875168c45fb86bb437c7862a8f5ddebc2b33046022b1eb6bf7efdcd1ac",
+  "git_patch_ref": {
+    "path": "evidence/git_runtime.patch",
+    "format": "patch",
+    "key": null,
+    "index": null,
+    "sha256": "703bf4875168c45fb86bb437c7862a8f5ddebc2b33046022b1eb6bf7efdcd1ac",
+    "shape": null,
+    "dtype": null
+  },
+  "start_time": "2026-08-19T11:56:30.886962Z",
+  "end_time": "2026-08-19T11:56:35.884820Z",
+  "status": "MAP_COMPLETED_EVIDENCE_VALID",
+  "evidence_mode": "strict",
+  "runtime": {
+    "python_version": "3.10.20",
+    "platform": "Linux-6.8.0-110-generic-x86_64-with-glibc2.35",
+    "numpy_version": "1.24.3",
+    "torch_version": "2.0.1",
+    "cuda_version": "11.8",
+    "open3d_version": "0.19.0"
+  },
+  "mapping_config_ref": {
+    "path": "config_params.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "009c9c7c6246ecea61f2e67267b413ca781658365a7aca30ff0698510f705927",
+    "shape": null,
+    "dtype": null
+  },
+  "detection_config_ref": {
+    "path": "config_params_detections.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "009c9c7c6246ecea61f2e67267b413ca781658365a7aca30ff0698510f705927",
+    "shape": null,
+    "dtype": null
+  },
+  "detection_exp_suffix": "room0_detections_stride10",
+  "mapping_exp_suffix": "ali_my_layered_v1_smoke_20260819",
+  "model_versions": {
+    "detector": "yolov8l-world.pt",
+    "segmenter": "sam_l.pt",
+    "clip": "ViT-H-14/laion2b_s32b_b79k",
+    "vlm": "gpt-4o-2024-05-13"
+  },
+  "prompt_versions": {
+    "FRAME_EDGE": "ali-dev-system_prompt_only_top-v1",
+    "FRAME_CAPTION": "ali-dev-system_prompt_captions-v1",
+    "OBJECT_CAPTION_CONSOLIDATION": "ali-dev-system_prompt_consolidate_captions-v1"
+  },
+  "make_edges": false,
+  "branch_id": "baseline",
+  "audit_policy": {
+    "observation_ownership": "exclusive_single_target",
+    "same_frame_many_to_one": "allowed",
+    "relation_cardinality": "many_to_many",
+    "environment_mode": "static",
+    "object_granularity": "instance_with_part_whole_ambiguity",
+    "association_rule": {
+      "type": "independent_greedy_argmax",
+      "threshold_comparison": "strict_greater_than",
+      "max_score_equal_threshold": "create_object"
+    },
+    "postprocess_merge": {
+      "source_single_consumption": true,
+      "target_must_be_active": true,
+      "source_must_be_active": true
+    },
+    "missing_evidence_policy": "unknown_not_pass"
+  },
+  "random_seeds": {
+    "python": null,
+    "numpy": 2147483648,
+    "torch": 9083472397919972722
+  },
+  "runtime_source_snapshot": [
+    {
+      "source_path": "conceptgraph/utils/evidence.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__utils__evidence.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "97b5946e485054e212f381c752d4411dddb37f6d458398ca3b1a5d12f9e3c3e5",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/audit/evidence_audit.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__audit__evidence_audit.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "7afb23b3f97b7daa2fc4c31bd6e4c33cacdf608e32c587dd51496b862f1b5b13",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/slam/rerun_realtime_mapping.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__slam__rerun_realtime_mapping.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "599618bd734b1290130e6038169e37a1dc5ea4682f4d39c8f707537ae6b332e2",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/slam/mapping.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__slam__mapping.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "c9561608c01ef619c8c75e9eae3424e1f228f951ac35b960bdfa2b8d3ac5cfba",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/slam/utils.py",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__slam__utils.py",
+        "format": "py",
+        "key": null,
+        "index": null,
+        "sha256": "3f6d29bd77bf8a22f05a6d3b9477fd5c0a5070f14f15b14bbda4ba9675693556",
+        "shape": null,
+        "dtype": null
+      }
+    },
+    {
+      "source_path": "conceptgraph/hydra_configs/rerun_realtime_mapping.yaml",
+      "artifact_ref": {
+        "path": "evidence/source_snapshot/conceptgraph__hydra_configs__rerun_realtime_mapping.yaml",
+        "format": "yaml",
+        "key": null,
+        "index": null,
+        "sha256": "cfba0ef3ea468df12da9e6ba8da481a58b4521002003b018223669fff1b9f003",
+        "shape": null,
+        "dtype": null
+      }
+    }
+  ],
+  "failure_reason": null,
+  "evidence_summary_ref": {
+    "path": "evidence/evidence_summary.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "393159ffdeec5b4a6f1d9968d5568d252545fcda522ab29bd864e87c4b27e32d",
+    "shape": null,
+    "dtype": null
+  },
+  "final_outputs": {
+    "edge_json_ali_my_layered_v1_smoke_20260819.json": {
+      "artifact_ref": {
+        "path": "edge_json_ali_my_layered_v1_smoke_20260819.json",
+        "format": "json",
+        "key": null,
+        "index": null,
+        "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+    },
+    "obj_json_ali_my_layered_v1_smoke_20260819.json": {
+      "artifact_ref": {
+        "path": "obj_json_ali_my_layered_v1_smoke_20260819.json",
+        "format": "json",
+        "key": null,
+        "index": null,
+        "sha256": "ba5c6c7f2ad69c6ff87b785e9fb00f3934e4a9f286d90a4a6aad25bee3593e9d",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "ba5c6c7f2ad69c6ff87b785e9fb00f3934e4a9f286d90a4a6aad25bee3593e9d"
+    },
+    "pcd_ali_my_layered_v1_smoke_20260819.pkl.gz": {
+      "artifact_ref": {
+        "path": "pcd_ali_my_layered_v1_smoke_20260819.pkl.gz",
+        "format": "gz",
+        "key": null,
+        "index": null,
+        "sha256": "2e9f3bf0d1a9a05fc725dd4b60328af9933d835b5cd79bf366ed13d0b3b811f5",
+        "shape": null,
+        "dtype": null
+      },
+      "sha256": "2e9f3bf0d1a9a05fc725dd4b60328af9933d835b5cd79bf366ed13d0b3b811f5"
+    }
+  },
+  "audit_summary_ref": {
+    "path": "audit/audit_summary.json",
+    "format": "json",
+    "key": null,
+    "index": null,
+    "sha256": "9e032b550bb97117cb886ec7f4359748703ad7ffdccbbf741a903cbbba4004b9",
+    "shape": null,
+    "dtype": null
+  }
+}

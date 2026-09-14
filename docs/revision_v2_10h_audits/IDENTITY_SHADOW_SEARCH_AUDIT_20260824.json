@@ -1,0 +1,78 @@
+{
+  "all_wrong_hypotheses_rejected_count": 3,
+  "candidate_target_recall_count": 3,
+  "case_summary": [
+    {
+      "all_wrong_hypotheses_rejected": true,
+      "blind_case_uid": "identity_dev_001",
+      "candidate_target_alias_recall": true,
+      "case_uid": "human6_office0_false_split_51aaf9ba",
+      "endpoint_error_type": "FALSE_SPLIT",
+      "model_vote_counts": {
+        "SAME_INSTANCE": 1,
+        "SEPARATE_MEMBER_GROUPS": 4
+      },
+      "selected_action": "SAME_INSTANCE",
+      "selected_matches_gold": true,
+      "unique_development_shadow_pass": true
+    },
+    {
+      "all_wrong_hypotheses_rejected": true,
+      "blind_case_uid": "identity_dev_002",
+      "candidate_target_alias_recall": true,
+      "case_uid": "human6_room0_false_merge_06525b4b",
+      "endpoint_error_type": "FALSE_MERGE",
+      "model_vote_counts": {
+        "SAME_INSTANCE": 3,
+        "SEPARATE_MEMBER_GROUPS": 2
+      },
+      "selected_action": "SEPARATE_MEMBER_GROUPS",
+      "selected_matches_gold": true,
+      "unique_development_shadow_pass": true
+    },
+    {
+      "all_wrong_hypotheses_rejected": true,
+      "blind_case_uid": "identity_dev_003",
+      "candidate_target_alias_recall": true,
+      "case_uid": "human6_room0_false_merge_9727f850",
+      "endpoint_error_type": "FALSE_MERGE",
+      "model_vote_counts": {
+        "SAME_INSTANCE": 5
+      },
+      "selected_action": "SEPARATE_MEMBER_GROUPS",
+      "selected_matches_gold": true,
+      "unique_development_shadow_pass": true
+    }
+  ],
+  "development_case_count": 3,
+  "evaluation_role": "DEVELOPMENT_HUMAN_ENDPOINT_SHADOW_NOT_PRODUCTION_PROMOTION",
+  "legal_merge_control_pass": true,
+  "no_op_controls_pass": true,
+  "pass": true,
+  "production_commit_permitted": false,
+  "protocol_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/identity_shadow_hypothesis_search/shadow_protocol.frozen.json",
+  "schema_version": "1.0.0",
+  "selected_matches_gold_count": 3,
+  "unanimous_model_hypothesis_checks": [
+    {
+      "action": "SAME_INSTANCE",
+      "case_uid": "human6_room0_false_merge_9727f850",
+      "defer_reasons": [
+        "shadow_gate_failed:endpoint_improved",
+        "shadow_gate_failed:invariants_pass",
+        "shadow_gate_failed:component_mechanism_supported",
+        "shadow_gate_failed:local_global_parity_pass"
+      ],
+      "rejected": true,
+      "was_wrong": true
+    }
+  ],
+  "unique_development_shadow_pass_count": 3,
+  "unsafe_selection_count": 0,
+  "vote_parse_errors": {
+    "identity_dev_001": [],
+    "identity_dev_002": [],
+    "identity_dev_003": []
+  },
+  "wrong_unanimous_model_hypothesis_rejected": true
+}

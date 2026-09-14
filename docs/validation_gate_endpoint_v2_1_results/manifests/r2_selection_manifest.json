@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "purpose": "same-evidence endpoint repeatability check",
+  "selection_method": "deterministic scene/state stratification with observed error-type coverage",
+  "selection_seed": 20260821,
+  "population_size": 97,
+  "subset_size": 24,
+  "scene_targets": {
+    "office0": 7,
+    "room0": 17
+  },
+  "r1_state_targets": {
+    "CORRECT": 12,
+    "WRONG": 10,
+    "UNCLEAR": 2
+  },
+  "state_scene_targets": {
+    "CORRECT": {
+      "office0": 4,
+      "room0": 8
+    },
+    "WRONG": {
+      "office0": 3,
+      "room0": 7
+    },
+    "UNCLEAR": {
+      "room0": 2,
+      "office0": 0
+    }
+  },
+  "observed_r1_error_types_covered": [
+    "FALSE_MERGE",
+    "FALSE_SPLIT",
+    "SPURIOUS_OBJECT",
+    "GEOMETRY_CORRUPTION",
+    "SEMANTIC_IDENTITY_ERROR"
+  ],
+  "r1_answers_exposed_in_r2_worklist": false,
+  "r1_answers_exposed_by_review_service": false,
+  "interpretation": "This purposive repeat sample tests decision stability across endpoint states and error types; it is not a second estimate of the population endpoint-error rate.",
+  "r1_worklist_sha256": "b8915928d4e480073bdad6ba74c5847ca157a5553be169a3924d3eb20ce47b85",
+  "frozen_r1_labels": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/labels_r1_frozen_20260821.jsonl",
+  "frozen_r1_labels_sha256": "f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a",
+  "r2_worklist": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/labels/r2_worklist.jsonl",
+  "r2_worklist_sha256": "8712c36dc70aece24297715abe92613cdd54b816787724fb54149a5f0eb8f576",
+  "r2_review_evidence_manifest": "/home/chenkejun/beauty/conceptgraphs/validation_gate_endpoint_v2_1/r2_review_evidence_manifest.json",
+  "r2_review_evidence_manifest_sha256": "f0dcd4c52f845fa216beefcd376c7126db28c94f7a6c57fc31f00a0a4af01eec"
+}

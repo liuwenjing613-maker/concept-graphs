@@ -1,0 +1,497 @@
+{
+  "cases": [
+    {
+      "branches": {
+        "native": {
+          "edge_count": 49,
+          "full_gold_metrics_if_admissible": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "input_edge_observations": 2425,
+          "mapped_prediction_count": 49,
+          "relation_backend_validation": {
+            "dangling_edge_count": 0,
+            "edge_count": 49,
+            "malformed_relation_count": 0,
+            "novel_relation_types": [],
+            "pass": true,
+            "unexpected_self_loop_count": 0
+          },
+          "stable_gold_metrics": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "total_support": 1304,
+          "unknown_prediction_count_outside_gold_scope": 29,
+          "unmapped_edge_count": 0,
+          "unmapped_edges": []
+        },
+        "natural": {
+          "edge_count": 49,
+          "full_gold_metrics_if_admissible": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "input_edge_observations": 2425,
+          "mapped_prediction_count": 49,
+          "relation_backend_validation": {
+            "dangling_edge_count": 0,
+            "edge_count": 49,
+            "malformed_relation_count": 0,
+            "novel_relation_types": [],
+            "pass": true,
+            "unexpected_self_loop_count": 0
+          },
+          "stable_gold_metrics": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "total_support": 1304,
+          "unknown_prediction_count_outside_gold_scope": 29,
+          "unmapped_edge_count": 0,
+          "unmapped_edges": []
+        },
+        "sparse": {
+          "edge_count": 49,
+          "full_gold_metrics_if_admissible": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "input_edge_observations": 2425,
+          "mapped_prediction_count": 49,
+          "relation_backend_validation": {
+            "dangling_edge_count": 0,
+            "edge_count": 49,
+            "malformed_relation_count": 0,
+            "novel_relation_types": [],
+            "pass": true,
+            "unexpected_self_loop_count": 0
+          },
+          "stable_gold_metrics": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "total_support": 1304,
+          "unknown_prediction_count_outside_gold_scope": 29,
+          "unmapped_edge_count": 0,
+          "unmapped_edges": []
+        }
+      },
+      "case_uid": "human6_room0_false_merge_06525b4b",
+      "causal_relation_delta": {
+        "natural_vs_native": {
+          "added": [],
+          "changed_edge_count": 0,
+          "changed_entity_uids": [],
+          "exact": true,
+          "removed": [],
+          "support_changed": []
+        },
+        "outside_exact_to_native": {
+          "native": true,
+          "natural": true,
+          "sparse": true
+        },
+        "sparse_vs_native": {
+          "added": [],
+          "changed_edge_count": 0,
+          "changed_entity_uids": [],
+          "exact": true,
+          "removed": [],
+          "support_changed": []
+        },
+        "stable_gold_metrics_exact_to_native": {
+          "native": true,
+          "natural": true,
+          "sparse": true
+        }
+      },
+      "checks": {
+        "all_branch_backend_validation_pass": true,
+        "all_branch_input_edge_counts_exact": true,
+        "all_relation_changes_touch_identity_localization": true,
+        "causal_contrast_pass": true,
+        "native_predictions_exactly_calibrate_to_frozen_source": true,
+        "natural_relation_state_exact_to_native": true,
+        "outside_relation_state_and_support_exact": true,
+        "relation_rebuild_pass": true,
+        "stable_gold_metrics_exact_across_branches": true
+      },
+      "endpoint_error_type": "FALSE_MERGE",
+      "gold_scope": {
+        "frozen_label_count": 44,
+        "full_gold_comparison_admissible": true,
+        "identity_impacted_label_count": 0,
+        "impacted_gold_uids": [],
+        "stable_label_count": 44
+      },
+      "identity_localization": {
+        "affected_native_entity_uids": [
+          "fecb8f1f-a014-40a2-96a9-a820440efef2"
+        ],
+        "impacted_formal_map_indices": [
+          65
+        ],
+        "localization_entity_uids": [
+          "c8ad4228-4801-4d54-a2dd-507d941c72f4",
+          "fecb8f1f-a014-40a2-96a9-a820440efef2"
+        ],
+        "membership_changed_entity_uids": [
+          "c8ad4228-4801-4d54-a2dd-507d941c72f4",
+          "fecb8f1f-a014-40a2-96a9-a820440efef2"
+        ]
+      },
+      "incident_uid": "incident_06525b4b5a2ea0bc2649",
+      "pass": true
+    },
+    {
+      "branches": {
+        "native": {
+          "edge_count": 49,
+          "full_gold_metrics_if_admissible": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "input_edge_observations": 2425,
+          "mapped_prediction_count": 49,
+          "relation_backend_validation": {
+            "dangling_edge_count": 0,
+            "edge_count": 49,
+            "malformed_relation_count": 0,
+            "novel_relation_types": [],
+            "pass": true,
+            "unexpected_self_loop_count": 0
+          },
+          "stable_gold_metrics": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "total_support": 1304,
+          "unknown_prediction_count_outside_gold_scope": 29,
+          "unmapped_edge_count": 0,
+          "unmapped_edges": []
+        },
+        "natural": {
+          "edge_count": 49,
+          "full_gold_metrics_if_admissible": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "input_edge_observations": 2425,
+          "mapped_prediction_count": 49,
+          "relation_backend_validation": {
+            "dangling_edge_count": 0,
+            "edge_count": 49,
+            "malformed_relation_count": 0,
+            "novel_relation_types": [],
+            "pass": true,
+            "unexpected_self_loop_count": 0
+          },
+          "stable_gold_metrics": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "total_support": 1304,
+          "unknown_prediction_count_outside_gold_scope": 29,
+          "unmapped_edge_count": 0,
+          "unmapped_edges": []
+        },
+        "sparse": {
+          "edge_count": 49,
+          "full_gold_metrics_if_admissible": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "input_edge_observations": 2425,
+          "mapped_prediction_count": 49,
+          "relation_backend_validation": {
+            "dangling_edge_count": 0,
+            "edge_count": 49,
+            "malformed_relation_count": 0,
+            "novel_relation_types": [],
+            "pass": true,
+            "unexpected_self_loop_count": 0
+          },
+          "stable_gold_metrics": {
+            "accuracy": 0.9545454545454546,
+            "balanced_accuracy": 0.9545454545454546,
+            "f1_within_labeled_pair_scope": 0.9523809523809523,
+            "fn": 2,
+            "fp": 0,
+            "label_count": 44,
+            "precision_within_labeled_pair_scope": 1.0,
+            "recall_within_labeled_pair_scope": 0.9090909090909091,
+            "specificity_within_labeled_pair_scope": 1.0,
+            "tn": 22,
+            "tp": 20
+          },
+          "total_support": 1303,
+          "unknown_prediction_count_outside_gold_scope": 29,
+          "unmapped_edge_count": 0,
+          "unmapped_edges": []
+        }
+      },
+      "case_uid": "human6_room0_false_merge_9727f850",
+      "causal_relation_delta": {
+        "natural_vs_native": {
+          "added": [],
+          "changed_edge_count": 0,
+          "changed_entity_uids": [],
+          "exact": true,
+          "removed": [],
+          "support_changed": []
+        },
+        "outside_exact_to_native": {
+          "native": true,
+          "natural": true,
+          "sparse": true
+        },
+        "sparse_vs_native": {
+          "added": [],
+          "changed_edge_count": 1,
+          "changed_entity_uids": [
+            "208ff42b-1854-4587-81d2-547e731a3949",
+            "cbefdec7-49fc-4e64-92f9-83296dbcf0d0"
+          ],
+          "exact": false,
+          "removed": [],
+          "support_changed": [
+            {
+              "candidate_support": 12,
+              "delta": -1,
+              "edge": [
+                "cbefdec7-49fc-4e64-92f9-83296dbcf0d0",
+                "on top of",
+                "208ff42b-1854-4587-81d2-547e731a3949"
+              ],
+              "reference_support": 13
+            }
+          ]
+        },
+        "stable_gold_metrics_exact_to_native": {
+          "native": true,
+          "natural": true,
+          "sparse": true
+        }
+      },
+      "checks": {
+        "all_branch_backend_validation_pass": true,
+        "all_branch_input_edge_counts_exact": true,
+        "all_relation_changes_touch_identity_localization": true,
+        "causal_contrast_pass": true,
+        "native_predictions_exactly_calibrate_to_frozen_source": true,
+        "natural_relation_state_exact_to_native": true,
+        "outside_relation_state_and_support_exact": true,
+        "relation_rebuild_pass": true,
+        "stable_gold_metrics_exact_across_branches": true
+      },
+      "endpoint_error_type": "FALSE_MERGE",
+      "gold_scope": {
+        "frozen_label_count": 44,
+        "full_gold_comparison_admissible": true,
+        "identity_impacted_label_count": 0,
+        "impacted_gold_uids": [],
+        "stable_label_count": 44
+      },
+      "identity_localization": {
+        "affected_native_entity_uids": [
+          "208ff42b-1854-4587-81d2-547e731a3949"
+        ],
+        "impacted_formal_map_indices": [
+          58
+        ],
+        "localization_entity_uids": [
+          "0c23aa26-75ce-45b0-847f-7bc89bd236cd",
+          "208ff42b-1854-4587-81d2-547e731a3949"
+        ],
+        "membership_changed_entity_uids": [
+          "0c23aa26-75ce-45b0-847f-7bc89bd236cd",
+          "208ff42b-1854-4587-81d2-547e731a3949"
+        ]
+      },
+      "incident_uid": "incident_9727f850ddf3d077771a",
+      "pass": true
+    }
+  ],
+  "checks": {
+    "all_44_gold_labels_identity_stable_for_this_slice": true,
+    "all_case_gates_pass": true,
+    "exactly_two_preregistered_cases": true,
+    "reference_native_gold_metrics_reproduced": true,
+    "source_artifacts_unchanged": true
+  },
+  "claim_limits": {
+    "population_generalization_claimed": false,
+    "reason": "This slice detects causal relation change and stable-scope preservation; it contains no new human relation label on the revised identity endpoints.",
+    "relation_accuracy_improvement_claimed": false,
+    "relation_correctness_on_identity_changed_endpoints_claimed": false,
+    "relation_preservation_on_identity_stable_gold_claimed": true
+  },
+  "edge_stream": {
+    "frame_count": 200,
+    "frames_sha256": "7ddd395b5cff7b6880e8d00d447f8f27c3066164be85c40a662222ed5ae3265d",
+    "input_edge_observations": 2425
+  },
+  "effect_summary": {
+    "edge_set_change": 0,
+    "relation_state_exact": 1,
+    "support_only_change": 1
+  },
+  "evaluation_role": "CAUSAL_RELATION_IMPACT_AND_IDENTITY_STABLE_FROZEN_GOLD",
+  "formal_map_object_count": 72,
+  "frozen_gold": {
+    "gold_uid": "room0_mapped_on_direction_gold_20260824",
+    "label_count": 44,
+    "reference_metrics": {
+      "accuracy": 0.9545454545454546,
+      "balanced_accuracy": 0.9545454545454546,
+      "f1_within_labeled_pair_scope": 0.9523809523809523,
+      "fn": 2,
+      "fp": 0,
+      "label_count": 44,
+      "precision_within_labeled_pair_scope": 1.0,
+      "recall_within_labeled_pair_scope": 0.9090909090909091,
+      "specificity_within_labeled_pair_scope": 1.0,
+      "tn": 22,
+      "tp": 20
+    },
+    "reference_prediction_count": 49
+  },
+  "pass": true,
+  "production_commit_permitted": false,
+  "protocol": {
+    "aggregation": "ali-dev process_edges unchanged",
+    "causal_comparison": "native versus natural versus sparse",
+    "gold_policy": "Any gold row touching an identity-changed formal-map endpoint is UNKNOWN and excluded from comparable metrics.",
+    "relation_input": "Frozen 200-frame make_edges stream; 2425 immutable directed edge observations.",
+    "support_is_part_of_relation_state": true,
+    "unknown_predictions_are_not_negatives": true
+  },
+  "schema_version": "1.0.0",
+  "source_artifacts": {
+    "edge_frames": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_edges_make_true_room0_20260823/frames.jsonl",
+      "sha256": "7ddd395b5cff7b6880e8d00d447f8f27c3066164be85c40a662222ed5ae3265d"
+    },
+    "edge_manifest": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_edges_make_true_room0_20260823/manifest.json",
+      "sha256": "eba6d7aa37a4aef1b9663743225a5fbdd5f8fc360edadaa36801bad59e61e990"
+    },
+    "formal_map": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820/pcd_ali_my_validity_room0_full_200f_e6b0f17_20260820.pkl.gz",
+      "sha256": "9550113b42c42a83d640241f038d06b3f040f7deb237314e4550b757a08bd23e"
+    },
+    "gold": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/code/official/ali-my-revision-human6-publish-20260824/docs/revision_v2_audits/ROOM0_SMALL_RELATION_GOLD_20260824.json",
+      "sha256": "1543e1f84974ed378eb4ac1242f097505dc974bce238d9fdb0383cf3be3a8b87"
+    },
+    "pilot_aggregate": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/relation_impact_human6/aggregate_metrics.json",
+      "sha256": "f69d5179959439734ba521bb40cf889e0cb4466a441ccbcb9d5bd3244d473439"
+    },
+    "source_evaluation": {
+      "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_edges_make_true_room0_20260823/ground_truth_evaluation.json",
+      "sha256": "7f49b87c3e4e6cbb01c9676a65d0c11c8389d03693f2543124b1f5261a87f206"
+    }
+  }
+}

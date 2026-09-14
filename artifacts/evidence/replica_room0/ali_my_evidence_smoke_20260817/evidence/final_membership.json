@@ -1,0 +1,625 @@
+[
+  {
+    "object_uid": "2495c452-5cdd-4020-8f3c-c09b45da6cf3",
+    "current_object_index": 0,
+    "curr_obj_num": 0,
+    "status": "active",
+    "class_name": "sofa chair",
+    "class_histogram": {
+      "159": 2,
+      "53": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0000",
+      "room0_20260817T084610Z_62774d0e_f000000_r0004",
+      "room0_20260817T084610Z_62774d0e_f000001_r0001",
+      "room0_20260817T084610Z_62774d0e_f000001_r0003"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 4,
+    "bbox_center": [
+      2.8452155286660217,
+      -0.6977628532920663,
+      -0.7090163675080335
+    ],
+    "bbox_extent": [
+      0.6133424741475135,
+      0.48776221157331434,
+      0.2281886567390925
+    ],
+    "n_points": 2471,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [
+      "bd2793b0-1c2d-4e50-8d5e-929c7b0ee279"
+    ],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "7acd9c04-c16d-4e78-853c-84250d9e2ed7",
+    "current_object_index": 1,
+    "curr_obj_num": 1,
+    "status": "active",
+    "class_name": "stool",
+    "class_histogram": {
+      "164": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0001",
+      "room0_20260817T084610Z_62774d0e_f000001_r0002"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 2,
+    "bbox_center": [
+      1.7860162971559914,
+      0.6454849607147282,
+      -1.1991088597265873
+    ],
+    "bbox_extent": [
+      0.6506308660292588,
+      0.6326943338656598,
+      0.4226223457889185
+    ],
+    "n_points": 4358,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "78761cf4-52c5-4e32-9232-83b9a7363781",
+    "current_object_index": 2,
+    "curr_obj_num": 2,
+    "status": "active",
+    "class_name": "pillow",
+    "class_histogram": {
+      "125": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0002",
+      "room0_20260817T084610Z_62774d0e_f000001_r0000"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 2,
+    "bbox_center": [
+      2.8027525442360175,
+      -0.38097114838915835,
+      -0.7061026295845408
+    ],
+    "bbox_extent": [
+      0.4331892760837155,
+      0.2475495544417674,
+      0.221407908372578
+    ],
+    "n_points": 1045,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "73c5dd7c-b92e-4cc0-aa91-605b09726863",
+    "current_object_index": 3,
+    "curr_obj_num": 5,
+    "status": "active",
+    "class_name": "stool",
+    "class_histogram": {
+      "164": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0005",
+      "room0_20260817T084610Z_62774d0e_f000001_r0004"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 2,
+    "bbox_center": [
+      1.792067623361934,
+      1.4789328983748586,
+      -1.106250430148394
+    ],
+    "bbox_extent": [
+      0.6283225622870554,
+      0.49015316846443685,
+      0.23030704322105985
+    ],
+    "n_points": 2882,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "5de23978-b6cf-48f6-a711-e7fae26bb911",
+    "current_object_index": 4,
+    "curr_obj_num": 6,
+    "status": "active",
+    "class_name": "lamp",
+    "class_histogram": {
+      "92": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0006",
+      "room0_20260817T084610Z_62774d0e_f000001_r0006"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 2,
+    "bbox_center": [
+      2.2819085262309136,
+      -0.765966570355928,
+      -0.2515769901682759
+    ],
+    "bbox_extent": [
+      0.42680883824571003,
+      0.44327307950038575,
+      0.29026275944173674
+    ],
+    "n_points": 1937,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "47764723-18a3-40b9-a4e2-7b22614e3740",
+    "current_object_index": 5,
+    "curr_obj_num": 7,
+    "status": "active",
+    "class_name": "potted plant",
+    "class_histogram": {
+      "131": 2,
+      "174": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0007",
+      "room0_20260817T084610Z_62774d0e_f000001_r0005",
+      "room0_20260817T084610Z_62774d0e_f000001_r0007"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 3,
+    "bbox_center": [
+      2.1327657454944338,
+      -0.649279850564177,
+      -0.7600194135011412
+    ],
+    "bbox_extent": [
+      0.19316713334158564,
+      0.19748279686707748,
+      0.19888874192306322
+    ],
+    "n_points": 577,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "7034c52c-cfe3-489c-a144-6eb7cb47827b",
+    "current_object_index": 6,
+    "curr_obj_num": 8,
+    "status": "active",
+    "class_name": "closet door",
+    "class_histogram": {
+      "40": 2,
+      "65": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0008",
+      "room0_20260817T084610Z_62774d0e_f000001_r0017",
+      "room0_20260817T084610Z_62774d0e_f000001_r0024"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 3,
+    "bbox_center": [
+      -0.21780412431809382,
+      -1.102804080834386,
+      -0.41755700993250844
+    ],
+    "bbox_extent": [
+      2.1476463065826255,
+      0.962485784098684,
+      0.015706630380330353
+    ],
+    "n_points": 11278,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "6fea0de7-1633-4998-a97d-1e274766e0e6",
+    "current_object_index": 7,
+    "curr_obj_num": 9,
+    "status": "active",
+    "class_name": "window",
+    "class_histogram": {
+      "198": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0009",
+      "room0_20260817T084610Z_62774d0e_f000001_r0009"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 2,
+    "bbox_center": [
+      -0.8385940421282781,
+      1.1019278133720334,
+      0.013796782868340757
+    ],
+    "bbox_extent": [
+      1.2277288635198134,
+      1.2609640443212098,
+      0.02676378454824016
+    ],
+    "n_points": 6458,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "88e0f702-e701-4cee-93a0-2e4568c9ab32",
+    "current_object_index": 8,
+    "curr_obj_num": 10,
+    "status": "active",
+    "class_name": "tissue box",
+    "class_histogram": {
+      "174": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0010"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 1,
+    "bbox_center": [
+      -0.5879673840991337,
+      0.7382886757127998,
+      -0.7933354371190464
+    ],
+    "bbox_extent": [
+      0.2631068025742407,
+      0.17367482527794237,
+      0.13149508852870503
+    ],
+    "n_points": 470,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "827a5b99-4a3e-4c05-8651-af06b1e56d90",
+    "current_object_index": 9,
+    "curr_obj_num": 11,
+    "status": "active",
+    "class_name": "power outlet",
+    "class_histogram": {
+      "132": 2,
+      "99": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0011",
+      "room0_20260817T084610Z_62774d0e_f000001_r0019",
+      "room0_20260817T084610Z_62774d0e_f000001_r0022"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 3,
+    "bbox_center": [
+      1.2372855373533502,
+      -1.1122401456989974,
+      -0.3316777196114646
+    ],
+    "bbox_extent": [
+      0.17018584786132251,
+      0.1188777454641416,
+      0.010706197236643508
+    ],
+    "n_points": 246,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "aa6b33a4-e75e-431d-a2fc-36a4b0969760",
+    "current_object_index": 10,
+    "curr_obj_num": 12,
+    "status": "active",
+    "class_name": "end table",
+    "class_histogram": {
+      "70": 1,
+      "164": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0012",
+      "room0_20260817T084610Z_62774d0e_f000001_r0012"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 2,
+    "bbox_center": [
+      2.2452346616236754,
+      -0.3470961002534144,
+      -0.8998489577768424
+    ],
+    "bbox_extent": [
+      0.4123362949240893,
+      0.39912434959317994,
+      0.08511723421191794
+    ],
+    "n_points": 1384,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "3dcc8a41-0da9-4987-b222-965348bd6294",
+    "current_object_index": 11,
+    "curr_obj_num": 13,
+    "status": "active",
+    "class_name": "coffee table",
+    "class_histogram": {
+      "48": 2,
+      "70": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0013",
+      "room0_20260817T084610Z_62774d0e_f000000_r0019",
+      "room0_20260817T084610Z_62774d0e_f000001_r0013"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 3,
+    "bbox_center": [
+      2.2583218999146015,
+      -0.6813274348870285,
+      -0.7964161591922415
+    ],
+    "bbox_extent": [
+      0.48018133602417584,
+      0.4357819301650981,
+      0.11910327071541466
+    ],
+    "n_points": 1448,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [
+      "d9e1cb4f-b72f-427b-96f8-1447e1e7022b"
+    ],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "e7ea3a35-41c1-4b07-8f10-0169884e76ca",
+    "current_object_index": 12,
+    "curr_obj_num": 14,
+    "status": "active",
+    "class_name": "light switch",
+    "class_histogram": {
+      "99": 2,
+      "132": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0014",
+      "room0_20260817T084610Z_62774d0e_f000001_r0011",
+      "room0_20260817T084610Z_62774d0e_f000001_r0015"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 3,
+    "bbox_center": [
+      1.2108814172137947,
+      -1.0921211039653527,
+      0.013715282430938846
+    ],
+    "bbox_extent": [
+      0.27779507626457034,
+      0.1320055395802417,
+      0.058961965509017916
+    ],
+    "n_points": 387,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "dfbc7c21-e1f1-40b1-b791-d68729d65b11",
+    "current_object_index": 13,
+    "curr_obj_num": 15,
+    "status": "active",
+    "class_name": "coffee maker",
+    "class_histogram": {
+      "47": 2,
+      "46": 2,
+      "158": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0015",
+      "room0_20260817T084610Z_62774d0e_f000000_r0003",
+      "room0_20260817T084610Z_62774d0e_f000001_r0008",
+      "room0_20260817T084610Z_62774d0e_f000001_r0021",
+      "room0_20260817T084610Z_62774d0e_f000001_r0023"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 5,
+    "bbox_center": [
+      -0.5766336089047978,
+      0.5081955786328013,
+      -0.7118533311857066
+    ],
+    "bbox_extent": [
+      0.27881729379699494,
+      0.21151299936710882,
+      0.1639990987947666
+    ],
+    "n_points": 623,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [
+      "8a22712a-a53a-470c-b3f4-b908edcb3d8e"
+    ],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "2ea7cba3-98b7-4c46-93bc-cc62c3a8327f",
+    "current_object_index": 14,
+    "curr_obj_num": 16,
+    "status": "active",
+    "class_name": "plate",
+    "class_histogram": {
+      "128": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0016"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 1,
+    "bbox_center": [
+      -0.5934334940914722,
+      1.4761580908324023,
+      -0.8272602581272143
+    ],
+    "bbox_extent": [
+      0.4974336207143961,
+      0.2501031363214888,
+      0.0316121293039063
+    ],
+    "n_points": 524,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "b6f172b7-a38f-4ee3-8b15-fe6aaee27d44",
+    "current_object_index": 15,
+    "curr_obj_num": 20,
+    "status": "active",
+    "class_name": "cabinet",
+    "class_histogram": {
+      "29": 3,
+      "70": 1,
+      "146": 2,
+      "60": 2
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000000_r0020",
+      "room0_20260817T084610Z_62774d0e_f000000_r0021",
+      "room0_20260817T084610Z_62774d0e_f000000_r0017",
+      "room0_20260817T084610Z_62774d0e_f000001_r0010",
+      "room0_20260817T084610Z_62774d0e_f000000_r0018",
+      "room0_20260817T084610Z_62774d0e_f000001_r0016"
+    ],
+    "duplicate_member_observation_uids": {
+      "room0_20260817T084610Z_62774d0e_f000000_r0017": 2,
+      "room0_20260817T084610Z_62774d0e_f000001_r0010": 2
+    },
+    "num_detections": 8,
+    "bbox_center": [
+      -0.517037068887747,
+      1.104375607835534,
+      -1.1000898935294612
+    ],
+    "bbox_extent": [
+      1.9965287645306613,
+      0.7328206903106278,
+      0.48796248606128856
+    ],
+    "n_points": 11602,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [
+      "419ebefc-d8e0-4d48-b426-95ba63ff96e5",
+      "5e222285-a1b9-4e27-a4e3-741e8fb2cd1b",
+      "7dbbbcf3-5c2e-4c8e-84b0-46ee4c277f7e"
+    ],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "0867c9ee-db12-4e14-86d4-c1b439fb7e35",
+    "current_object_index": 16,
+    "curr_obj_num": 36,
+    "status": "active",
+    "class_name": "poster",
+    "class_histogram": {
+      "130": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000001_r0014"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 1,
+    "bbox_center": [
+      2.8445585466582095,
+      -1.092008023537225,
+      -0.1524789488199715
+    ],
+    "bbox_extent": [
+      0.7851856636840284,
+      0.23262001797941634,
+      0.020855265460100622
+    ],
+    "n_points": 1041,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "c4445ed2-8ed6-4c86-a316-c467d469e3b9",
+    "current_object_index": 17,
+    "curr_obj_num": 40,
+    "status": "active",
+    "class_name": "pillow",
+    "class_histogram": {
+      "125": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000001_r0018"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 1,
+    "bbox_center": [
+      2.941457675705767,
+      -0.38418314342769855,
+      -0.6541738771252038
+    ],
+    "bbox_extent": [
+      0.09778137633552982,
+      0.08075686996709021,
+      0.07088698380333003
+    ],
+    "n_points": 91,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  },
+  {
+    "object_uid": "09368de5-870b-4611-b4c5-d3805af0e174",
+    "current_object_index": 18,
+    "curr_obj_num": 42,
+    "status": "active",
+    "class_name": "closet door",
+    "class_histogram": {
+      "40": 1
+    },
+    "member_observation_uids": [
+      "room0_20260817T084610Z_62774d0e_f000001_r0020"
+    ],
+    "duplicate_member_observation_uids": {},
+    "num_detections": 1,
+    "bbox_center": [
+      0.30911810546807805,
+      -1.1297869170383545,
+      -0.2474616573588246
+    ],
+    "bbox_extent": [
+      2.3789219447925607,
+      1.5183221497231036,
+      0.09695685731069925
+    ],
+    "n_points": 5214,
+    "consolidated_caption": "",
+    "parent_or_merged_from_object_uids": [],
+    "outgoing_edge_uids": [],
+    "incoming_edge_uids": []
+  }
+]

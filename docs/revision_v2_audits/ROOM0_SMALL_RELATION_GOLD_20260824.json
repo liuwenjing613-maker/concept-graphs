@@ -1,0 +1,598 @@
+{
+  "frozen_before_scoped_prediction_evaluation": true,
+  "gold_uid": "room0_mapped_on_direction_gold_20260824",
+  "label_count": 44,
+  "negative_count": 22,
+  "positive_count": 22,
+  "relations": [
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_ce6b0ffc0b28e939",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        1,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 1,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_ddc3c884bc9323f2",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        1,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 1
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_98d283bdd53577e0",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        1,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 1
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_5a47d0c7c4ae0218",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        1,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 1,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_435a8f175f8dde27",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        3,
+        4,
+        "on"
+      ],
+      "source_gt_object_id": 3,
+      "target_gt_object_id": 4
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_bc34587f49d3ac18",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        3,
+        4,
+        "on"
+      ],
+      "source_gt_object_id": 4,
+      "target_gt_object_id": 3
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_55aedb85f460b7ad",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        3,
+        4,
+        "on"
+      ],
+      "source_gt_object_id": 4,
+      "target_gt_object_id": 3
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_a04a92b73a8c187a",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        3,
+        4,
+        "on"
+      ],
+      "source_gt_object_id": 3,
+      "target_gt_object_id": 4
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_80d7e23cb6ab2e61",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        12,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 12,
+      "target_gt_object_id": 13
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_5d87b0736085e91e",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        12,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 13,
+      "target_gt_object_id": 12
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_dc4c13829e7aa7de",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        12,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 13,
+      "target_gt_object_id": 12
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_b7435560acc809c7",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        12,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 12,
+      "target_gt_object_id": 13
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_20818132cfcaffe2",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        19,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 19,
+      "target_gt_object_id": 13
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_649c9dda460a646c",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        19,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 13,
+      "target_gt_object_id": 19
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_ad594efbdba16638",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        19,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 13,
+      "target_gt_object_id": 19
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_04808679b8ecb046",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        19,
+        13,
+        "on"
+      ],
+      "source_gt_object_id": 19,
+      "target_gt_object_id": 13
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_b59c99a88140c86c",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        24,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 24,
+      "target_gt_object_id": 52
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_f26732fa43960e64",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        24,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 52,
+      "target_gt_object_id": 24
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_b9f07d8646e336ec",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        24,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 52,
+      "target_gt_object_id": 24
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_ff1d26dedfae33cc",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        24,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 24,
+      "target_gt_object_id": 52
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_46be260749296be5",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        28,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 28,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_1963a8bca9c5223e",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        28,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 28
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_4a5c7cb8be7fa1df",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        28,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 28
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_f1da7718c0605397",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        28,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 28,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_c14570388d34a4ec",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        31,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 31,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_72a4a69f6fc5f4b4",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        31,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 31
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_5e8b626daa785ecc",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        31,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 31
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_66916fb2d7f44f68",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        31,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 31,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_ecc6f10b42274ee7",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        34,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 34,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_c1bc4ecd661d5f0c",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        34,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 34
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_24fa4c567c2fabd4",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        34,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 20,
+      "target_gt_object_id": 34
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_185f3e05db0485fa",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        34,
+        20,
+        "on"
+      ],
+      "source_gt_object_id": 34,
+      "target_gt_object_id": 20
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_43e31515916e61c5",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        42,
+        39,
+        "on"
+      ],
+      "source_gt_object_id": 42,
+      "target_gt_object_id": 39
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_ef46dfcfc6202c0c",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        42,
+        39,
+        "on"
+      ],
+      "source_gt_object_id": 39,
+      "target_gt_object_id": 42
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_f2f237eb8891f570",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        42,
+        39,
+        "on"
+      ],
+      "source_gt_object_id": 39,
+      "target_gt_object_id": 42
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_177c631c6eda35e4",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        42,
+        39,
+        "on"
+      ],
+      "source_gt_object_id": 42,
+      "target_gt_object_id": 39
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_058d51038b263163",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        49,
+        50,
+        "on"
+      ],
+      "source_gt_object_id": 49,
+      "target_gt_object_id": 50
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_ae86d71cc2d9dd3e",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        49,
+        50,
+        "on"
+      ],
+      "source_gt_object_id": 50,
+      "target_gt_object_id": 49
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_c0bd93675922815f",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        49,
+        50,
+        "on"
+      ],
+      "source_gt_object_id": 50,
+      "target_gt_object_id": 49
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_256633726acc2aa1",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        49,
+        50,
+        "on"
+      ],
+      "source_gt_object_id": 49,
+      "target_gt_object_id": 50
+    },
+    {
+      "derivation": "REPLICASSG_EXPLICIT",
+      "gold_uid": "relation_gold_1165754f7dbefe31",
+      "label": true,
+      "predicate": "on",
+      "source_explicit_triple": [
+        54,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 54,
+      "target_gt_object_id": 52
+    },
+    {
+      "derivation": "INVERSE_OF_EXPLICIT_ON",
+      "gold_uid": "relation_gold_7e714c0ed79f47b4",
+      "label": true,
+      "predicate": "under",
+      "source_explicit_triple": [
+        54,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 52,
+      "target_gt_object_id": 54
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_67346e20758e5008",
+      "label": false,
+      "predicate": "on",
+      "source_explicit_triple": [
+        54,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 52,
+      "target_gt_object_id": 54
+    },
+    {
+      "derivation": "DIRECTIONAL_ANTISYMMETRY",
+      "gold_uid": "relation_gold_da9575729bb0207c",
+      "label": false,
+      "predicate": "under",
+      "source_explicit_triple": [
+        54,
+        52,
+        "on"
+      ],
+      "source_gt_object_id": 54,
+      "target_gt_object_id": 52
+    }
+  ],
+  "scene_id": "room0",
+  "schema_version": "1.0.0",
+  "scope_limit": "Only labels the four on/under directions for each explicit mapped support pair. Predictions on all other pairs remain UNKNOWN and are excluded from precision claims.",
+  "selection_rule": "all mapped ReplicaSSG explicit 'on' triples; no support threshold or prediction-dependent filtering",
+  "selection_uses_prediction_presence": false,
+  "semantic_contract": {
+    "directional_antisymmetry": true,
+    "distinct_rigid_objects": true,
+    "negative_labels_are_pair_local": true,
+    "on_inverse": "under"
+  },
+  "source_artifact": {
+    "mapped_explicit_on_count": 11,
+    "mapped_gt_relation_count": 17,
+    "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_edges_make_true_room0_20260823/ground_truth_evaluation.json",
+    "sha256": "7f49b87c3e4e6cbb01c9676a65d0c11c8389d03693f2543124b1f5261a87f206"
+  }
+}

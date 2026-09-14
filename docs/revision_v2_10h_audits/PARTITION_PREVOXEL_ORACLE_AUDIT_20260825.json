@@ -1,0 +1,381 @@
+{
+  "association_stage_decision": {
+    "action": "DEFER",
+    "constraint_uids": [
+      "constraint_e2d1e4345f498993"
+    ],
+    "created_entity_uid": null,
+    "created_identity_uid": null,
+    "created_lineage_uid": null,
+    "forbidden_indices": [],
+    "reason": "partition_observation_requires_pre_association_payload_stage",
+    "separate_from_identity_uids": [],
+    "target_index": null
+  },
+  "case_uid": "human6_room0_false_merge_f74cb76c",
+  "checks": {
+    "assignment_roundtrip_exact": true,
+    "association_stage_fail_closed_until_integrated": true,
+    "mapping_semantic_mesh_geometry_exact": true,
+    "partition_disjoint": true,
+    "partition_executor_pass": true,
+    "partition_exhaustive": true,
+    "provenance_hashes_unchanged": true,
+    "semantic_object_metadata_complete": true,
+    "semantic_query_deterministic": true,
+    "semantic_surface_distance_within_gate": true,
+    "source_artifact_hashes_unchanged": true,
+    "source_count_trace_exact": true,
+    "source_preprocessing_reconstruction_exact": true,
+    "three_contamination_instances_excluded": true,
+    "two_table_instances_emitted": true
+  },
+  "constraint_candidate": {
+    "active_from_sequence": 8077,
+    "active_until_sequence": null,
+    "applies_at_event_uid": "room0_20260820T093325Z_581b7c84_e00008077",
+    "constraint_uid": "constraint_e2d1e4345f498993",
+    "created_entity_uid": null,
+    "created_lineage_uid": null,
+    "entity_uid": null,
+    "evidence_refs": [
+      "human-confirmed:room0_20260820T093325Z_581b7c84_f000165_r0020:floor_contamination",
+      "replica-semantic-info-sha256:23d3411755d0c55bdd3451121a647495cc94e76340c1b3cf3ad3963b71f15a66",
+      "replica-semantic-mesh-sha256:104cc7fe28bee178537e8034859e8f121f89a166ea37132b4574e10050947d98"
+    ],
+    "groups": {},
+    "label": null,
+    "obs_uid": "room0_20260820T093325Z_581b7c84_f000165_r0020",
+    "partition_contract": {
+      "assignment_ref": {
+        "assignment_sha256": "438eb4d1ec00e73b45c96b80844670437ce72df49751ae48b1b5ef121d3982a1",
+        "format": "npy",
+        "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/partition_prevoxel_oracle/prevoxel_partition_assignment.npy",
+        "sha256": "edbbd2c451bfcf0b06fb356ff410d10317301ef6502c39f9095d4ce620cc6820"
+      },
+      "assignment_sha256": "438eb4d1ec00e73b45c96b80844670437ce72df49751ae48b1b5ef121d3982a1",
+      "evidence_refs": [
+        "human-confirmed:room0_20260820T093325Z_581b7c84_f000165_r0020:floor_contamination",
+        "replica-semantic-info-sha256:23d3411755d0c55bdd3451121a647495cc94e76340c1b3cf3ad3963b71f15a66",
+        "replica-semantic-mesh-sha256:104cc7fe28bee178537e8034859e8f121f89a166ea37132b4574e10050947d98"
+      ],
+      "obs_uid": "room0_20260820T093325Z_581b7c84_f000165_r0020",
+      "partition_uid": "partition_5a0a039636c5fef2",
+      "parts": [
+        {
+          "disposition": "EMIT_OBSERVATION",
+          "identity_uid": "replica-instance:room_0:object:7",
+          "label": "table#7",
+          "part_index": 0,
+          "part_uid": "replica_object_00007_table"
+        },
+        {
+          "disposition": "EXCLUDE_AS_CONTAMINATION",
+          "identity_uid": "replica-instance:room_0:object:9",
+          "label": "sofa#9",
+          "part_index": 1,
+          "part_uid": "replica_object_00009_sofa"
+        },
+        {
+          "disposition": "EXCLUDE_AS_CONTAMINATION",
+          "identity_uid": "replica-instance:room_0:object:25",
+          "label": "floor#25",
+          "part_index": 2,
+          "part_uid": "replica_object_00025_floor"
+        },
+        {
+          "disposition": "EMIT_OBSERVATION",
+          "identity_uid": "replica-instance:room_0:object:27",
+          "label": "table#27",
+          "part_index": 3,
+          "part_uid": "replica_object_00027_table"
+        },
+        {
+          "disposition": "EXCLUDE_AS_CONTAMINATION",
+          "identity_uid": "replica-instance:room_0:object:60",
+          "label": "rug#60",
+          "part_index": 4,
+          "part_uid": "replica_object_00060_rug"
+        }
+      ],
+      "schema_version": "2.0.0",
+      "source_payload_sha256": "a881ef80e5c400f417c17c71ce856b9956e40a2b5739c53515671d5cedf968ce",
+      "source_point_count": 6287,
+      "source_stage": "PRE_VOXEL_SAMPLED_PAYLOAD"
+    },
+    "reason": "human-confirmed undersegmentation translated through official semantic mesh",
+    "refs": [],
+    "source": "replica_semantic_mesh_development_oracle",
+    "target_entity_uid": null,
+    "target_lineage_uid": null,
+    "target_origin_obs_uid": null,
+    "type": "PARTITION_OBSERVATION"
+  },
+  "constraint_uid": "constraint_e2d1e4345f498993",
+  "design_decision": {
+    "full_sparse_replay": "DEFER_UNTIL_ONE_TO_MANY_PRE_ASSOCIATION_INTEGRATION",
+    "prevoxel_v2": "ADMIT_AS_DEVELOPMENT_ORACLE_POINT_GOLD",
+    "reason": "Voxelization mixes semantic instances in some stored points; the exact deterministic partition boundary is the sampled pre-voxel payload, with non-table parts excluded as contamination.",
+    "stored_point_v1": "REJECT_AS_LOSSY"
+  },
+  "evaluation_role": "DEVELOPMENT_ORACLE_POINT_GOLD_AND_PRE_ASSOCIATION_PURE_EXECUTOR",
+  "event_uid": "room0_20260820T093325Z_581b7c84_e00008077",
+  "mesh_alignment": {
+    "geometry_exact": true,
+    "mapping": {
+      "binary_size": 41983576,
+      "file_sha256": "9b5398080977ef236c4142104150ab4a6b742426cc5ef566b021cd66dc5d73ee",
+      "header_sha256": "9275f1f4b2236ace66d3d744b055c08d5789794a1e17be672949dde49cdb84f3",
+      "quad_count": 953647,
+      "vertex_count": 954492
+    },
+    "semantic": {
+      "binary_size": 43890939,
+      "file_sha256": "104cc7fe28bee178537e8034859e8f121f89a166ea37132b4574e10050947d98",
+      "header_sha256": "fefcad9ef0df8a37c8993438ee989c0baacec3ce3d55b9dbc44b47267610f8be",
+      "quad_count": 953647,
+      "vertex_count": 954492
+    }
+  },
+  "obs_uid": "room0_20260820T093325Z_581b7c84_f000165_r0020",
+  "oracle_only": true,
+  "partition_contract": {
+    "assignment_ref": {
+      "assignment_sha256": "438eb4d1ec00e73b45c96b80844670437ce72df49751ae48b1b5ef121d3982a1",
+      "format": "npy",
+      "path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/partition_prevoxel_oracle/prevoxel_partition_assignment.npy",
+      "sha256": "edbbd2c451bfcf0b06fb356ff410d10317301ef6502c39f9095d4ce620cc6820"
+    },
+    "assignment_sha256": "438eb4d1ec00e73b45c96b80844670437ce72df49751ae48b1b5ef121d3982a1",
+    "evidence_refs": [
+      "human-confirmed:room0_20260820T093325Z_581b7c84_f000165_r0020:floor_contamination",
+      "replica-semantic-info-sha256:23d3411755d0c55bdd3451121a647495cc94e76340c1b3cf3ad3963b71f15a66",
+      "replica-semantic-mesh-sha256:104cc7fe28bee178537e8034859e8f121f89a166ea37132b4574e10050947d98"
+    ],
+    "obs_uid": "room0_20260820T093325Z_581b7c84_f000165_r0020",
+    "partition_uid": "partition_5a0a039636c5fef2",
+    "parts": [
+      {
+        "disposition": "EMIT_OBSERVATION",
+        "identity_uid": "replica-instance:room_0:object:7",
+        "label": "table#7",
+        "part_index": 0,
+        "part_uid": "replica_object_00007_table"
+      },
+      {
+        "disposition": "EXCLUDE_AS_CONTAMINATION",
+        "identity_uid": "replica-instance:room_0:object:9",
+        "label": "sofa#9",
+        "part_index": 1,
+        "part_uid": "replica_object_00009_sofa"
+      },
+      {
+        "disposition": "EXCLUDE_AS_CONTAMINATION",
+        "identity_uid": "replica-instance:room_0:object:25",
+        "label": "floor#25",
+        "part_index": 2,
+        "part_uid": "replica_object_00025_floor"
+      },
+      {
+        "disposition": "EMIT_OBSERVATION",
+        "identity_uid": "replica-instance:room_0:object:27",
+        "label": "table#27",
+        "part_index": 3,
+        "part_uid": "replica_object_00027_table"
+      },
+      {
+        "disposition": "EXCLUDE_AS_CONTAMINATION",
+        "identity_uid": "replica-instance:room_0:object:60",
+        "label": "rug#60",
+        "part_index": 4,
+        "part_uid": "replica_object_00060_rug"
+      }
+    ],
+    "schema_version": "2.0.0",
+    "source_payload_sha256": "a881ef80e5c400f417c17c71ce856b9956e40a2b5739c53515671d5cedf968ce",
+    "source_point_count": 6287,
+    "source_stage": "PRE_VOXEL_SAMPLED_PAYLOAD"
+  },
+  "partition_uid": "partition_5a0a039636c5fef2",
+  "pass": true,
+  "point_gold": {
+    "assignment_file_sha256": "edbbd2c451bfcf0b06fb356ff410d10317301ef6502c39f9095d4ce620cc6820",
+    "assignment_path": "/home/chenkejun/beauty/conceptgraphs/experiments/revision_kernel_v2_10h_20260824/partition_prevoxel_oracle/prevoxel_partition_assignment.npy",
+    "assignment_sha256": "438eb4d1ec00e73b45c96b80844670437ce72df49751ae48b1b5ef121d3982a1",
+    "part_index_by_replica_object_id": {
+      "25": 2,
+      "27": 3,
+      "60": 4,
+      "7": 0,
+      "9": 1
+    },
+    "semantic_instance_counts": [
+      {
+        "class_name": "floor",
+        "count": 3705,
+        "replica_object_id": 25
+      },
+      {
+        "class_name": "table",
+        "count": 2328,
+        "replica_object_id": 27
+      },
+      {
+        "class_name": "table",
+        "count": 178,
+        "replica_object_id": 7
+      },
+      {
+        "class_name": "rug",
+        "count": 48,
+        "replica_object_id": 60
+      },
+      {
+        "class_name": "sofa",
+        "count": 28,
+        "replica_object_id": 9
+      }
+    ],
+    "semantic_surface_distance": {
+      "max": 0.0024339563825445977,
+      "min": 4.649108300553062e-06,
+      "q50": 0.0014413235737221087,
+      "q90": 0.0017170767692369128,
+      "q95": 0.0018459735689729366,
+      "q99": 0.002077357999161424
+    },
+    "source_stage": "PRE_VOXEL_SAMPLED_PAYLOAD"
+  },
+  "production_commit_permitted": false,
+  "pure_execution": {
+    "emitted_parts": [
+      {
+        "disposition": "EMIT_OBSERVATION",
+        "identity_uid": "replica-instance:room_0:object:7",
+        "part_uid": "replica_object_00007_table",
+        "point_count": 178
+      },
+      {
+        "disposition": "EMIT_OBSERVATION",
+        "identity_uid": "replica-instance:room_0:object:27",
+        "part_uid": "replica_object_00027_table",
+        "point_count": 2328
+      }
+    ],
+    "excluded_parts": [
+      {
+        "disposition": "EXCLUDE_AS_CONTAMINATION",
+        "identity_uid": "replica-instance:room_0:object:9",
+        "part_uid": "replica_object_00009_sofa",
+        "point_count": 28
+      },
+      {
+        "disposition": "EXCLUDE_AS_CONTAMINATION",
+        "identity_uid": "replica-instance:room_0:object:25",
+        "part_uid": "replica_object_00025_floor",
+        "point_count": 3705
+      },
+      {
+        "disposition": "EXCLUDE_AS_CONTAMINATION",
+        "identity_uid": "replica-instance:room_0:object:60",
+        "part_uid": "replica_object_00060_rug",
+        "point_count": 48
+      }
+    ],
+    "validation": {
+      "assigned_point_count": 6287,
+      "assignment_hash_exact": true,
+      "atomic": true,
+      "disjoint": true,
+      "emitted_part_count": 2,
+      "emitted_point_count": 2506,
+      "excluded_part_count": 3,
+      "excluded_point_count": 3781,
+      "exhaustive": true,
+      "identity_complete": true,
+      "part_point_counts": {
+        "replica_object_00007_table": 178,
+        "replica_object_00009_sofa": 28,
+        "replica_object_00025_floor": 3705,
+        "replica_object_00027_table": 2328,
+        "replica_object_00060_rug": 48
+      },
+      "pass": true,
+      "provenance_preserved": true,
+      "source_payload_hash_exact": true,
+      "source_point_count": 6287
+    }
+  },
+  "schema_version": "3.0.0",
+  "source_artifact_hashes_after": {
+    "depth": "6c873448befab7711df4fda86add0a510178786ff9c406d5aa83a92f67f85a74",
+    "mapping_mesh": "9b5398080977ef236c4142104150ab4a6b742426cc5ef566b021cd66dc5d73ee",
+    "processed_mask": "337a28d4b7f845b3f1c6d695da09bd802a0d879393ede358a06bdb951cff406b",
+    "rgb": "481d228126ad762b7bb192a0d151e12964f64ea562917509a80307ad4add1eb1",
+    "semantic_info": "23d3411755d0c55bdd3451121a647495cc94e76340c1b3cf3ad3963b71f15a66",
+    "semantic_mesh": "104cc7fe28bee178537e8034859e8f121f89a166ea37132b4574e10050947d98",
+    "stored_observation_pcd": "c77e582ae35a83fa31edd674b44ec5ff1bfd03fc6c9d6fb085d4b1e5b5f4c4ac"
+  },
+  "source_artifact_hashes_before": {
+    "depth": "6c873448befab7711df4fda86add0a510178786ff9c406d5aa83a92f67f85a74",
+    "mapping_mesh": "9b5398080977ef236c4142104150ab4a6b742426cc5ef566b021cd66dc5d73ee",
+    "processed_mask": "337a28d4b7f845b3f1c6d695da09bd802a0d879393ede358a06bdb951cff406b",
+    "rgb": "481d228126ad762b7bb192a0d151e12964f64ea562917509a80307ad4add1eb1",
+    "semantic_info": "23d3411755d0c55bdd3451121a647495cc94e76340c1b3cf3ad3963b71f15a66",
+    "semantic_mesh": "104cc7fe28bee178537e8034859e8f121f89a166ea37132b4574e10050947d98",
+    "stored_observation_pcd": "c77e582ae35a83fa31edd674b44ec5ff1bfd03fc6c9d6fb085d4b1e5b5f4c4ac"
+  },
+  "source_hashes_after": {
+    "associations.jsonl": "c25844d1ebf3e6c574cfcfe91b52fa88e94fc6a778a8edce730872bbb40b0a5c",
+    "final_membership.json": "7456cf520252f3f5310457f8c0d67cb1643eb558258e2a98400fad04dc71fc8d",
+    "mapping_events.jsonl": "e42a46e2a69220310431385363b29bf49d0a666f57f447e4b31325224cd58d0d",
+    "object_pair_decisions.jsonl": "89ea72e4593240f32b95712ce7168a722737ee69bf7803cb316c4ac35ae5197b",
+    "object_versions.jsonl": "a51ace1a0e5338103c35c064d2e69597895b9438d6285f983ea0f96f4ed29e27",
+    "observations.jsonl": "0810f71c112b18cf37cf3c275aaede85dae8d13e0eff9bddd6c032ce1a11c133"
+  },
+  "source_hashes_before": {
+    "associations.jsonl": "c25844d1ebf3e6c574cfcfe91b52fa88e94fc6a778a8edce730872bbb40b0a5c",
+    "final_membership.json": "7456cf520252f3f5310457f8c0d67cb1643eb558258e2a98400fad04dc71fc8d",
+    "mapping_events.jsonl": "e42a46e2a69220310431385363b29bf49d0a666f57f447e4b31325224cd58d0d",
+    "object_pair_decisions.jsonl": "89ea72e4593240f32b95712ce7168a722737ee69bf7803cb316c4ac35ae5197b",
+    "object_versions.jsonl": "a51ace1a0e5338103c35c064d2e69597895b9438d6285f983ea0f96f4ed29e27",
+    "observations.jsonl": "0810f71c112b18cf37cf3c275aaede85dae8d13e0eff9bddd6c032ce1a11c133"
+  },
+  "source_reconstruction": {
+    "color_normalization_replay": "CUDA_FLOAT32_RECIPROCAL_MULTIPLICATION_EMULATED_ON_CPU",
+    "color_reconstruction_exact": true,
+    "exact": true,
+    "point_reconstruction_exact": true,
+    "prevoxel_sampled_point_count": 6287,
+    "raw_mask_valid_depth_point_count": 18861,
+    "rgb_decoder": "imageio.v2.imread",
+    "source_payload_sha256": "a881ef80e5c400f417c17c71ce856b9956e40a2b5739c53515671d5cedf968ce",
+    "stats": {
+      "after_dbscan_points": 1990,
+      "after_downsample_points": 2705,
+      "cluster_count": 2,
+      "input_points": 6287,
+      "largest_centers_distance": 0.7057111952556644,
+      "largest_cluster_ratio": 0.7356746765249538,
+      "second_cluster_ratio": 0.2643253234750462
+    },
+    "stored_point_count": 1990
+  },
+  "voxel_information_loss": {
+    "majority_purity_quantiles": {
+      "max": 1.0,
+      "min": 0.5,
+      "q50": 1.0,
+      "q90": 1.0,
+      "q95": 1.0,
+      "q99": 1.0
+    },
+    "majority_vs_centroid_surface_disagreement_count": 22,
+    "mixed_voxel_count_before_dbscan": 76,
+    "mixed_voxel_count_in_stored_payload": 76,
+    "mixed_voxel_ratio_in_stored_payload": 0.03819095477386935,
+    "post_dbscan_stored_point_count": 1990,
+    "pre_dbscan_voxel_point_count": 2705,
+    "stored_level_hard_partition_admissible": false
+  }
+}

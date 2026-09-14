@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "room0_20260819T055117Z_ffe24566",
+  "scene_id": "room0",
+  "gate_status": "PASS",
+  "mapping_mutated": false,
+  "finding_count": 2455,
+  "root_cause_count": 574,
+  "certainty_counts": {
+    "INSUFFICIENT_EVIDENCE": 9,
+    "LIKELY_MAPPING_CONFLICT": 502,
+    "AMBIGUOUS_MAPPING_RISK": 1944
+  },
+  "severity_counts": {
+    "LOW": 72,
+    "HIGH": 732,
+    "MEDIUM": 1651
+  },
+  "stage_counts": {
+    "system": 1,
+    "detection": 555,
+    "segmentation": 519,
+    "geometry": 50,
+    "association": 1268,
+    "fusion": 42,
+    "object_identity": 20
+  },
+  "checker_counts": {
+    "SYS-001": 1,
+    "DET-001": 500,
+    "DET-002": 54,
+    "DET-004": 1,
+    "SEG-005": 17,
+    "SEG-002": 1,
+    "SEG-003": 1,
+    "SEG-004": 500,
+    "GEO-003": 1,
+    "GEO-002": 1,
+    "GEO-004": 47,
+    "GEO-005": 1,
+    "ASSOC-002": 63,
+    "ASSOC-003": 500,
+    "ASSOC-004": 500,
+    "ASSOC-005": 204,
+    "ASSOC-010": 1,
+    "FUSE-007": 41,
+    "FUSE-009": 1,
+    "OBJ-005": 13,
+    "OBJ-003": 6,
+    "OBJ-006": 1
+  },
+  "route_counts": {
+    "SUPPLEMENT_EVIDENCE": 8,
+    "HUMAN_REVIEW": 602,
+    "VLM_REVIEW": 1577,
+    "LOG_ONLY": 268
+  },
+  "insufficient_evidence_count": 9,
+  "policy_source": "audit_config_fallback",
+  "audit_config_version": "1.0.0",
+  "elapsed_seconds": 205.989,
+  "case_builder": {
+    "built": 200,
+    "warnings": [],
+    "max_cases": 200
+  }
+}

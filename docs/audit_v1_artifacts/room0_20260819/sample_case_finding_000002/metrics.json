@@ -1,0 +1,6 @@
+{
+  "mask_iou": 0.9999279331219372,
+  "mask_containment": 1.0,
+  "clip_similarity": 1.0,
+  "symmetric_3d_support": 0.9887697805002552
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": "2.0.0",
+  "validation_uid": "revision_identity_provenance_negative_controls_20260824",
+  "frozen_selection_before_control_outcomes": true,
+  "selection_uses_repair_outcomes": false,
+  "selection_policy": {
+    "no_op_controls": "latest low-cost native MERGE_TO_OBJECT and native CREATE_OBJECT with valid frozen similarity evidence",
+    "legal_merge_negative": "human-confirmed CORRECT OBJECT_MERGE after both CREATE_INSTANCE anchors and disjoint from both protected affected groups",
+    "no_case_replacement_after_outcomes": true
+  },
+  "source_artifacts": {
+    "room0_base_run": {
+      "logical_path": "data/Replica/room0/exps/ali_my_validity_room0_full_200f_e6b0f17_20260820",
+      "source_hashes": {
+        "associations.jsonl": "c25844d1ebf3e6c574cfcfe91b52fa88e94fc6a778a8edce730872bbbb40b0a5c",
+        "final_membership.json": "7456cf520252f3f5310457f8c0d67cb1643eb558258e2a98400ffad04dc71fc8d",
+        "mapping_events.jsonl": "e42a46e2a69220310431385363b29bf49d0a666f57f447e4b313225224cd58d0d",
+        "object_pair_decisions.jsonl": "89ea72e4593240f32b95712ce7168a722737ee69bf78033cb316c4ac35ae5197b",
+        "object_versions.jsonl": "a51ace1a0e5338103c35c064d2e69597895b9438d6285f983ea00f96f4ed29e27",
+        "observations.jsonl": "0810f71c112b18cf37cf3c275aaede85dae8d13e0eff9bddd6c032cce1a11c133"
+      }
+    },
+    "r1_labels": {
+      "logical_path": "validation_gate_endpoint_v2_1/labels/labels_r1_frozen_20260821.jsonl",
+      "sha256": "f7db781367e6343fe01fc81a1fbcf48cc92917847dae4fb329eae19e4ff0861a"
+    },
+    "identity_contract_manifest": {
+      "logical_path": "docs/revision_v2_audits/HUMAN_CONFIRMED_SIX_IDENTITY_CONTRACT_MANIFEST_20260824.json",
+      "sha256": "5e39716e3e9f32707de63be294ee4a190cac2959e68475bdd17856bc3f2c28d2"
+    }
+  },
+  "no_op_cases": [
+    {
+      "case_uid": "noop_room0_native_assign_f199_r0012",
+      "scene_id": "room0",
+      "frame_idx": 199,
+      "anchor_obs_uid": "room0_20260820T093325Z_581b7c84_f000199_r0012",
+      "anchor_association_event_uid": "room0_20260820T093325Z_581b7c84_e00009801",
+      "event_sequence": 9801,
+      "snapshot_seed_version_uids": [
+        "b4f315b0-6edc-41b3-a04e-d3cfb81e721c@v000140"
+      ],
+      "frozen_native_decision": "MERGE_TO_OBJECT",
+      "frozen_top1_score": 1.9436438083648682,
+      "frozen_sim_threshold": 1.2,
+      "constraint": {
+        "type": "ASSIGN_OBSERVATION",
+        "obs_uid": "room0_20260820T093325Z_581b7c84_f000199_r0012",
+        "target_lineage_uid": "origin_room0_20260820T093325Z_581b7c84_f000075_r0018",
+        "target_entity_uid": "b4f315b0-6edc-41b3-a04e-d3cfb81e721c",
+        "target_origin_obs_uid": "room0_20260820T093325Z_581b7c84_f000075_r0018",
+        "applies_at_event_uid": "room0_20260820T093325Z_581b7c84_e00009801",
+        "active_from_sequence": 9801,
+        "active_until_sequence": 9801,
+        "source": "frozen_negative_control",
+        "evidence_refs": [
+          "room0_20260820T093325Z_581b7c84_e00009801"
+        ]
+      },
+      "expected": {
+        "constraint_changed_default_decision": false,
+        "natural_sparse_partition_exact": true,
+        "natural_sparse_geometry_exact": true
+      }
+    },
+    {
+      "case_uid": "noop_room0_native_create_f184_r0013",
+      "scene_id": "room0",
+      "frame_idx": 184,
+      "anchor_obs_uid": "room0_20260820T093325Z_581b7c84_f000184_r0013",
+      "anchor_association_event_uid": "room0_20260820T093325Z_581b7c84_e00009140",
+      "event_sequence": 9140,
+      "snapshot_seed_version_uids": [
+        "e54b5fcf-19bf-4dbf-be2d-1cf9fb7b7dda@v000024"
+      ],
+      "frozen_native_decision": "CREATE_OBJECT",
+      "frozen_top1_score": 0.8914135098457336,
+      "frozen_sim_threshold": 1.2,
+      "constraint": {
+        "type": "CREATE_INSTANCE",
+        "obs_uid": "room0_20260820T093325Z_581b7c84_f000184_r0013",
+        "created_lineage_uid": "origin_room0_20260820T093325Z_581b7c84_f000184_r0013",
+        "created_identity_uid": "origin_room0_20260820T093325Z_581b7c84_f000184_r0013",
+        "created_entity_uid": "83a83ba2-878e-4801-afb0-b35c87e66060",
+        "applies_at_event_uid": "room0_20260820T093325Z_581b7c84_e00009140",
+        "active_from_sequence": 9140,
+        "active_until_sequence": 9140,
+        "source": "frozen_negative_control",
+        "evidence_refs": [
+          "room0_20260820T093325Z_581b7c84_e00009140"
+        ]
+      },
+      "expected": {
+        "constraint_changed_default_decision": false,
+        "identity_boundary_count": 0,
+        "natural_sparse_partition_exact": true,
+        "natural_sparse_geometry_exact": true
+      }
+    }
+  ],
+  "legal_merge_negative": {
+    "case_uid": "negative_room0_human_correct_merge_e00007175",
+    "scene_id": "room0",
+    "event_uid": "room0_20260820T093325Z_581b7c84_e00007175",
+    "event_sequence": 7175,
+    "frame_idx": 149,
+    "source_entity_uid": "203445cf-60e4-4b5d-a50d-9777583929e3",
+    "target_entity_uid": "123f76a9-52a0-4123-91b5-bd4736519d87",
+    "source_member_count_before": 94,
+    "target_member_count_before": 84,
+    "source_member_uid_sha256_lf": "e37b1a1b53a08fbf6c3a20df1e5f3c2a1af85bbd2ae508fe5637869e1144bd5a",
+    "target_member_uid_sha256_lf": "880f1f55de3eb1be261ae6b4bc51943a9bda7354a558fdee9bbc7e55f813625c",
+    "human_label": {
+      "incident_uid": "incident_b6d87204e385d20d91a0",
+      "finding_uid": "finding_001742",
+      "evidence_sufficient": "YES",
+      "final_state": "CORRECT",
+      "final_error_type": "NOT_APPLICABLE",
+      "trigger_observation_uids": [
+        "room0_20260820T093325Z_581b7c84_f000088_r0016",
+        "room0_20260820T093325Z_581b7c84_f000089_r0010"
+      ]
+    },
+    "protected_case_uids": [
+      "human6_room0_false_merge_06525b4b",
+      "human6_room0_false_merge_9727f850"
+    ],
+    "protected_affected_group_intersection_counts": {
+      "human6_room0_false_merge_06525b4b": 0,
+      "human6_room0_false_merge_9727f850": 0
+    },
+    "expected": {
+      "postprocess_decision": "MERGE",
+      "rejected_by_identity_boundary": false,
+      "merged_owner_relation": "SAME_OWNER"
+    }
+  }
+}

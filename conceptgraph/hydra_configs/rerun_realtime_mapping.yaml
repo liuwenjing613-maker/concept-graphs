@@ -1,0 +1,105 @@
+defaults:
+  - base
+  - base_mapping
+  - replica
+  - sam
+  - classes
+  - logging_level
+  - _self_
+
+
+detections_exp_suffix: s_detections_stride10 # helpful label to identify your detections
+force_detection: !!bool False
+save_detections: !!bool True
+
+make_edges: !!bool True
+seed: 0
+save_parity_trace: !!bool False
+# Unified evidence sidecar. Disabling it must not change mapping results.
+save_evidence: !!bool True
+evidence_mode: best_effort  # use strict for formal runs
+evidence_top_k: 3
+evidence_save_observation_pcd: !!bool True
+evidence_observation_pcd_max_points: 0  # 0 stores the complete fused observation PCD
+audit_environment_mode: static
+
+# Counterfactual revision is opt-in and remains inert by default.  A live
+# corruption requires an explicit manifest and controlled_validation mode.
+revision:
+  enabled: !!bool False
+  mode: controlled_validation
+  corruption_plan: null
+  log_dir_name: revision
+
+# Selective pre-fusion arbitration. create_only means the threshold-distance
+# trigger applies only when ali-dev's original decision is NEW.
+association_gate:
+  mode: off  # off | audit | oracle | vlm | human
+  human_merge_review: true  # human and VLM; approve/reject every otherwise accepted periodic/final object merge
+  margin_threshold: 0.20
+  threshold_distance: 0.30
+  threshold_scope: create_only  # create_only | both
+  review_all_new: true  # supplemental review of every still-untriggered baseline NEW, including bootstrap
+  mask_change_enabled: true  # baseline ATTACH only; requires overlap spatial similarity
+  support_window: 5
+  support_min_history: 3
+  support_reference_min: 0.75
+  support_drop_threshold: 0.20  # exploratory default; not a calibrated accuracy claim
+  association_top_k: 2
+  create_top_k: 3
+  candidate_iou_filter_enabled: true
+  candidate_iou_threshold: 0.85  # full room0 scan: 1,218 same-GT pairs removed, 0 different-GT pairs
+  model: qwen3.6:35b-a3b-mtp-q4_K_M
+  reasoning_effort: high
+  base_url: http://127.0.0.1:11464
+  timeout_seconds: 300
+  max_retries: 1
+  api_key_env: GATE_API_KEY
+  api_key_required: false
+  oracle_gt_path: null
+  oracle_min_purity: 0.80
+  max_events: 0  # 0 means unlimited; positive values are smoke-test only
+
+
+stride: 10
+exp_suffix: r_mapping_stride10 # helpful label to identify your mapping experiment
+
+save_video: !!bool False
+save_objects_all_frames: !!bool False
+
+downsample_voxel_size: 0.01
+obj_pcd_max_points: 5000
+
+debug_render: !!bool False
+vis_render: !!bool False
+
+denoise_interval: 5           # Run DBSCAN every k frame. This operation is heavy
+filter_interval: 5            # Filter objects that have too few associations or are too small
+merge_interval: 5             # Merge objects based on geometric and semantic similarity
+run_denoise_final_frame: !!bool True
+run_filter_final_frame: !!bool True
+run_merge_final_frame: !!bool True
+
+dbscan_remove_noise: !!bool True
+dbscan_eps: 0.1
+dbscan_min_points: 10
+
+# Selection criteria of the fused object point cloud
+obj_min_points: 0
+obj_min_detections: 1
+
+# For merge_overlap_objects() function
+use_rerun: !!bool True
+save_rerun: !!bool True
+rerun_connect_addr: null  # e.g. rerun+http://127.0.0.1:9876/proxy
+
+# hydra:
+#   verbose: true
+  # mode: MULTIRUN
+  # sweeper:
+  #   params:
+  #     downsample_voxel_size: 0.025, 0.01, 0.001, 0.001
+  #     obj_pcd_max_points: 5000, 10000, 100000, 100000
+
+# YOLO inference target; original RGB/depth/SAM coordinates remain 1200x680.
+yolo_imgsz: 1200

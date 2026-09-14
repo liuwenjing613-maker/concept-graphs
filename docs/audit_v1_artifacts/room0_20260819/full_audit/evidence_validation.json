@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0.0",
+  "run_id": "room0_20260819T055117Z_ffe24566",
+  "gate_status": "PASS",
+  "system_findings": [
+    {
+      "finding_uid": "finding_000001",
+      "checker_id": "SYS-001",
+      "stage": "system",
+      "subtype": "EVIDENCE_NOT_AVAILABLE",
+      "scope": {},
+      "certainty": "INSUFFICIENT_EVIDENCE",
+      "severity": "LOW",
+      "policy_context": {
+        "observation_ownership": "exclusive_single_target",
+        "environment_mode": "static",
+        "policy_source": "audit_config_fallback"
+      },
+      "proven_facts": [
+        {
+          "name": "affected_count",
+          "value": 1
+        }
+      ],
+      "hypotheses": [],
+      "vetoes": [],
+      "missing_evidence": [
+        "manifest.audit_policy"
+      ],
+      "evidence_refs": {},
+      "route": "SUPPLEMENT_EVIDENCE",
+      "repair_allowed": false,
+      "review_priority": 33
+    }
+  ]
+}
