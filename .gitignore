@@ -182,3 +182,5 @@ outputs
 .runtime-deps/
 .hydra/
 rerun_realtime_mapping.log
+
+latest_pcd_save

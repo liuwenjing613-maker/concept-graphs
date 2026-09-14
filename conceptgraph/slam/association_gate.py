@@ -535,18 +535,19 @@ def _write_rgb(path: Path, image_rgb: np.ndarray) -> None:
 
 def _image_data_url(path: Path) -> str:
     raw = path.read_bytes()
-    # The upstream VLM accepts raster images only.  Evidence is always rendered
-    # by OpenCV as JPEG; validate both the container signature and decodability
-    # before constructing the request so SVG (or a mislabeled file) can never
-    # reach the API as ``data:image/jpeg``.
-    if not raw.startswith(b"\xff\xd8\xff"):
-        raise ValueError(f"VLM evidence is not a JPEG bitstream: {path}")
+    # Validate the actual raster format; v2 quality evidence is lossless PNG.
+    if raw.startswith(b"\xff\xd8\xff"):
+        mime="image/jpeg"
+    elif raw.startswith(b"\x89PNG\r\n\x1a\n"):
+        mime="image/png"
+    else:
+        raise ValueError(f"VLM evidence is not a JPEG/PNG bitstream: {path}")
     decoded = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
     if decoded is None or decoded.size == 0:
-        raise ValueError(f"VLM evidence JPEG cannot be decoded: {path}")
+        raise ValueError(f"VLM evidence raster cannot be decoded: {path}")
     if min(decoded.shape[:2]) < 512:
         raise ValueError(f"VLM evidence raster is smaller than 512px: {path} {decoded.shape[1]}x{decoded.shape[0]}")
-    return "data:image/jpeg;base64," + base64.b64encode(raw).decode("ascii")
+    return "data:" + mime + ";base64," + base64.b64encode(raw).decode("ascii")
 
 
 def _image_media_descriptor(path: Path) -> dict:
@@ -555,9 +556,10 @@ def _image_media_descriptor(path: Path) -> dict:
     decoded = cv2.imdecode(np.frombuffer(raw, dtype=np.uint8), cv2.IMREAD_COLOR)
     return {
         "path": path.name,
-        "mime_type": "image/jpeg",
-        "data_url_prefix": "data:image/jpeg;base64,",
-        "jpeg_magic_hex": raw[:3].hex(),
+        "mime_type": data_url.split(";",1)[0][5:],
+        "data_url_prefix": data_url.split(",",1)[0]+",",
+        "jpeg_magic_hex": raw[:3].hex() if raw.startswith(b"\xff\xd8\xff") else None,
+        "raster_magic_hex": raw[:8].hex(),
         "encoded_bytes": len(raw),
         "payload_sha256": hashlib.sha256(raw).hexdigest(),
         "width": int(decoded.shape[1]),

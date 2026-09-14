@@ -4,8 +4,8 @@ ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-}"
 if [[ "$MODE" != human && "$MODE" != auto ]]; then
   echo "Usage: bash $0 human|auto [--scene room0 --end 2000 --stride 5 --gpu 1 --exp-suffix NAME]"
-  echo "Both modes run staged VLM. human: unresolved cases need a choice. auto: discard observation / keep separate."
-  echo "Negative decision + containment >90%: directly approve merge in both modes."
+  echo "Both modes run staged VLM. human: unresolved cases need a choice. auto: uncertain observation returns to baseline; uncertain merge defers."
+  echo "No geometry override. CLEAN pair: one SAME; uncertain quality: two consecutive SAME."
   exit 2
 fi
 shift

@@ -9,6 +9,22 @@ from conceptgraph.slam.association_gate import _utc_now,_jsonl_append
 
 class V7Votes(MergeVotes):
     def __init__(self):super().__init__(merge_required=2,reject_required=2)
+    def record(self,key,frame,event_id,choice,merge_required=2):
+        if merge_required not in (1,2):raise ValueError('invalid merge threshold')
+        previous=self.merge_required
+        try:
+            self.merge_required=merge_required
+            approved,after=super().record(key,frame,event_id,choice)
+            self.state(key)['required_at_last_decision']=merge_required
+            return approved,dict(self.state(key))
+        finally:self.merge_required=previous
+
+    def snapshot(self):
+        result=super().snapshot()
+        result['merge_required_consecutive']={'both_clean':1,'quality_insufficient':2,'quality_interface_failure':'DEFER'}
+        result['quality_confirmation_is_not_merge_vote']=True
+        return result
+
     def skip_reason(self,key,frame):
         why=super().skip_reason(key,frame)
         return 'locked_after_two_rejections' if why=='locked_after_three_rejections' else why
@@ -72,27 +88,28 @@ class V7MergeGate:
             binding=self.runtime.evidence.render_merge(directory,source,target,frame_idx,binding)
             event['render_seconds']=time.perf_counter()-render_started
             snapshot=binding['h_snapshot_uid'];event['h_snapshot_uid']=snapshot
-            images=[('QUALITY A',directory/'quality_A.jpg'),('QUALITY B',directory/'quality_B.jpg'),('MERGE',directory/'merge.png')]
+            images=[('QUALITY A',directory/'quality_A.png'),('QUALITY B',directory/'quality_B.png'),('MERGE',directory/'merge.png')]
             self.runtime.pending(event_id,directory,'merge',images,['MERGE','KEEP_SEPARATE'])
             self.runtime.rows[event_id].update(parent_event=parent_event,h_snapshot_uid=snapshot,stages=event['stages'])
             qualities=[]
             specs=[]
             for a in 'AB':
                 labels=['H'+str(i+1) for i in range(len(binding['histories'][a]['selected']))]
-                specs.append((directory/('quality_'+a),'node_quality',[('NODE '+a,directory/f'quality_{a}.jpg')],labels))
+                specs.append((directory/('quality_'+a),'node_quality',[('NODE '+a,directory/f'quality_{a}.png')],labels))
             results=self.runtime.stage_many(event_id,specs,snapshot)
             event['stages'].extend(results);qualities=[result['value'] for result in results]
-            if any(q is None for q in qualities):reason='NODE_QUALITY_INTERFACE_FAILURE'
-            elif any(q['choice']=='CONTAMINATED' for q in qualities):
+            event['quality_outputs']=qualities
+            event['quality_interface_failure']=any(r.get('interface_failure') or r['value'] is None for r in results)
+            event['merge_required']=1 if all(q and q['choice']=='CLEAN' for q in qualities) else 2
+            if any(q and q['choice']=='CONTAMINATED' for q in qualities):
                 choice='KEEP_SEPARATE';reason='NODE_CONTAMINATED'
-            elif any(q['choice']!='CLEAN' for q in qualities):reason='NODE_QUALITY_INSUFFICIENT'
             else:
                 result=self.runtime.stage(event_id,directory/'identity','merge',[('MERGE',directory/'merge.png')],snapshot)
-                event['stages'].append(result)
-                value=result['value']
+                event['stages'].append(result);value=result['value'];event['identity_output']=value
                 choice={'SAME':'MERGE','DIFFERENT':'KEEP_SEPARATE','UNCERTAIN':None}.get(value['choice']) if value else None
-                event['identity_output']=value
                 reason='IDENTITY_UNCERTAIN' if value else 'IDENTITY_INTERFACE_FAILURE'
+                if event['quality_interface_failure']:
+                    choice=None;reason='NODE_QUALITY_INTERFACE_FAILURE'
             if choice is None:
                 choice=self.runtime.fallback_choice(event_id,directory,'merge',images,reason,[],snapshot)
                 event['fallback_reason']=reason
@@ -113,7 +130,7 @@ class V7MergeGate:
     def finish(self,source,target,key,states,event,directory,frame_idx,choice):
         event_id=event['event_id']
         if states!=state_key([object_state(source),object_state(target)]):raise self.runtime.invariant_error('objects changed during blocking review')
-        approved,after=self.votes.record(key,frame_idx,event_id,choice)
+        approved,after=self.votes.record(key,frame_idx,event_id,choice,merge_required=event.get('merge_required',2))
         if approved:self.certificates[key]=states
         self.last_event[key]=event
         event.update(model_output=dict(choice=choice,confidence=0),vote_after=after,status='complete',
@@ -123,7 +140,7 @@ class V7MergeGate:
         save_json(directory/'decision.json',event);_jsonl_append(self.root/'events.jsonl',event)
         self.runtime.rows.setdefault(event_id,dict(event_id=event_id,images=[])).update(event)
         self.runtime.publish();self.stats['reviewed']+=1;self._summary('ready')
-        print(f'[v7-merge] {event_id} {choice} merge={after["merge_streak"]}/2 reject={after["reject_total"]}/2 {event["execution"]}',flush=True)
+        print(f'[v7-merge] {event_id} {choice} merge={after["merge_streak"]}/{event.get("merge_required",2)} reject={after["reject_total"]}/2 {event["execution"]}',flush=True)
         return None if approved else 'v7_merge_deferred'
 
     def mark_executed(self,key,target_uid):

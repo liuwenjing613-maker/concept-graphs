@@ -9,6 +9,7 @@ from conceptgraph.slam.staged_identity_cards import audit_card,unproject
 from conceptgraph.slam.human_instance_merge import object_state,state_key
 from conceptgraph.slam.vlm_runtime import save_json
 from conceptgraph.slam import v7_render as render
+from conceptgraph.slam.v7_quality_render import quality_card,select_quality
 
 class LiveEvidence:
     def __init__(self,runtime):
@@ -16,6 +17,7 @@ class LiveEvidence:
         self.exp=runtime.root.parent
         self.observations={}
         self.offset=0
+        self.quality_contexts={}
         self.allowed_feature_refs=set()
         self._resolved_exp=self.exp.resolve()
 
@@ -67,12 +69,13 @@ class LiveEvidence:
         if cur['frame_idx']!=frame:raise EvidenceInvariantError('I1 must be from this issue S frame')
         if not np.array_equal(cur['rgb'],rgb):raise EvidenceInvariantError('current RGB mismatch')
         directory.mkdir(parents=True,exist_ok=True)
-        audit_card(cur,directory/'quality.jpg')
+        quality_card([cur],directory/'quality.png')
+        self.bind_quality(directory/'quality.png',[uid],dict(observation_uid=uid))
         states=[object_state(o) for _,_,o in candidates]
         if len({s['object_uid'] for s in states})!=len(states):raise EvidenceInvariantError('duplicate objects')
         binding=dict(current_observation_uid=uid,h_frame=frame,objects=states,candidates=[])
         clouds={'current':np.asarray(detection['pcd'].points).copy()}
-        images=[('CURRENT QUALITY',directory/'quality.jpg')]
+        images=[('CURRENT QUALITY',directory/'quality.png')]
         for alias,index,obj in candidates:
             members=self.members(obj,frame)
             if uid in members:raise EvidenceInvariantError('CURRENT already fused into candidate')
@@ -128,13 +131,20 @@ class LiveEvidence:
             projection_cloud_sha256=states[other]['pcd_sha256'])
         frames={i:dict(pose=f['pose_c2w']) for i,f in self.runtime.projection_frames.items() if i<=frame}
         binding['selected_identity_histories']={a:render.select(binding,a,frames) for a in 'AB'}
+        for a in 'AB':
+            binding['histories'][a]['identity_original_selected']=binding['histories'][a]['selected']
+            binding['histories'][a]['selected']=select_quality(binding['histories'][a]['all'])
         return binding
 
     def render_merge(self,directory,source,target,frame,binding):
         states={a:object_state(o) for a,o in zip('AB',(source,target))}
         if states!=binding['objects']:raise EvidenceInvariantError('objects changed after history selection')
         clouds={a:np.asarray(o['pcd'].points).copy() for a,o in zip('AB',(source,target))}
-        for a in 'AB':render.node_card(a,binding['histories'][a]['selected'],directory/f'quality_{a}.jpg',self.visual)
+        for a,obj in zip('AB',(source,target)):
+            rows=binding['histories'][a]['selected'];uids=[r['uid'] for r in rows]
+            quality_card([self.visual(u) for u in uids],directory/f'quality_{a}.png',node=True)
+            generation=self.runtime.owner._instance_merge_gate.votes.generations.get(str(obj['id']),0)
+            self.bind_quality(directory/f'quality_{a}.png',uids,dict(object_uid=str(obj['id']),generation=generation))
         anchor=binding['selected_anchor'];other='B' if anchor['alias']=='A' else 'A';v=self.visual(anchor['uid'])
         projection=project_points(clouds[other],v['pose'],v['K'],v['depth'])
         cm=v['mask'];pm=np.zeros_like(cm);uv=projection['reliable_uv'];pm[uv[:,1],uv[:,0]]=True
@@ -143,12 +153,20 @@ class LiveEvidence:
         np.savez_compressed(directory/'display_support.npz',anchor_mask=cm,projected_mask=pm)
         im,meta=render.merge_card(binding,binding['selected_identity_histories'],self.visual,cm,pm);im.save(directory/'merge.png')
         binding.update(layout=meta,
-            images={name:sha(directory/name) for name in ['quality_A.jpg','quality_B.jpg','merge.png']},
+            images={name:sha(directory/name) for name in ['quality_A.png','quality_B.png','merge.png']},
             geometry_sha256=sha(directory/'live_pair.npz'),depth_tolerance_m=.03)
         snapshot=hashlib.sha256(json.dumps(binding,sort_keys=True).encode()).hexdigest()
         binding['h_snapshot_uid']=snapshot
         save_json(directory/'input_manifest.json',binding)
         return binding
+
+    def bind_quality(self,path,uids,identity):
+        records=[]
+        for u in uids:
+            o=self.observations[u];v=self.visual(u)
+            records.append(dict(uid=u,mask_ref=o['processed_mask_ref'],
+                rgb_sha256=hashlib.sha256(np.asarray(v['rgb']).tobytes()).hexdigest()))
+        self.quality_contexts[str(path)]=dict(identity=identity,histories=records)
 
     def merge(self,directory,source,target,frame):
         return self.render_merge(directory,source,target,frame,self.prepare_merge(source,target,frame))

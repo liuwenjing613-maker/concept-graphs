@@ -12,9 +12,12 @@ from conceptgraph.slam.human_instance_merge import object_state,state_key
 from conceptgraph.slam.association_gate import HumanInputUnavailableError,_utc_now,_jsonl_append
 from conceptgraph.slam.v7_evidence import LiveEvidence
 
+from conceptgraph.slam import v7_quality as quality_v2
+
 PROMPTS=Path(__file__).with_name('prompts')/'v7'
 
 def parse_stage(content,task,labels=None):
+    if task in quality_v2.TASKS:return quality_v2.parse_quality(content,task)
     def decode(t):
         o,end=DECODER.raw_decode(t.lstrip())
         if t.lstrip()[end:].strip():raise ValueError('trailing text')
@@ -46,21 +49,6 @@ def parse_stage(content,task,labels=None):
             raise ValueError('invalid merge fields')
         if type(value['confidence']) is not int or not 0<=value['confidence']<=5 or not isinstance(value['reason'],str) or not 1<=len(value['reason'])<=240:
             raise ValueError('invalid merge values')
-    elif task=='node_quality':
-        if set(value)!={'views','choice','reason'} or value['choice'] not in {'CLEAN','CONTAMINATED','INSUFFICIENT'}:
-            raise ValueError('invalid node quality fields')
-        if not isinstance(value['views'],list) or [v.get('view') for v in value['views']]!=labels:
-            raise ValueError('missing or reordered history labels')
-        for v in value['views']:
-            if set(v)!={'view','objects','status','evidence'} or v['status'] not in {'SINGLE','MULTIPLE','UNCERTAIN'}:
-                raise ValueError('invalid history view')
-            if any(not isinstance(v[k],str) or not 1<=len(v[k])<=240 for k in ('objects','evidence')):
-                raise ValueError('invalid history text')
-        if not isinstance(value['reason'],str) or not 1<=len(value['reason'])<=240:raise ValueError('invalid node reason')
-        if value['choice']=='CLEAN' and any(v['status']!='SINGLE' for v in value['views']):
-            raise ValueError('CLEAN contradicts history status')
-        if any(v['status']=='MULTIPLE' for v in value['views']) and value['choice']!='CONTAMINATED':
-            raise ValueError('MULTIPLE contradicts node status')
     else:raise ValueError('unknown stage')
     return value,mode,original
 
@@ -83,14 +71,17 @@ class V7Runtime(VLMRuntime):
         self.status='running';self.prompts={}
         self.root.joinpath('review').mkdir(exist_ok=True)
         self.evidence=LiveEvidence(self)
-        self.versions=dict(version='v7_CLIP_must',model=owner.model,fallback=self.fallback,
-            execution_revision='20260914_unique_anchor_safe_fallback',
+        self.quality_model_identity=quality_v2.verify_model(self.owner.model,self.endpoint_pool.urls)
+        self.quality_service=quality_v2.QualityService(self)
+        self.versions=dict(version='v7_CLIP_must_v2',model=owner.model,fallback=self.fallback,
+            execution_revision='20260914_selective_quality_dynamic_votes_exact_cache',
+            quality_prompt_sha256={p.name:sha(p) for p in quality_v2.PROMPTS.glob('*.txt')},quality_policy=quality_v2.POLICY,model_digest=quality_v2.MODEL_DIGEST,quality_model_identity=self.quality_model_identity,
             endpoints=self.endpoint_pool.urls,max_parallel=len(self.endpoint_pool.urls),timeout_retries=3,
             timeout_failure_after=4,
             prompt_sha256={p.stem:sha(p) for p in PROMPTS.glob('*.txt')},templates_sha256=sha(PROMPTS/'request_templates.json'),
             renderer_dependencies=dict(pillow=PIL.__version__,opencv=cv2.__version__,raqm=True),
-            renderer='focused-fivepanel + full-RGB-node-audit + target-RGB-history/RGB-projection/zoom',
-            merge_required_consecutive=2,reject_required_total=2,containment_distance_m=self.containment_distance,
+            renderer='quality: accepted red full RGB + focus25 PNG / H1-H3; identity: unchanged must',
+            merge_required_consecutive='1 if both CLEAN; 2 if quality INSUFFICIENT; failure defers',reject_required_total=2,containment_distance_m=self.containment_distance,
             auto_requires_human=False,containment_trigger='removed')
         save_json(self.root/'vlm_versions.json',self.versions)
         template=Path(__file__).with_name('v7_dashboard.html')
@@ -143,10 +134,11 @@ class V7Runtime(VLMRuntime):
         row['status']='stage_complete';self.publish()
         return results
 
-    def _prepare_stage(self,event_id,directory,task,images,snapshot,labels=None):
+    def _prepare_stage(self,event_id,directory,task,images,snapshot,labels=None,confirmation=False):
         directory.mkdir(parents=True,exist_ok=False)
         payload=copy.deepcopy(self.templates[task]);payload['model']=self.owner.model
         payload['messages'][0]['content']=self.stage_prompts[task]
+        if task in quality_v2.TASKS:payload=quality_v2.payload(task,self.owner.model,confirmation)
         if task=='pairwise':
             alias=images[0][0]
             if alias not in {'A','B','C'}:raise ValueError('pairwise request needs frozen candidate alias')
@@ -157,11 +149,16 @@ class V7Runtime(VLMRuntime):
         request['messages'][1]['images']=[dict(label=n,path=str(p.relative_to(self.root)),sha256=sha(p)) for n,p in images]
         save_json(directory/'request.json',request)
         save_json(directory/'input_manifest.json',dict(h_snapshot_uid=snapshot,task=task,labels=labels,
-            images=request['messages'][1]['images'],prompt_sha256=hashlib.sha256(self.stage_prompts[task].encode()).hexdigest()))
+            images=request['messages'][1]['images'],prompt_sha256=hashlib.sha256(payload['messages'][0]['content'].encode()).hexdigest()))
         print('[v7-stage]',event_id,task,'START',directory.name,flush=True)
-        return dict(directory=directory,task=task,snapshot=snapshot,labels=labels,payload=payload,request=request)
+        return dict(directory=directory,task=task,snapshot=snapshot,labels=labels,payload=payload,request=request,
+            event_id=event_id,original_images=images,quality_context=self.evidence.quality_contexts.get(str(images[0][1])) if task in quality_v2.TASKS else None)
 
     def _invoke_stage(self,item):
+        if item['task'] in quality_v2.TASKS:return self.quality_service.invoke(item)
+        return self._invoke_single_stage(item)
+
+    def _invoke_single_stage(self,item):
         directory,task,snapshot=item['directory'],item['task'],item['snapshot']
         started=time.perf_counter()
         result=dict(task=task,value=None,format_mode=None,error=None,h_snapshot_uid=snapshot,
@@ -302,7 +299,7 @@ class V7Runtime(VLMRuntime):
             removed.add(source_uid);redirect[source_uid]=target_uid;changed.update([source_uid,target_uid])
             _jsonl_append(self.root/'events'/proposal['parent_event']/'merge_executions.jsonl',dict(
                 status='MERGED',source_uid=source_uid,target_uid=target_uid,frame_idx=frame,
-                h_snapshot_uid=proposal['h_snapshot_uid'],policy='independent pair; two votes; unchanged snapshot'))
+                h_snapshot_uid=proposal['h_snapshot_uid'],policy='independent pair; quality-dependent votes; unchanged snapshot'))
         kept=[o for o in objects if str(o['id']) not in removed]
         new_index={str(o['id']):i for i,o in enumerate(kept)}
         def remap(idx):

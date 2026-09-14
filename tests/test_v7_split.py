@@ -84,7 +84,7 @@ class GateIntegration(unittest.TestCase):
             return dict(h_snapshot_uid='h'+str(frame),histories={a:dict(selected=[dict(uid=uids[a])]) for a in 'AB'},
                 selected_identity_histories={a:[dict(uid=uids[a])] for a in 'AB'})
         def render(directory,a,b,frame,binding):
-            for name in ['quality_A.jpg','quality_B.jpg','merge.png']:(directory/name).write_bytes(b'image')
+            for name in ['quality_A.png','quality_B.png','merge.png']:(directory/name).write_bytes(b'image')
             return binding
         runtime.evidence=SimpleNamespace(prepare_merge=prepare,render_merge=render,observations={},containment=LiveEvidence.containment)
         def stage(event,directory,task,images,snapshot,labels=None):
@@ -126,19 +126,21 @@ class GateIntegration(unittest.TestCase):
         self.b['pcd'].points=self.a['pcd'].points.copy()
         self.assertIsNotNone(self.review(3));self.assertEqual(len(self.calls),count)
         self.assertTrue(self.gate.events[-1]['vote_after']['locked'])
-    def test_insufficient_node_does_not_call_identity_or_vote_no(self):
-        self.quality='INSUFFICIENT'
+    def test_insufficient_node_continues_identity_and_requires_two_votes(self):
+        self.quality='INSUFFICIENT';self.answer='SAME'
         self.assertIsNotNone(self.review(1))
-        self.assertEqual(self.calls,['node_quality','node_quality'])
+        self.assertEqual(self.calls,['node_quality','node_quality','merge'])
         self.assertEqual(self.gate.events[-1]['vote_after']['reject_total'],0)
+        self.assertIsNone(self.review(2))
+        self.assertEqual(self.gate.events[-1]['vote_after']['merge_streak'],2)
     def test_same_frame_certificate_only_for_two_positive_votes(self):
-        self.answer='SAME';self.review(1);self.assertIsNone(self.review(2));count=len(self.calls)
+        self.quality='INSUFFICIENT';self.answer='SAME';self.review(1);self.assertIsNone(self.review(2));count=len(self.calls)
         self.assertIsNone(self.review(2));self.assertEqual(len(self.calls),count)
         self.gate.on_merged(self.a,self.b)
         self.assertEqual(self.gate.events[-1]['execution'],'MERGED')
     def test_positive_does_not_containment_check(self):
         self.b['pcd'].points=self.a['pcd'].points.copy();self.answer='SAME'
-        self.assertIsNotNone(self.review(1));self.assertIsNone(self.review(2));self.assertFalse(self.humans)
+        self.assertIsNone(self.review(1));self.assertFalse(self.humans)
     def test_same_frame_no_second_model_call(self):
         self.answer='SAME';self.review(1);count=len(self.calls);self.review(1)
         self.assertEqual(len(self.calls),count);self.assertEqual(self.gate.votes.state(self.gate.votes.key('a','b'))['merge_streak'],1)

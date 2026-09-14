@@ -45,7 +45,7 @@ class MergeEvidenceSmoke(unittest.TestCase):
                 fixture=GateIntegration();fixture.setUp();self.addCleanup(fixture.tearDown)
                 fixture.a,fixture.b=objects[:2]
                 gate=fixture.gate;votes=gate.votes;key=votes.key(*original_ids[:2])
-                fixture.answer='SAME'
+                fixture.answer='SAME';fixture.quality='INSUFFICIENT'
                 self.assertIsNotNone(fixture.review(1));self.assertIsNone(fixture.review(2))
                 self.assertEqual(gate.events[-1]['vote_after']['merge_streak'],2)
             else:
